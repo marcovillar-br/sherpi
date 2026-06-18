@@ -1,0 +1,349 @@
+---
+title: "Especificação Técnica"
+description: "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilidade, segurança e API."
+doc_type: tech-spec
+project: SHERPI
+status: approved
+version: 1.1
+updated: 2026-06-18
+language: pt-BR
+tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
+---
+
+# Especificação Técnica — SHERPI
+
+| Campo | Valor |
+|---|---|
+| Documento | Especificação Técnica |
+| Versão | 1.1 |
+| Status | Aprovado para POC |
+| Última atualização | 2026-06-18 |
+
+---
+
+## 1. Visão de arquitetura
+
+O SHERPI é um **monólito modular orientado a DDD** com **ports & adapters (arquitetura hexagonal)**. O código é organizado por **bounded context**, cada um com camadas `domain` → `application` → `infrastructure`. O **domínio é puro**: não importa FastAPI, SQL, PyMuPDF nem SDK de LLM. Toda dependência externa (LLM, banco, parser de PDF, embeddings, storage) é declarada como um **port** na camada interna e implementada como um **adapter** na infraestrutura. É assim que o sistema cumpre o requisito de ser **LLM-agnóstico**.
+
+Cada "skill" do requisito original vira uma **capacidade de um bounded context**, exposta como **domain service** (regra pura) ou **application use case** (orquestração), atrás de um port.
+
+### 1.1 Bounded contexts
+
+```mermaid
+flowchart TB
+    subgraph Interfaces["interfaces/api (FastAPI — driving adapter)"]
+        API[Rotas REST + JWT]
+    end
+
+    subgraph Orchestrator["application/analyze_petition (orquestrador cross-context)"]
+        ORCH[analyze_petition]
+    end
+
+    subgraph Core["petition_analysis — CORE DOMAIN"]
+        EXTRACT[ExtractPetition]
+        ADMISS[CheckAdmissibility]
+    end
+
+    subgraph DI["document_integrity — firewall (sem LLM)"]
+        DETECT[DetectInjection]
+    end
+
+    subgraph TAX["taxonomy — supporting (TPU)"]
+        TPU[SuggestTpu]
+    end
+
+    subgraph REV["review — supporting (human-in-the-loop)"]
+        REVIEW[RecordReview]
+    end
+
+    subgraph ID["identity — supporting (auth)"]
+        AUTH[Authenticate]
+    end
+
+    subgraph SK["shared_kernel (VOs e ports transversais)"]
+        VO[CPF, CNPJ, ValorCausa, RiskVerdict, Documento]
+        PORTS[LLMProvider, BlobStorage, Anonymizer]
+    end
+
+    API --> AUTH
+    API --> ORCH
+    API --> REVIEW
+    ORCH --> DETECT
+    ORCH --> EXTRACT
+    ORCH --> ADMISS
+    ORCH --> TPU
+    Core --> SK
+    DI --> SK
+    TAX --> SK
+```
+
+### 1.2 Fluxo do orquestrador `analyze_petition`
+
+O orquestrador é um **use case Python explícito** (uma função com um `if` de *early-exit*), não um framework de grafos. O fluxo é linear com um único ponto de bifurcação.
+
+```mermaid
+flowchart LR
+    A[PDF bytes] --> B[DetectInjection<br/>firewall PyMuPDF]
+    B --> C{verdict?}
+    C -->|BLOCK| Z[encerra:<br/>ForensicsReport<br/>sem LLM]
+    C -->|PASS / WARN| D[texto sanitizado<br/>+ Anonymizer]
+    D --> E[ExtractPetition<br/>LLM]
+    E --> F[CheckAdmissibility<br/>determinístico + semântico]
+    F --> G[SuggestTpu<br/>embedding + k-NN]
+    G --> H[Analysis persistida]
+```
+
+Regra inegociável: **se o firewall retornar `BLOCK`, o fluxo encerra sem nenhuma chamada de LLM** (economia de tokens + não alimentar o modelo com conteúdo manipulado).
+
+---
+
+## 2. Contratos das capacidades (entrada/saída)
+
+Os contratos são expressos como Value Objects (Pydantic) nas camadas de domínio. Os tipos abaixo são especificação, não código de implementação.
+
+### 2.1 Document Integrity — `DetectInjection` (firewall, sem LLM)
+
+- **Entrada**: bytes do PDF (`Documento`).
+- **Saída**: `ForensicsReport`.
+
+| VO | Campos | Descrição |
+|---|---|---|
+| `ForensicsReport` | `anomalies: list[Anomaly]`, `risk_score: float`, `verdict: RiskVerdict` | Laudo forense do documento. |
+| `Anomaly` | `vector: str`, `severity`, `location` (página/coordenadas), `evidence` | Uma ocorrência de vetor de injeção. |
+| `RiskVerdict` | `BLOCK \| WARN \| PASS` | Verdito gradual derivado do `risk_score`. |
+
+Determinístico, via **PyMuPDF**, fortemente unit-testado. É o **núcleo do produto**.
+
+### 2.2 Petition Analysis — `ExtractPetition`
+
+- **Entrada**: texto sanitizado (e anonimizado, se a flag estiver ativa).
+- **Saída**: `PetitionSummary`.
+
+| VO | Campos |
+|---|---|
+| `PetitionSummary` | `partes: list[Parte]`, `fato_gerador: str`, `fundamentacao: str`, `pedidos: list[Pedido]`, `tem_liminar: bool`, `valor_causa: ValorCausa` |
+| `Parte` | `nome`, `documento: CPF \| CNPJ`, `polo` (ativo/passivo), `endereco?` |
+| `Pedido` | `descricao`, `tipo` (principal/liminar/subsidiário) |
+
+Chamada com `temperature=0`; **saída validada por schema com retry**; *chunking* para petições com mais de ~100 páginas.
+
+### 2.3 Petition Analysis — `CheckAdmissibility` (híbrida)
+
+- **Entrada**: `PetitionSummary` + texto.
+- **Saída**: `AdmissibilityReport`.
+
+| VO | Campos |
+|---|---|
+| `AdmissibilityReport` | `checklist: list[ChecklistItem]`, `semaforo` (verde/amarelo/vermelho), `requer_emenda: bool` |
+| `ChecklistItem` | `requisito` (art. 319), `presente: bool`, `metodo` (determinístico/semântico) |
+
+- **Validadores determinísticos**: checksum de CPF/CNPJ (`validate-docbr`), presença de valor da causa, presença de pedidos.
+- **Extração semântica**: menções a documentos (ex.: comprovante de residência), que **não** são detectáveis por regex — separadas explicitamente dos validadores estruturados.
+
+### 2.4 Taxonomy — `SuggestTpu`
+
+- **Entrada**: texto da petição.
+- **Saída**: top-3 `TpuSuggestion`.
+
+| VO | Campos |
+|---|---|
+| `TpuSuggestion` | `code: TpuCode`, `descricao`, `confianca: float` |
+
+Embedding local (JurisBERT via HuggingFace) + **k-NN** sobre um conjunto-semente rotulado, indexado em pgvector. Acurácia **medida no eval, sem prometer número**.
+
+---
+
+## 3. Camada LLM-agnóstica (port & adapter)
+
+O port `LLMProvider` vive na fronteira domínio/aplicação. Assinatura conceitual:
+
+```
+LLMProvider.complete(messages, response_schema) -> objeto validado
+```
+
+| Adapter | Papel |
+|---|---|
+| `gemini.py` | **DEFAULT** — Google Gemini Flash (contexto grande, free tier acadêmico). |
+| `openai_compat.py` | Maritaca Sabiá / OpenAI / Ollama — troca via `base_url` + modelo no `config.py`. |
+| `fake.py` | `FakeProvider` determinístico, sem rede, para testes. |
+
+Trocar de LLM = trocar um adapter via `config.py`, **sem tocar no domínio**. Modelos não são hardcodados; vêm de configuração.
+
+---
+
+## 4. Estratégia de dados
+
+- **Synthetic-first**: gerador de petições sintéticas (limpas + com injeções plantadas de cada vetor). Evita LGPD/segredo de justiça e fornece *ground truth* para o eval e para a calibração do firewall.
+- **Seed TPU**: conjunto-semente rotulado de textos → códigos TPU, embeddado e indexado em pgvector para o k-NN.
+- **Persistência**: PostgreSQL + pgvector (relacional + embeddings num só sistema), via SQLModel + Alembic. Blobs de PDF atrás do port `BlobStorage` (LocalFS no POC → S3/MinIO na Fase 4). *Content hash* para idempotência/deduplicação.
+
+---
+
+## 5. Metodologia de avaliação (métricas)
+
+`uv run python -m evals.run` roda o eval sobre o dataset rotulado; o CI falha abaixo do limiar.
+
+| Capacidade | Métrica |
+|---|---|
+| Firewall | Precision/Recall por vetor de injeção plantado; tempo por documento. |
+| Extração | F1 por campo vs. ground truth sintético. |
+| Admissibilidade | Acurácia do checklist (determinístico exato; semântico medido). |
+| TPU | Acurácia top-1 e top-3 sobre o seed (reportada honestamente). |
+
+Princípio: **nenhuma métrica é prometida** antes de medida. Em particular, **não** se afirma "90% na TPU".
+
+---
+
+## 6. Interpretabilidade e explicabilidade dos modelos
+
+A interpretabilidade é um requisito de primeira classe do SHERPI — tanto por ser tópico nominal da
+disciplina quanto por exigência jurídica: a Resolução CNJ 615/2025 impõe **supervisão humana criteriosa**,
+e um magistrado só pode supervisionar o que consegue **entender**. Cada capacidade adota a técnica de
+explicabilidade adequada à sua natureza (caixa-branca quando possível; *grounding* e exemplos quando o
+modelo é caixa-preta).
+
+| Capacidade | Natureza | Estratégia de interpretabilidade |
+|---|---|---|
+| **Firewall** (`DetectInjection`) | Caixa-branca (determinística) | O `ForensicsReport` é a própria explicação: lista cada `Anomaly` com vetor, severidade, **localização** (página/coordenadas) e **evidência** (o trecho oculto extraído). Reproduzível: mesma entrada → mesmo laudo. |
+| **Extração** (`ExtractPetition`) | Caixa-preta (LLM) | *Source grounding*: cada campo extraído carrega a **proveniência** (trecho/offset da petição que o sustenta), exibida ao lado do PDF. **Abstenção**: o schema permite `null` — o modelo declara "não encontrado" em vez de alucinar. `temperature=0` para reprodutibilidade. |
+| **Admissibilidade** (`CheckAdmissibility`) | Híbrida | Itens determinísticos são autoexplicativos (qual requisito, presente/ausente, e o `metodo`); itens semânticos citam a evidência textual. O `semaforo` rastreia até o item que o motivou. |
+| **TPU** (`SuggestTpu`) | Interpretável por construção | k-NN é **explicação baseada em exemplos**: cada sugestão expõe os **vizinhos mais próximos do seed** que a motivaram e a **similaridade de cosseno** como confiança — não há *softmax* opaco. |
+
+### 6.1 Confiança e calibração
+
+Toda saída de modelo carrega um escore de confiança comparável: similaridade de cosseno (TPU) e
+*risk_score* (firewall). Confiança baixa **não** é escondida — é sinalizada na UI para priorizar a
+atenção do revisor. A calibração desses escores é medida no *eval* (§5), nunca assumida.
+
+### 6.2 Human-in-the-loop como camada final de interpretabilidade
+
+Nenhuma saída do SHERPI é uma decisão automática — é **insumo** para o humano. A UI apresenta, lado a
+lado: o PDF renderizado, as extrações com proveniência, o laudo forense e as sugestões de TPU com seus
+exemplos-âncora. Cada revisão humana (aceitar/rejeitar/corrigir) é registrada como `AuditEvent`,
+fechando o laço de explicabilidade e accountability (a base do retreino futuro na Fase 4).
+
+---
+
+## 7. Modelo de segurança do firewall
+
+O firewall inspeciona o PDF em busca dos vetores de injeção mapeados na seção 2.3 do relatório de pesquisa. Detecção determinística via PyMuPDF (acesso a cores, tamanho de fonte, coordenadas, camadas, metadados).
+
+| Vetor | Forma de ataque | Heurística de detecção |
+|---|---|---|
+| **Branco-no-branco** | Fonte na mesma cor do fundo (contraste ~zero). | Comparar cor do glifo com cor de fundo da página; flag se contraste ≈ 0. |
+| **Fonte < 1pt** | Glifos microscópicos invisíveis ao humano. | Flag de spans com tamanho de fonte abaixo de limiar (ex.: < 1pt). |
+| **Fora da CropBox** | Texto posicionado fora da área visível/recortada. | Comparar coordenadas do span com a CropBox; flag se fora dos limites. |
+| **Unicode U+200B** | Zero-width space e similares invisíveis. | Detectar caracteres invisíveis/zero-width no stream de texto. |
+| **OCG oculto** | Camadas (Optional Content Groups) desativadas/OFF carregando texto. | Inspecionar OCGs com visibilidade OFF que contenham texto. |
+| **/ActualText divergente** | Dicionário de acessibilidade diverge da camada renderizada. | Comparar `/ActualText` com o texto visível; flag em divergência. |
+| **XMP/metadados suspeitos** | Comandos em `/Info`, `/Subject`, `/Keywords`, XMP. | Inspecionar metadados em busca de instruções imperativas. |
+
+O `risk_score` agrega as anomalias; o `verdict` (`BLOCK/WARN/PASS`) é derivado dele. **O firewall é heurístico e não cobre todos os vetores possíveis** — por isso há defesa em profundidade com *defensive prompting* no LLM (texto tratado como dado, não instrução; delimitadores; separação instrução/conteúdo).
+
+---
+
+## 8. Contrato da API REST
+
+FastAPI como **driving adapter**. Rotas de análise protegidas por JWT (cookie httpOnly).
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| `POST` | `/auth/login` | não | OAuth2 password flow; retorna JWT (cookie httpOnly). |
+| `POST` | `/analyze` | JWT | Recebe PDF (multipart); roda o orquestrador; retorna análise consolidada. |
+| `GET` | `/analyses/{id}` | JWT | Retorna a análise persistida. |
+| `POST` | `/analyses/{id}/review` | JWT | Registra a decisão de revisão humana; grava `AuditEvent`. |
+| `GET` | `/health` | não | Liveness. |
+| `GET` | `/ready` | não | Readiness (checa DB). |
+
+### 8.1 `POST /auth/login`
+
+- **Request**: `application/x-www-form-urlencoded` — `username`, `password`.
+- **200**: JWT emitido (corpo + cookie httpOnly+Secure+SameSite).
+- **401**: credenciais inválidas. **429**: lockout por brute-force.
+
+### 8.2 `POST /analyze`
+
+- **Request**: `multipart/form-data` — campo `file` (PDF).
+- **200**: objeto consolidado `{ id, forensics_report, petition_summary?, admissibility_report?, tpu_suggestions? }`. Quando `verdict = BLOCK`, vêm apenas `id` e `forensics_report` (sem campos de LLM).
+- **401**: sem token. **413**: arquivo grande demais. **415**: não é PDF. **422**: payload inválido.
+
+### 8.3 `GET /analyses/{id}`
+
+- **200**: a análise persistida. **401**: sem token. **404**: inexistente.
+
+### 8.4 `POST /analyses/{id}/review`
+
+- **Request**: `application/json` — `{ decision: "ACCEPT" | "REJECT" | "CORRECT", notes?, corrected_fields? }`.
+- **201**: `AuditEvent` gravado, vinculado ao usuário autenticado. **401**: sem token. **404**: análise inexistente.
+
+Erros são consistentes e **não vazam stack trace**; validação de entrada via Pydantic (→ 422).
+
+---
+
+## 9. Diagramas de sequência
+
+### 9.1 Análise de petição (caminho feliz)
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário (autenticado)
+    participant API as FastAPI
+    participant ORCH as analyze_petition
+    participant DI as DetectInjection
+    participant AN as Anonymizer
+    participant LLM as LLMProvider (Gemini)
+    participant ADM as CheckAdmissibility
+    participant TPU as SuggestTpu
+    participant DB as Repository (PG+pgvector)
+
+    U->>API: POST /analyze (PDF) + JWT
+    API->>ORCH: analyze_petition(pdf)
+    ORCH->>DI: detect(pdf)
+    DI-->>ORCH: ForensicsReport(verdict=PASS)
+    ORCH->>AN: anonimiza(texto)
+    AN-->>ORCH: texto sanitizado
+    ORCH->>LLM: complete(texto, schema)
+    LLM-->>ORCH: PetitionSummary
+    ORCH->>ADM: check(summary, texto)
+    ADM-->>ORCH: AdmissibilityReport
+    ORCH->>TPU: suggest(texto)
+    TPU-->>ORCH: top-3 TpuSuggestion
+    ORCH->>DB: salva Analysis
+    API-->>U: 200 análise consolidada
+```
+
+### 9.2 Bloqueio por prompt injection
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário (autenticado)
+    participant API as FastAPI
+    participant ORCH as analyze_petition
+    participant DI as DetectInjection
+    participant DB as Repository
+
+    U->>API: POST /analyze (PDF malicioso) + JWT
+    API->>ORCH: analyze_petition(pdf)
+    ORCH->>DI: detect(pdf)
+    DI-->>ORCH: ForensicsReport(verdict=BLOCK)
+    Note over ORCH,DB: early-exit — NENHUMA chamada LLM
+    ORCH->>DB: salva Analysis (apenas forensics)
+    API-->>U: 200 ForensicsReport (tarja vermelha)
+```
+
+---
+
+## 10. Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Backend | Python ≥3.10, FastAPI, uv |
+| Firewall | PyMuPDF |
+| LLM | google-genai (default) + openai (Maritaca/compat); FakeProvider |
+| Embeddings TPU | sentence-transformers/transformers (JurisBERT) |
+| Validação | Pydantic, pydantic-settings, validate-docbr |
+| Persistência | PostgreSQL + pgvector, SQLModel, Alembic, psycopg |
+| Auth | passlib[bcrypt], pyjwt, OAuth2 password flow |
+| Frontend | Next.js + TypeScript + Tailwind + shadcn/ui + react-pdf (PDF.js) |
+| Infra local | docker-compose (apenas Postgres+pgvector) |
+| Qualidade | pytest, ruff, mypy, pre-commit, pip-audit (CI) |
