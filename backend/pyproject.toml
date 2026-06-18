@@ -76,10 +76,13 @@ plugins = ["pydantic.mypy"]
 module = ["pymupdf.*", "fitz", "validate_docbr.*", "pgvector.*", "sentence_transformers.*"]
 ignore_missing_imports = true
 
-# PyMuPDF é uma lib sem tipos. Adapters que a envelopam relaxam apenas a
-# proibição de chamadas não-tipadas; o domínio puro permanece strict.
+# PyMuPDF é uma lib sem tipos. Adapters/ferramentas que a envelopam relaxam
+# apenas a proibição de chamadas não-tipadas; o domínio puro permanece strict.
 [[tool.mypy.overrides]]
-module = "sherpi.contexts.document_integrity.infrastructure.pymupdf_parser"
+module = [
+    "sherpi.contexts.document_integrity.infrastructure.pymupdf_parser",
+    "synthetic.*",
+]
 disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
