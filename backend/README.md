@@ -9,7 +9,7 @@ Documentação de produto e arquitetura: [`../docs/`](../docs/)
 ## Pré-requisitos
 
 - Python ≥ 3.12 e [uv](https://docs.astral.sh/uv/)
-- Docker (apenas para o Postgres + pgvector — ver [ADR-0006](../docs/adr/0006-docker-apenas-banco.md))
+- Docker (apenas para o Postgres + pgvector — ver [ADR-0006](../docs/adr/0006-docker-db-only.md))
 
 ## Setup
 
