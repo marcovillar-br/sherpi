@@ -95,15 +95,15 @@ META: dict[str, dict[str, object]] = {
         "status": "reference",
         "tags": ["adr", "arquitetura", "index"],
     },
-    "pgp.md": {
-        "title": "Plano de Gerenciamento do Projeto (PGP)",
+    "pmp.md": {
+        "title": "Plano de Gerenciamento do Projeto (PGP / PMP)",
         "description": "Escopo, tempo, custos, riscos, equipe, comunicação e qualidade do projeto SHERPI.",
-        "doc_type": "pgp",
+        "doc_type": "pmp",
         "status": "approved",
-        "tags": ["gerenciamento-de-projeto", "pgp", "escopo", "riscos", "cronograma"],
+        "tags": ["gerenciamento-de-projeto", "pgp", "pmp", "escopo", "riscos", "cronograma"],
     },
-    "eap.md": {
-        "title": "Estrutura Analítica do Projeto (EAP/WBS)",
+    "wbs.md": {
+        "title": "Estrutura Analítica do Projeto (EAP / WBS)",
         "description": "Decomposição hierárquica do trabalho do SHERPI, com Gerenciamento de Projeto e Gestão e Rituais Ágeis.",
         "doc_type": "wbs",
         "status": "approved",
