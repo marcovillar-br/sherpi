@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- SHERPI ---
+# Dados gerados/enviados: uploads (PII) e corpus sintético regenerável
+backend/data/
+# Frontend (Next.js)
+node_modules/
+.next/
+out/
+frontend/.env*.local
+# Modelos de ML baixados (HuggingFace cache local)
+.cache/huggingface/
