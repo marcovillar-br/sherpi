@@ -55,5 +55,5 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 
 | Documento | Conteúdo |
 |---|---|
-| [sherpi-deep-research-v1.md](sherpi-deep-research-v1.md) | Relatório de pesquisa que justifica o produto (diagnóstico do Judiciário, gargalos, oportunidades de IA, proposta do MVP). |
+| [sherpi-deep-research-v1.md](archive/sherpi-deep-research-v1.md) | Relatório de pesquisa que justifica o produto (diagnóstico do Judiciário, gargalos, oportunidades de IA, proposta do MVP). |
 | [course-syllabus.md](course-syllabus.md) | Ementa da disciplina DAIA (contexto acadêmico do trabalho). |

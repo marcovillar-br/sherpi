@@ -44,7 +44,7 @@ A proposta de valor é **devolver tempo cognitivo** ao magistrado e à sua equip
 
 ## 2. Problema (diagnóstico)
 
-O Judiciário brasileiro opera sob pressão de demanda sem paralelo. O relatório de pesquisa (`sherpi-deep-research-v1.md`) identifica três gargalos na porta de entrada do processo, todos atacados pelo SHERPI.
+O Judiciário brasileiro opera sob pressão de demanda sem paralelo. O relatório de pesquisa (`archive/sherpi-deep-research-v1.md`) identifica três gargalos na porta de entrada do processo, todos atacados pelo SHERPI.
 
 ### 2.1 Litigiosidade e sobrecarga
 
@@ -168,7 +168,7 @@ As métricas abaixo são **metas a medir** no eval harness sobre o dataset sint�
 
 ## 9. Referências
 
-- `docs/sherpi-deep-research-v1.md` — relatório de pesquisa (diagnóstico, vetores de injeção, proposta de MVP).
+- `docs/archive/sherpi-deep-research-v1.md` — relatório de pesquisa (diagnóstico, vetores de injeção, proposta de MVP).
 - `docs/tech-spec-sherpi.md` — especificação técnica.
 - `docs/roadmap.md` — roadmap idea→produção.
 - `docs/threat-model.md` / `docs/security.md` — segurança.

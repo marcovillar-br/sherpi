@@ -74,7 +74,7 @@ META: dict[str, dict[str, object]] = {
         "status": "approved",
         "tags": ["seguranca", "confiabilidade", "lgpd", "observabilidade"],
     },
-    "sherpi-deep-research-v1.md": {
+    "archive/sherpi-deep-research-v1.md": {
         "title": "Relatório de Pesquisa — SHERPI",
         "description": "Diagnóstico do Judiciário, gargalos, oportunidades de IA e proposta do MVP.",
         "doc_type": "research",

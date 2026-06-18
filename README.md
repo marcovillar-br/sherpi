@@ -17,7 +17,7 @@ Tudo sob **supervisão humana obrigatória** (*human-in-the-loop*) e *synthetic-
 em conformidade com a Resolução CNJ 615/2025 e a LGPD.
 
 > Projeto da disciplina **Desenvolvimento Ágil para Projetos de IA (DAIA)**.
-> Origem e justificativa: [`docs/sherpi-deep-research-v1.md`](docs/sherpi-deep-research-v1.md).
+> Origem e justificativa: [`docs/archive/sherpi-deep-research-v1.md`](docs/archive/sherpi-deep-research-v1.md).
 
 ## Arquitetura
 
