@@ -1,7 +1,7 @@
 """Base de Domain Events.
 
 Eventos registram fatos relevantes do domínio (ex.: injeção detectada, análise
-concluída, revisão registrada). No POC são usados para a trilha de auditoria
+concluída, revisão registrada). No MVP são usados para a trilha de auditoria
 append-only (Res. CNJ 615/2025); na Fase 4 podem alimentar um message bus.
 
 O timestamp é injetado por quem cria o evento (a camada de aplicação), nunca

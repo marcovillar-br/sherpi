@@ -21,8 +21,8 @@ tags: [agil, scrum, kanban, design-sprint, papeis, processo]
 
 > Este documento registra **como** o SHERPI é desenvolvido — papéis, artefatos e cerimônias —
 > tornando explícita a metodologia ágil exigida pela ementa e pelo Guia de Diretrizes. Complementa o
-> [`roadmap.md`](roadmap.md) (o *o quê* e *quando*), o [`pgp.md`](pgp.md) (gerência do projeto), a
-> [`eap.md`](eap.md) (EAP) e o [`backlog.md`](backlog.md) (backlog do produto e das sprints).
+> [`roadmap.md`](roadmap.md) (o *o quê* e *quando*), o [`pmp.md`](pmp.md) (gerência do projeto), a
+> [`wbs.md`](wbs.md) (EAP) e o [`backlog.md`](backlog.md) (backlog do produto e das sprints).
 
 ## 1. Por que ágil em um projeto de IA
 
@@ -68,7 +68,7 @@ fornece os *guard-rails* (CI, *eval gate*, telemetria) que tornam cada iteraçã
 
 O backlog completo (Épicos → histórias) e o Sprint Backlog (tasks estimadas) são mantidos em
 [`backlog.md`](backlog.md), conforme a divisão **visão completa × escopo de execução** exigida pelo
-Guia. A EAP está em [`eap.md`](eap.md). Resumo abaixo.
+Guia. A EAP está em [`wbs.md`](wbs.md). Resumo abaixo.
 
 ### 3.1 Metas das Sprints (recorte do MVP — 2 semanas)
 

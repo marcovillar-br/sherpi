@@ -1,5 +1,5 @@
 ---
-title: "Estrutura Analítica do Projeto (EAP/WBS)"
+title: "Estrutura Analítica do Projeto (EAP / WBS)"
 description: "Decomposição hierárquica do trabalho do SHERPI, com Gerenciamento de Projeto e Gestão e Rituais Ágeis."
 doc_type: wbs
 project: SHERPI
@@ -42,7 +42,7 @@ flowchart TD
 - **1.1.2 Gestão de Escopo** — Backlog do Produto, Sprint Backlog, esta EAP, controle de mudanças.
 - **1.1.3 Gestão de Tempo** — cronograma das 2 sprints, marcos (M1–M3), acompanhamento.
 - **1.1.4 Gestão de Custos** — *free tier* do LLM, infra local, guarda de tokens.
-- **1.1.5 Gestão de Riscos** — registro e mitigação de riscos (ver [`pgp.md`](pgp.md) §5).
+- **1.1.5 Gestão de Riscos** — registro e mitigação de riscos (ver [`pmp.md`](pmp.md) §5).
 - **1.1.6 Comunicação e Qualidade** — canais, *Definition of Done*, gate de CI.
 
 ### 1.2 Engenharia do Produto

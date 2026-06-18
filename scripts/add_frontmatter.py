@@ -95,15 +95,15 @@ META: dict[str, dict[str, object]] = {
         "status": "reference",
         "tags": ["adr", "arquitetura", "index"],
     },
-    "pgp.md": {
-        "title": "Plano de Gerenciamento do Projeto (PGP)",
+    "pmp.md": {
+        "title": "Plano de Gerenciamento do Projeto (PGP / PMP)",
         "description": "Escopo, tempo, custos, riscos, equipe, comunicação e qualidade do projeto SHERPI.",
-        "doc_type": "pgp",
+        "doc_type": "pmp",
         "status": "approved",
-        "tags": ["gerenciamento-de-projeto", "pgp", "escopo", "riscos", "cronograma"],
+        "tags": ["gerenciamento-de-projeto", "pgp", "pmp", "escopo", "riscos", "cronograma"],
     },
-    "eap.md": {
-        "title": "Estrutura Analítica do Projeto (EAP/WBS)",
+    "wbs.md": {
+        "title": "Estrutura Analítica do Projeto (EAP / WBS)",
         "description": "Decomposição hierárquica do trabalho do SHERPI, com Gerenciamento de Projeto e Gestão e Rituais Ágeis.",
         "doc_type": "wbs",
         "status": "approved",
@@ -121,12 +121,12 @@ META: dict[str, dict[str, object]] = {
 # ADRs: título derivado, doc_type=adr, status=accepted
 _ADRS = {
     "adr/0001-ddd-hexagonal.md": "ADR-0001: DDD modular monolith + hexagonal",
-    "adr/0002-orquestrador-explicito-vs-langgraph.md": "ADR-0002: Orquestrador explícito vs. LangGraph",
-    "adr/0003-llm-agnostico-via-port.md": "ADR-0003: Camada LLM-agnóstica via port",
+    "adr/0002-explicit-orchestrator-vs-langgraph.md": "ADR-0002: Orquestrador explícito vs. LangGraph",
+    "adr/0003-llm-agnostic-via-port.md": "ADR-0003: Camada LLM-agnóstica via port",
     "adr/0004-postgres-pgvector.md": "ADR-0004: PostgreSQL + pgvector",
     "adr/0005-gemini-flash-default.md": "ADR-0005: Gemini Flash como LLM default",
-    "adr/0006-docker-apenas-banco.md": "ADR-0006: Docker apenas para o banco",
-    "adr/0007-auth-jwt-perfil-unico.md": "ADR-0007: Autenticação JWT com perfil único",
+    "adr/0006-docker-db-only.md": "ADR-0006: Docker apenas para o banco",
+    "adr/0007-auth-jwt-single-profile.md": "ADR-0007: Autenticação JWT com perfil único",
 }
 for rel, title in _ADRS.items():
     META[rel] = {

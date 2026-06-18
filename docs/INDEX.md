@@ -26,8 +26,8 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 
 | Documento | Conteúdo |
 |---|---|
-| [pgp.md](pgp.md) | Plano de Gerenciamento do Projeto: escopo, tempo, custos, riscos, equipe, comunicação e qualidade. |
-| [eap.md](eap.md) | Estrutura Analítica do Projeto (EAP/WBS), com Gerenciamento de Projeto e Gestão e Rituais Ágeis. |
+| [pmp.md](pmp.md) | Plano de Gerenciamento do Projeto: escopo, tempo, custos, riscos, equipe, comunicação e qualidade. |
+| [wbs.md](wbs.md) | Estrutura Analítica do Projeto (EAP/WBS), com Gerenciamento de Projeto e Gestão e Rituais Ágeis. |
 | [backlog.md](backlog.md) | Backlog do Produto (épicos→histórias) + Sprint Backlog (tasks estimadas das 2 sprints). |
 
 ## Processo (metodologia ágil)

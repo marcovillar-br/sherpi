@@ -1,20 +1,20 @@
 ---
-title: "Plano de Gerenciamento do Projeto (PGP)"
+title: "Plano de Gerenciamento do Projeto (PGP / PMP)"
 description: "Escopo, tempo, custos, riscos, equipe, comunicação e qualidade do projeto SHERPI."
-doc_type: pgp
+doc_type: pmp
 project: SHERPI
 status: approved
 version: 1.0
 updated: 2026-06-18
 language: pt-BR
-tags: [gerenciamento-de-projeto, pgp, escopo, riscos, cronograma]
+tags: [gerenciamento-de-projeto, pgp, pmp, escopo, riscos, cronograma]
 ---
 
-# Plano de Gerenciamento do Projeto (PGP) — SHERPI
+# Plano de Gerenciamento do Projeto (PGP / PMP) — SHERPI
 
 Documento sob responsabilidade do **Gerente de Projeto (GP)**, focado no **escopo do projeto**.
 Complementa o backlog (responsabilidade do PO, [`backlog.md`](backlog.md)) e a
-[`eap.md`](eap.md). Conforme o Guia de Diretrizes da disciplina.
+[`wbs.md`](wbs.md). Conforme o Guia de Diretrizes da disciplina.
 
 ## 1. Identificação
 

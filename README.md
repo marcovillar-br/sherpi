@@ -74,7 +74,7 @@ Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/READM
 | [`docs/prd-sherpi.md`](docs/prd-sherpi.md) | Requisitos de produto, personas, métricas |
 | [`docs/tech-spec-sherpi.md`](docs/tech-spec-sherpi.md) | Arquitetura, contratos, API, diagramas |
 | [`docs/roadmap.md`](docs/roadmap.md) | MVP em 2 sprints, *Definition of Done*, visão de futuro |
-| [`docs/pgp.md`](docs/pgp.md) · [`docs/eap.md`](docs/eap.md) · [`docs/backlog.md`](docs/backlog.md) | Gerenciamento de projeto: PGP, EAP/WBS e backlog (produto + sprints) |
+| [`docs/pmp.md`](docs/pmp.md) · [`docs/wbs.md`](docs/wbs.md) · [`docs/backlog.md`](docs/backlog.md) | Gerenciamento de projeto: PGP, EAP/WBS e backlog (produto + sprints) |
 | [`docs/agile-process.md`](docs/agile-process.md) | Papéis, Design Sprint, Kanban, cerimônias, retrospectivas |
 | [`docs/ddd-context-map.md`](docs/ddd-context-map.md) | Mapa de contextos + linguagem ubíqua |
 | [`docs/adr/`](docs/adr/) | Decisões de arquitetura (ADRs) |
@@ -86,4 +86,4 @@ Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/READM
 - **Sprint 2** — Admissibilidade + orquestrador + persistência + UI mínima + eval → **MVP concluído**
 - **Futuro (Fase 4)** — TPU, autenticação, auditoria, integração PJe/E-Proc, observabilidade, deploy
 
-Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pgp.md`](docs/pgp.md), [`docs/eap.md`](docs/eap.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).
+Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pmp.md`](docs/pmp.md), [`docs/wbs.md`](docs/wbs.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).
