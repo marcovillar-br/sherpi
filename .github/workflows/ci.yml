@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Sync deps
+        run: uv sync --dev
+      - name: Lint (ruff)
+        run: uv run ruff check .
+      - name: Format check (ruff)
+        run: uv run ruff format --check .
+      - name: Type check (mypy)
+        run: uv run mypy src/ evals/
+      - name: Tests
+        run: uv run pytest -q
+      - name: Eval gate
+        run: uv run python -m evals.run --ci
+      - name: Supply-chain audit
+        run: uv run pip-audit || true  # não bloqueia o MVP; falha vira gate na Fase 4
+
+  # O job de frontend é adicionado na Sprint 2, junto do scaffold do Next.js
+  # (ver docs/roadmap.md). Enquanto frontend/ não existir, o job ficaria sem
+  # diretório de trabalho e falharia — por isso está desativado.
+  # frontend:
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: frontend
+  #   steps:
+  #     - uses: actions/checkout@v7
+  #     - uses: actions/setup-node@v6
+  #       with:
+  #         node-version: "22"
+  #     - run: npm ci
+  #     - run: npm run lint
+  #     - run: npm run build

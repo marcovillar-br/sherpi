@@ -1,0 +1,22 @@
+# Apenas a dependência com estado roda em container (decisão ADR-0006).
+# Backend (uv) e frontend (npm) rodam nativos em dev para hot reload.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: sherpi-db
+    environment:
+      POSTGRES_USER: sherpi
+      POSTGRES_PASSWORD: sherpi
+      POSTGRES_DB: sherpi
+    ports:
+      - "5432:5432"
+    volumes:
+      - sherpi_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sherpi -d sherpi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sherpi_pgdata:
