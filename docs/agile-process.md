@@ -1,13 +1,13 @@
 ---
 title: "Processo Ágil de Desenvolvimento"
-description: "Papéis (8 integrantes), backlog, Kanban, cerimônias e retrospectivas."
+description: "Papéis (8 integrantes), Design Sprint, Kanban, cerimônias e retrospectivas."
 doc_type: process
 project: SHERPI
 status: approved
-version: 1.0
+version: 1.1
 updated: 2026-06-18
 language: pt-BR
-tags: [agil, scrum, kanban, papeis, processo]
+tags: [agil, scrum, kanban, design-sprint, papeis, processo]
 ---
 
 # Processo Ágil — SHERPI
@@ -16,12 +16,13 @@ tags: [agil, scrum, kanban, papeis, processo]
 |---|---|
 | Documento | Processo Ágil de Desenvolvimento |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
-| Framework | Scrum adaptado ao contexto de IA, com quadro Kanban |
-| Versão | 1.0 |
+| Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; **2 Sprints / 2 semanas** |
+| Versão | 1.1 |
 
 > Este documento registra **como** o SHERPI é desenvolvido — papéis, artefatos e cerimônias —
-> tornando explícita a metodologia ágil exigida pela ementa. Complementa o
-> [`roadmap.md`](roadmap.md) (o *o quê* e *quando*) com o *como*.
+> tornando explícita a metodologia ágil exigida pela ementa e pelo Guia de Diretrizes. Complementa o
+> [`roadmap.md`](roadmap.md) (o *o quê* e *quando*), o [`pgp.md`](pgp.md) (gerência do projeto), a
+> [`eap.md`](eap.md) (EAP) e o [`backlog.md`](backlog.md) (backlog do produto e das sprints).
 
 ## 1. Por que ágil em um projeto de IA
 
@@ -29,13 +30,13 @@ Projetos de IA têm incerteza intrínseca que o desenvolvimento em cascata não 
 de antemão, se um modelo atingirá a acurácia necessária nem se uma abordagem (ex.: classificador TPU)
 é viável com os dados disponíveis. O ágil responde a isso com **iteração curta e validação empírica**:
 cada sprint entrega uma fatia funcional e mensurável, e o *eval harness* fecha o ciclo de feedback
-quantitativo. Decisões arriscadas (firewall, viabilidade da TPU) são atacadas **cedo**, reduzindo o
-risco de descobrir tarde que algo não funciona.
+quantitativo. Decisões arriscadas (firewall, qualidade da extração via LLM) são atacadas **cedo**,
+reduzindo o risco de descobrir tarde que algo não funciona.
 
 Fundamentos aplicados: Scrum como framework de cadência e papéis (Sutherland & Schwaber, *The Scrum
 Guide*, 2017); colaboração como "jogo cooperativo" de comunicação entre os papéis (Cockburn, *Agile
 Software Development*, 2015). O LeSS (Larman & Vodde, 2016) é a referência de escala para quando o
-produto crescer além de um time (Fase 4); no POC, mantém-se **um único time multidisciplinar**.
+produto crescer além de um time (Fase 4); no MVP, mantém-se **um único time multidisciplinar**.
 
 ## 2. Papéis (colaboração interdisciplinar)
 
@@ -46,7 +47,7 @@ maior superfície do projeto e por API e frontend serem desacoplados.
 
 | # | Papel | Integrantes | Responsabilidade | Foco no SHERPI |
 |---|---|---|---|---|
-| 0 | **Gerente de Projeto (GP)** | 1 | Cronograma, escopo, riscos, *stakeholders* e entregas acadêmicas. | Garante a entrega do POC em 3 sprints e a defesa do trabalho. |
+| 0 | **Gerente de Projeto (GP)** | 1 | Cronograma, escopo, riscos, *stakeholders* e entregas acadêmicas. | Garante a entrega do MVP em 2 sprints e a defesa do trabalho. |
 | 1 | **Product Owner (PO)** | 1 | Prioriza o backlog, define valor e *Definition of Done*. | Mantém o foco no gargalo de triagem e no *human-in-the-loop*. |
 | 2 | **Scrum Master** | 1 | Facilita as cerimônias, remove impedimentos, protege o time. | Conduz planning/review/retro; cuida do quadro Kanban e do WIP. |
 | 3 | **Arquiteto de Sistemas (Multiagentes)** | 1 | Desenho da arquitetura e dos contratos entre capacidades. | DDD hexagonal, *ports & adapters*, orquestrador que compõe as *skills* (firewall → extração → admissibilidade → TPU). |
@@ -65,35 +66,24 @@ fornece os *guard-rails* (CI, *eval gate*, telemetria) que tornam cada iteraçã
 
 ## 3. Artefatos
 
-### 3.1 Product Backlog (priorizado por valor × risco)
+O backlog completo (Épicos → histórias) e o Sprint Backlog (tasks estimadas) são mantidos em
+[`backlog.md`](backlog.md), conforme a divisão **visão completa × escopo de execução** exigida pelo
+Guia. A EAP está em [`eap.md`](eap.md). Resumo abaixo.
 
-| # | Item (história / capacidade) | Valor | Risco | Sprint |
-|---|---|---|---|---|
-| 1 | Firewall que bloqueia *prompt injection* antes do LLM | Alto | Alto | 1 |
-| 2 | Gerador de dados sintéticos rotulados (sem LGPD) | Alto | Médio | 1 |
-| 3 | Extração estruturada da petição (LLM, agnóstico) | Alto | Alto | 2 |
-| 4 | Checagem de admissibilidade (arts. 319/321) | Alto | Médio | 2 |
-| 5 | Classificação TPU (embeddings + k-NN) | Médio | **Alto** | 2 |
-| 6 | Persistência + auditoria | Médio | Baixo | 2 |
-| 7 | Autenticação (perfil único) | Médio | Baixo | 3 |
-| 8 | Frontend (PDF + extração + laudo) | Alto | Médio | 3 |
-| 9 | *Eval harness* + relatório de métricas | Alto | Médio | 3 |
+### 3.1 Metas das Sprints (recorte do MVP — 2 semanas)
 
-> Priorização **risco-primeiro**: os itens de maior incerteza técnica (firewall, extração, TPU) são
-> puxados para as primeiras sprints, para falhar cedo e barato.
-
-### 3.2 Sprint Backlogs
-
-Cada sprint tem um objetivo único e *Definition of Done* (detalhada no [`roadmap.md`](roadmap.md)).
-As tarefas são rastreadas no quadro Kanban (§4) e refletidas na lista de tarefas do projeto.
-
-| Sprint | Objetivo (meta da sprint) | Itens do backlog |
+| Sprint | Meta | Épicos/histórias |
 |---|---|---|
-| **1** | Fundações DDD + firewall funcionando + dados de teste | 1, 2 |
-| **2** | Núcleo cognitivo agnóstico + persistência | 3, 4, 5, 6 |
-| **3** | Produto utilizável + autenticação + métricas → POC | 7, 8, 9 |
+| **1** | Fundações + firewall + extração estruturada | EP1 (US1.x), EP3 (US3.2), EP2 (US2.1) |
+| **2** | Admissibilidade + orquestração + persistência + UI mínima | EP2 (US2.2–2.4), EP3 (US3.1/3.3/3.4), EP4 (US4.x) |
 
-### 3.3 Definition of Done (transversal)
+Visão de futuro (fora do recorte): TPU (EP5), autenticação (EP6), auditoria (EP7), integração
+judicial (EP8), hardening (EP9) — registrados no backlog do produto.
+
+> Priorização **risco-primeiro**: itens de maior incerteza técnica (firewall, extração) puxados para
+> o início, para falhar cedo e barato.
+
+### 3.2 Definition of Done (transversal)
 
 Um item só é "pronto" quando: código + **testes** passando; `ruff`/`mypy` limpos; documentação
 atualizada; e — para itens de modelo — **métrica medida** no *eval* (nunca "prometida").
@@ -109,16 +99,31 @@ Fluxo de trabalho visual com limite de WIP para evitar multitarefa:
 └─────────────┴───────────────┴──────────────┴───────────────┴─────────────┘
 ```
 
-No SHERPI o quadro é materializado pela lista de tarefas do projeto; cada cartão atravessa as colunas
-e só chega a "Concluído" quando satisfaz a *Definition of Done*.
+Ferramentas: **GitHub Projects** (quadro Kanban vinculado às *issues*/PRs do repositório) e
+**Microsoft Planner**, conforme o Guia. Cada cartão atravessa as colunas e só chega a "Concluído"
+quando satisfaz a *Definition of Done*.
 
-## 5. Cerimônias
+## 5. Ritmo: Design Sprint semanal + cerimônias
+
+O Guia define um **Design Sprint semanal (modelo Google)**: cada dia útil corresponde a uma etapa, e
+as Dailies ganham propósito por estarem ancoradas nessa etapa. O mapa abaixo é uma **proposta inicial**
+a ser ajustada após a aula de sábado em que o professor apresenta o framework oficial e a metodologia
+de projetos de IA/Mineração de Dados.
+
+| Dia | Etapa (Design Sprint) | Aplicação no SHERPI |
+|---|---|---|
+| Segunda | Mapear/Entender | Sprint Planning; alinhar a meta da semana com o PO. |
+| Terça | Idear/Esboçar | Desenhar a solução das histórias da sprint (contratos, prompts, telas). |
+| Quarta | Decidir | Escolher abordagem; refinar tasks no Kanban. |
+| Quinta | Construir/Prototipar | Implementação + testes. |
+| Sexta | Testar/Validar | Eval, integração, preparação da demo. |
+| **Sábado** | **Sprint Review** | Validação da entrega com o **professor** + refinamento do backlog. |
 
 | Cerimônia | Cadência | Propósito no SHERPI |
 |---|---|---|
-| **Sprint Planning** | Início da sprint | Selecionar itens do backlog e definir a meta da sprint. |
-| **Daily** | Diária | Sincronizar progresso e remover impedimentos (relevante na ponte dev × cientista de dados). |
-| **Sprint Review** | Fim da sprint | Demonstrar a fatia funcional (ex.: firewall bloqueando um PDF malicioso ao vivo). |
+| **Sprint Planning** | Segunda | Selecionar histórias do backlog e definir a meta da sprint. |
+| **Daily** | Diária | Sincronizar progresso e impedimentos, ancorada na etapa do dia; alinhamento com o PO. |
+| **Sprint Review** | **Sábado** | Demonstrar a fatia funcional ao professor (ex.: firewall bloqueando um PDF malicioso ao vivo). |
 | **Retrospective** | Fim da sprint | Melhorar o processo; registrada em §6. |
 
 ## 6. Registro de Sprint Review & Retrospective
@@ -139,9 +144,7 @@ e só chega a "Concluído" quando satisfaz a *Definition of Done*.
   cobertura aparente.
 - 🔧 *Ajustar*: investir cedo em interpretabilidade (item nominal da ementa) em vez de deixar para o fim.
 
-### Sprint 2 — *(a registrar ao final da sprint)*
-
-### Sprint 3 — *(a registrar ao final da sprint)*
+### Sprint 2 — *(a registrar na Sprint Review de sábado)*
 
 ## 7. Métricas de processo (saúde ágil)
 

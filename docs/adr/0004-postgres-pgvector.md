@@ -16,11 +16,11 @@ tags: [adr, arquitetura, decisao]
 
 ## Contexto
 
-O SHERPI precisa de dados relacionais (análises, usuários, auditoria) **e** de busca por similaridade vetorial (k-NN sobre embeddings do seed TPU). Manter dois sistemas (um relacional + um vector store dedicado) adicionaria complexidade operacional desnecessária a um POC.
+O SHERPI precisa de dados relacionais (análises, usuários, auditoria) **e** de busca por similaridade vetorial (k-NN sobre embeddings do seed TPU). Manter dois sistemas (um relacional + um vector store dedicado) adicionaria complexidade operacional desnecessária a um MVP.
 
 ## Decisão
 
-Usar **PostgreSQL + extensão pgvector** como único sistema, cobrindo relacional e embeddings. Acesso via **SQLModel** (reusa os contratos Pydantic do domínio) e **Alembic** (migrations). Blobs de PDF ficam atrás do port `BlobStorage` (LocalFS no POC → S3/MinIO na Fase 4).
+Usar **PostgreSQL + extensão pgvector** como único sistema, cobrindo relacional e embeddings. Acesso via **SQLModel** (reusa os contratos Pydantic do domínio) e **Alembic** (migrations). Blobs de PDF ficam atrás do port `BlobStorage` (LocalFS no MVP → S3/MinIO na Fase 4).
 
 ## Consequências
 

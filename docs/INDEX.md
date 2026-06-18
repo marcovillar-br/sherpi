@@ -20,13 +20,21 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 | Documento | Conteúdo |
 |---|---|
 | [prd-sherpi.md](prd-sherpi.md) | Requisitos de produto: visão, problema, personas, histórias de usuário, escopo, métricas e riscos ético-legais. |
-| [roadmap.md](roadmap.md) | Roadmap idea→produção: as 3 sprints com *Definition of Done* + Fase 4 e tabela de marcos. |
+| [roadmap.md](roadmap.md) | Roadmap do MVP em 2 sprints com *Definition of Done* + visão de futuro (Fase 4) e marcos. |
+
+## Gerenciamento de Projeto
+
+| Documento | Conteúdo |
+|---|---|
+| [pgp.md](pgp.md) | Plano de Gerenciamento do Projeto: escopo, tempo, custos, riscos, equipe, comunicação e qualidade. |
+| [eap.md](eap.md) | Estrutura Analítica do Projeto (EAP/WBS), com Gerenciamento de Projeto e Gestão e Rituais Ágeis. |
+| [backlog.md](backlog.md) | Backlog do Produto (épicos→histórias) + Sprint Backlog (tasks estimadas das 2 sprints). |
 
 ## Processo (metodologia ágil)
 
 | Documento | Conteúdo |
 |---|---|
-| [agile-process.md](agile-process.md) | Papéis (8 integrantes), product/sprint backlog, quadro Kanban, cerimônias, retrospectivas e métricas de processo. |
+| [agile-process.md](agile-process.md) | Papéis (8 integrantes), Design Sprint, Kanban (GitHub Projects), cerimônias e retrospectivas. |
 
 ## Arquitetura e técnica
 
@@ -41,7 +49,7 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 | Documento | Conteúdo |
 |---|---|
 | [threat-model.md](threat-model.md) | Modelo de ameaças (STRIDE): ativos, atores e mitigações. |
-| [security.md](security.md) | Controles de segurança e confiabilidade (POC vs. Fase 4). |
+| [security.md](security.md) | Controles de segurança e confiabilidade (MVP vs. Fase 4). |
 
 ## Pesquisa de origem
 

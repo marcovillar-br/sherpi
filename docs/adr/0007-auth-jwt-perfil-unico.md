@@ -16,11 +16,11 @@ tags: [adr, arquitetura, decisao]
 
 ## Contexto
 
-A Resolução CNJ 615/2025 exige supervisão humana auditável: cada ação precisa estar vinculada a uma identidade. O POC precisa de login obrigatório, mas não de autorização granular completa. Sobre-engenheirar RBAC/MFA/refresh tokens consumiria tempo do POC.
+A Resolução CNJ 615/2025 exige supervisão humana auditável: cada ação precisa estar vinculada a uma identidade. O MVP precisa de login obrigatório, mas não de autorização granular completa. Sobre-engenheirar RBAC/MFA/refresh tokens consumiria tempo do MVP.
 
 ## Decisão
 
-Implementar **login obrigatório com perfil único** no contexto `identity`: OAuth2 **password flow** + **JWT** (com expiração), hash **bcrypt**, usuário semeado via `.env`, cookie **httpOnly + Secure + SameSite** no Next.js. O modelo `User` tem campo `role` **extensível a RBAC**, mas o POC faz apenas **autenticação** (sem autorização granular). RBAC, refresh tokens e MFA ficam para a Fase 4.
+Implementar **login obrigatório com perfil único** no contexto `identity`: OAuth2 **password flow** + **JWT** (com expiração), hash **bcrypt**, usuário semeado via `.env`, cookie **httpOnly + Secure + SameSite** no Next.js. O modelo `User` tem campo `role` **extensível a RBAC**, mas o MVP faz apenas **autenticação** (sem autorização granular). RBAC, refresh tokens e MFA ficam para a Fase 4.
 
 ## Consequências
 
@@ -32,6 +32,6 @@ Implementar **login obrigatório com perfil único** no contexto `identity`: OAu
 
 **Negativas / trade-offs**
 
-- Sem autorização granular no POC: todo usuário autenticado tem o mesmo acesso.
-- JWT sem refresh token exige re-login na expiração — aceitável no POC, resolvido na Fase 4.
+- Sem autorização granular no MVP: todo usuário autenticado tem o mesmo acesso.
+- JWT sem refresh token exige re-login na expiração — aceitável no MVP, resolvido na Fase 4.
 - Necessário lockout/rate-limit no login para mitigar brute-force (ver security.md).

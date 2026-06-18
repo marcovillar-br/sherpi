@@ -16,7 +16,7 @@ tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 |---|---|
 | Documento | Especificação Técnica |
 | Versão | 1.1 |
-| Status | Aprovado para POC |
+| Status | Aprovado para MVP |
 | Última atualização | 2026-06-18 |
 
 ---
@@ -94,6 +94,8 @@ flowchart LR
 ```
 
 Regra inegociável: **se o firewall retornar `BLOCK`, o fluxo encerra sem nenhuma chamada de LLM** (economia de tokens + não alimentar o modelo com conteúdo manipulado).
+
+> **Escopo desta spec × recorte do MVP.** Este documento descreve a **arquitetura completa do produto**. O **MVP (2 sprints)** entrega o caminho **firewall → extração → admissibilidade** + persistência e UI mínima; a etapa `SuggestTpu` e os contextos `identity`/`review` são **visão de futuro** (ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md)). O orquestrador é desenhado para incorporá-los sem alterar os contratos.
 
 ---
 
@@ -175,7 +177,7 @@ Trocar de LLM = trocar um adapter via `config.py`, **sem tocar no domínio**. Mo
 
 - **Synthetic-first**: gerador de petições sintéticas (limpas + com injeções plantadas de cada vetor). Evita LGPD/segredo de justiça e fornece *ground truth* para o eval e para a calibração do firewall.
 - **Seed TPU**: conjunto-semente rotulado de textos → códigos TPU, embeddado e indexado em pgvector para o k-NN.
-- **Persistência**: PostgreSQL + pgvector (relacional + embeddings num só sistema), via SQLModel + Alembic. Blobs de PDF atrás do port `BlobStorage` (LocalFS no POC → S3/MinIO na Fase 4). *Content hash* para idempotência/deduplicação.
+- **Persistência**: PostgreSQL + pgvector (relacional + embeddings num só sistema), via SQLModel + Alembic. Blobs de PDF atrás do port `BlobStorage` (LocalFS no MVP → S3/MinIO na Fase 4). *Content hash* para idempotência/deduplicação.
 
 ---
 

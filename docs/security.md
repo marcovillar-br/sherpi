@@ -1,6 +1,6 @@
 ---
 title: "Segurança e Confiabilidade"
-description: "Controles de segurança e confiabilidade, separados em POC e Fase 4."
+description: "Controles de segurança e confiabilidade, separados em MVP e Fase 4."
 doc_type: security
 project: SHERPI
 status: approved
@@ -17,9 +17,9 @@ tags: [seguranca, confiabilidade, lgpd, observabilidade]
 | Documento | Controles de Segurança e Confiabilidade |
 | Versão | 1.0 |
 | Status | Aprovado |
-| Última atualização | 2026-06-17 |
+| Última atualização | 2026-06-18 |
 
-Controles organizados em **POC** (essencial, no escopo das 3 semanas) vs. **Fase 4** (hardening de produção). Complementa o `threat-model.md`.
+Controles organizados em **MVP** (essencial, no escopo das 2 semanas) vs. **Fase 4** (hardening de produção). Complementa o `threat-model.md`.
 
 ---
 
@@ -27,7 +27,7 @@ Controles organizados em **POC** (essencial, no escopo das 3 semanas) vs. **Fase
 
 Domínio com PII jurídica — controle crítico.
 
-**POC**
+**MVP**
 
 - **Synthetic-first**: petições sintéticas evitam que PII real saia para o Gemini externo.
 - Port **`Anonymizer`**: mascara CPF/CNPJ/nomes/endereços antes do envio ao LLM, com flag em `config`.
@@ -45,7 +45,7 @@ Domínio com PII jurídica — controle crítico.
 
 ## 2. Segurança de upload (parsing de arquivo não confiável)
 
-**POC**
+**MVP**
 
 - Validação de **tipo/MIME** e **tamanho máximo**.
 - **Limite de páginas**.
@@ -61,7 +61,7 @@ Domínio com PII jurídica — controle crítico.
 
 ## 3. Autenticação e hardening de API
 
-**POC**
+**MVP**
 
 - JWT com **expiração**.
 - Cookie **httpOnly + Secure + SameSite**.
@@ -82,7 +82,7 @@ Domínio com PII jurídica — controle crítico.
 
 ## 4. Resiliência de LLM e integrações
 
-**POC**
+**MVP**
 
 - **Timeout + retry com backoff** nas chamadas.
 - **Guarda de custo/tokens** (corta requisição acima do limite).
@@ -99,7 +99,7 @@ Domínio com PII jurídica — controle crítico.
 
 ## 5. Observabilidade e operação
 
-**POC**
+**MVP**
 
 - **Logging estruturado + correlation IDs** (sem PII).
 - Endpoints **`/health`** e **`/ready`** (este checa o DB).
@@ -113,7 +113,7 @@ Domínio com PII jurídica — controle crítico.
 
 ## 6. Cadeia de suprimentos e qualidade
 
-**POC**
+**MVP**
 
 - Segredos fora do git (`.gitignore` + apenas `.env.example`).
 - **Pin de versões** (uv lock).
@@ -130,7 +130,7 @@ Domínio com PII jurídica — controle crítico.
 
 ## 7. Resumo de controles por fase
 
-| Domínio | POC | Fase 4 |
+| Domínio | MVP | Fase 4 |
 |---|---|---|
 | Privacidade/LGPD | Synthetic-first, Anonymizer, sem PII em log | Cripto em repouso, retenção/DPIA, LLM local |
 | Upload | MIME/tamanho/páginas, timeout, content hash | Sandbox, antimalware, isolamento |

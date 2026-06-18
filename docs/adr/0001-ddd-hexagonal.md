@@ -16,7 +16,7 @@ tags: [adr, arquitetura, decisao]
 
 ## Contexto
 
-O SHERPI integra capacidades heterogêneas (inspeção de PDF, LLM, embeddings, persistência vetorial, auth) e precisa ser **LLM-agnóstico** e testável sem rede. Um POC acadêmico de 3 semanas não justifica microsserviços, mas o código precisa ser organizado de forma que sobreviva à Fase 4 (produção). O requisito original fala em "skills modulares".
+O SHERPI integra capacidades heterogêneas (inspeção de PDF, LLM, embeddings, persistência vetorial, auth) e precisa ser **LLM-agnóstico** e testável sem rede. Um MVP acadêmico de 2 semanas não justifica microsserviços, mas o código precisa ser organizado de forma que sobreviva à Fase 4 (produção). O requisito original fala em "skills modulares".
 
 ## Decisão
 
@@ -34,4 +34,4 @@ Adotar um **monólito modular orientado a DDD** com **arquitetura hexagonal (por
 **Negativas / trade-offs**
 
 - Mais cerimônia e indireção (ports/adapters) do que um script único — custo aceitável para um sistema que vai a produção.
-- Curva de aprendizado de DDD/hexagonal para quem mantém o POC.
+- Curva de aprendizado de DDD/hexagonal para quem mantém o MVP.

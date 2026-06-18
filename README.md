@@ -29,10 +29,10 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 | Bounded context | Papel | Status |
 |---|---|---|
 | `document_integrity` | Firewall anti *prompt-injection* (sem LLM) | ✅ Sprint 1 |
-| `petition_analysis` | Extração + admissibilidade (**core domain**) | ⬜ Sprint 2 |
-| `taxonomy` | Classificação TPU (embedding + k-NN) | ⬜ Sprint 2 |
-| `review` | *Human-in-the-loop* + auditoria | ⬜ Sprint 3 |
-| `identity` | Autenticação (perfil único) | ⬜ Sprint 3 |
+| `petition_analysis` | Extração + admissibilidade (**core domain**) | 🔵 Sprint 1–2 |
+| `taxonomy` | Classificação TPU (embedding + k-NN) | ⚪ Futuro |
+| `review` | *Human-in-the-loop* + auditoria | ⚪ Futuro |
+| `identity` | Autenticação (perfil único) | ⚪ Futuro |
 
 ## Stack
 
@@ -46,7 +46,7 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 
 ```
 backend/     # API e domínio (DDD) — ver backend/README.md
-frontend/    # UI Next.js (a partir da Sprint 3)
+frontend/    # UI Next.js (Sprint 2 — UI mínima)
 docs/        # PRD, spec técnica, roadmap, mapa DDD, ADRs, modelo de ameaças
 docker-compose.yml   # Postgres + pgvector
 ```
@@ -73,15 +73,17 @@ Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/READM
 |---|---|
 | [`docs/prd-sherpi.md`](docs/prd-sherpi.md) | Requisitos de produto, personas, métricas |
 | [`docs/tech-spec-sherpi.md`](docs/tech-spec-sherpi.md) | Arquitetura, contratos, API, diagramas |
-| [`docs/roadmap.md`](docs/roadmap.md) | Sprints, *Definition of Done*, Fase 4 |
-| [`docs/agile-process.md`](docs/agile-process.md) | Papéis, backlog, Kanban, cerimônias, retrospectivas |
+| [`docs/roadmap.md`](docs/roadmap.md) | MVP em 2 sprints, *Definition of Done*, visão de futuro |
+| [`docs/pgp.md`](docs/pgp.md) · [`docs/eap.md`](docs/eap.md) · [`docs/backlog.md`](docs/backlog.md) | Gerenciamento de projeto: PGP, EAP/WBS e backlog (produto + sprints) |
+| [`docs/agile-process.md`](docs/agile-process.md) | Papéis, Design Sprint, Kanban, cerimônias, retrospectivas |
 | [`docs/ddd-context-map.md`](docs/ddd-context-map.md) | Mapa de contextos + linguagem ubíqua |
 | [`docs/adr/`](docs/adr/) | Decisões de arquitetura (ADRs) |
 | [`docs/threat-model.md`](docs/threat-model.md) · [`docs/security.md`](docs/security.md) | Segurança e confiabilidade |
 
-## Roadmap (idea → produção)
+## Roadmap (MVP em 2 sprints)
 
-- **Sprint 1** — Fundações DDD + firewall + dados sintéticos ✅
-- **Sprint 2** — Core domain (extração, admissibilidade, TPU) + LLM agnóstico + persistência
-- **Sprint 3** — Frontend + autenticação + *human-in-the-loop* + avaliação → **POC concluído**
-- **Fase 4** — Hardening para produção (observabilidade, LGPD, integração PJe/E-Proc, deploy)
+- **Sprint 1** — Fundações DDD + firewall ✅ + dados sintéticos ✅ + extração estruturada (LLM agnóstico)
+- **Sprint 2** — Admissibilidade + orquestrador + persistência + UI mínima + eval → **MVP concluído**
+- **Futuro (Fase 4)** — TPU, autenticação, auditoria, integração PJe/E-Proc, observabilidade, deploy
+
+Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pgp.md`](docs/pgp.md), [`docs/eap.md`](docs/eap.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).

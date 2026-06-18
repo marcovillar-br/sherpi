@@ -17,7 +17,7 @@ tags: [seguranca, ameacas, stride, lgpd]
 | Documento | Threat Model |
 | Versão | 1.0 |
 | Status | Aprovado |
-| Última atualização | 2026-06-17 |
+| Última atualização | 2026-06-18 |
 
 Modelo de ameaças do SHERPI, derivado da seção "Segurança & Confiabilidade" do plano. Acompanha `security.md` (controles concretos).
 
@@ -51,7 +51,7 @@ Modelo de ameaças do SHERPI, derivado da seção "Segurança & Confiabilidade" 
 |---|---|---|---|---|
 | **T1** | **Tampering** — prompt injection no PDF | Branco-no-branco, fonte <1pt, fora da CropBox, U+200B, OCG oculto, /ActualText, XMP suspeito | Análise de IA | **Firewall determinístico** (PyMuPDF) antes do LLM; verdito `BLOCK` encerra sem chamada ao modelo. Defesa em profundidade: *defensive prompting* (texto como dado, não instrução). Firewall é heurístico → eval por vetor. |
 | **T2** | **Denial of Service / Elevation** — upload hostil | PDF malicioso explorando CVEs do parser; bomba de descompressão; PDF gigante | PDFs, disponibilidade | Validação de MIME/tipo e **tamanho máximo**; **limite de páginas**; **timeout e limite de recursos** no parsing; rejeitar não-PDF; tratar PDF como hostil. Fase 4: sandbox de parsing, antimalware, isolamento de processo. |
-| **T3** | **Information Disclosure** — vazamento de PII para LLM externo | Texto da petição (com CPF/nomes/endereços) enviado ao Gemini | PII (LGPD) | **Synthetic-first** no POC; port **`Anonymizer`** mascara PII antes do envio (flag em config); **sem PII em log**. Fase 4: criptografia em repouso, retenção/eliminação, DPIA, LLM local. |
+| **T3** | **Information Disclosure** — vazamento de PII para LLM externo | Texto da petição (com CPF/nomes/endereços) enviado ao Gemini | PII (LGPD) | **Synthetic-first** no MVP; port **`Anonymizer`** mascara PII antes do envio (flag em config); **sem PII em log**. Fase 4: criptografia em repouso, retenção/eliminação, DPIA, LLM local. |
 | **T4** | **Spoofing** — abuso de autenticação | Brute-force/credential stuffing no `/auth/login` | Credenciais | **Rate-limit/lockout** no login; bcrypt com custo adequado; JWT com **expiração**; cookie **httpOnly+Secure+SameSite**; erros sem vazar detalhe. Fase 4: MFA, refresh tokens. |
 | **T5** | **Repudiation** — negação de ação / adulteração de auditoria | Edição/remoção de registros de revisão | Trilha de auditoria | **Auditoria append-only** vinculada a `User` autenticado; cada `/review` grava `AuditEvent` imutável. |
 | **T6** | **Information Disclosure** — vazamento de chave de API/segredos | Segredos no git; em logs | Chaves de LLM | Segredos fora do git (`.gitignore` + só `.env.example`); não logar segredos. Fase 4: secrets manager, secret scanning. |
@@ -60,10 +60,10 @@ Modelo de ameaças do SHERPI, derivado da seção "Segurança & Confiabilidade" 
 
 ---
 
-## 4. Decisões de risco aceitas no POC
+## 4. Decisões de risco aceitas no MVP
 
 - O firewall é **heurístico** e não cobre todos os vetores possíveis — risco residual aceito, mitigado por defesa em profundidade e eval por vetor.
-- Sem RBAC/MFA no POC — todo usuário autenticado tem o mesmo acesso (ver ADR 0007).
-- LLM externo (Gemini) no POC — risco de PII tratado por synthetic-first + Anonymizer; LLM local fica para a Fase 4.
+- Sem RBAC/MFA no MVP — todo usuário autenticado tem o mesmo acesso (ver ADR 0007).
+- LLM externo (Gemini) no MVP — risco de PII tratado por synthetic-first + Anonymizer; LLM local fica para a Fase 4.
 
-Controles detalhados e seu faseamento (POC vs. Fase 4) em `security.md`.
+Controles detalhados e seu faseamento (MVP vs. Fase 4) em `security.md`.

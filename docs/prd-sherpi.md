@@ -4,7 +4,7 @@ description: "Visão, problema, personas, histórias de usuário, escopo e métr
 doc_type: prd
 project: SHERPI
 status: approved
-version: 1.0
+version: 1.1
 updated: 2026-06-18
 language: pt-BR
 tags: [produto, requisitos, personas, metricas]
@@ -17,10 +17,10 @@ tags: [produto, requisitos, personas, metricas]
 | Campo | Valor |
 |---|---|
 | Documento | Documento de Requisitos de Produto (PRD) |
-| Versão | 1.0 |
-| Status | Aprovado para POC |
-| Natureza | MVP acadêmico (pós-graduação) — prova de conceito em 3 semanas + roadmap de produção |
-| Última atualização | 2026-06-17 |
+| Versão | 1.1 |
+| Status | Aprovado para MVP |
+| Natureza | MVP acadêmico (pós-graduação) — entrega em 2 sprints (2 semanas) + roadmap de produção |
+| Última atualização | 2026-06-18 |
 
 ---
 
@@ -38,7 +38,7 @@ A proposta de valor é **devolver tempo cognitivo** ao magistrado e à sua equip
 
 - Não é um sistema de decisão automática. Toda saída é uma sugestão sujeita à supervisão humana obrigatória (*human-in-the-loop*).
 - Não é um classificador "pronto" com acurácia garantida. A classificação TPU é construída sobre embeddings + k-NN e tem acurácia **medida e reportada honestamente**, não prometida.
-- Não é, no POC, uma integração com o PJe/E-Proc. A ingestão é por upload manual de PDF.
+- Não é, no MVP, uma integração com o PJe/E-Proc. A ingestão é por upload manual de PDF.
 
 ---
 
@@ -101,7 +101,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 
 ## 5. Escopo
 
-### 5.1 Dentro do escopo (POC)
+### 5.1 Dentro do escopo (MVP)
 
 - Upload manual de PDF de petição inicial.
 - Firewall anti prompt-injection determinístico (PyMuPDF, sem LLM).
@@ -116,7 +116,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 - Dados **sintéticos primeiro** (synthetic-first) com injeções plantadas para avaliação.
 - Eval harness com métricas reportadas honestamente.
 
-### 5.2 Fora do escopo (POC) → Fase 4
+### 5.2 Fora do escopo (MVP) → Fase 4
 
 - Integração com PJe/E-Proc.
 - Autorização granular (RBAC), MFA, refresh tokens.
@@ -132,7 +132,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 - **Não** decidir automaticamente sobre admissão, emenda, liminar ou classificação. O SHERPI sugere; o humano decide.
 - **Não** substituir o juízo de admissibilidade — apenas instruí-lo.
 - **Não** prometer métricas de mercado (ex.: "90% de acurácia na TPU"). Métricas são metas a medir no eval.
-- **Não** processar PII real de processos sob segredo de justiça no POC (synthetic-first).
+- **Não** processar PII real de processos sob segredo de justiça no MVP (synthetic-first).
 - **Não** acoplar o sistema a um fornecedor específico de LLM.
 
 ---
@@ -157,8 +157,8 @@ As métricas abaixo são **metas a medir** no eval harness sobre o dataset sint�
 | Risco | Descrição | Mitigação |
 |---|---|---|
 | **Decisão automática indevida** | Tratar a saída do sistema como decisão, violando o devido processo. | Invariante de domínio "nunca decisão automática"; *human-in-the-loop* obrigatório; registro de revisão; UI que rotula tudo como sugestão. |
-| **Vazamento de PII (LGPD)** | Envio de dados pessoais das partes a LLM externo (Gemini). | Synthetic-first no POC; port `Anonymizer` (mascara CPF/CNPJ/nomes/endereços) antes do envio; sem PII em log. Fase 4: opção de LLM local, criptografia, retenção. |
-| **Segredo de justiça** | Processamento de peças sigilosas. | Dados sintéticos no POC; em produção, classificação de sigilo e LLM on-prem para sensíveis. |
+| **Vazamento de PII (LGPD)** | Envio de dados pessoais das partes a LLM externo (Gemini). | Synthetic-first no MVP; port `Anonymizer` (mascara CPF/CNPJ/nomes/endereços) antes do envio; sem PII em log. Fase 4: opção de LLM local, criptografia, retenção. |
+| **Segredo de justiça** | Processamento de peças sigilosas. | Dados sintéticos no MVP; em produção, classificação de sigilo e LLM on-prem para sensíveis. |
 | **Falso negativo do firewall** | Vetor de injeção não coberto pela heurística passa despercebido. | Firewall é heurístico e não pega tudo — combinado a *defensive prompting* (texto tratado como dado, não instrução) em defesa em profundidade; eval por vetor. |
 | **Falso positivo do firewall** | Bloquear peça legítima (ex.: ruído de digitalização). | Verdito gradual `BLOCK/WARN/PASS` com `risk_score`; revisão humana; calibração no eval. |
 | **Viés/erro da TPU e da extração** | Sugestão incorreta induzindo autuação errada. | Apresentação como sugestão com confiança; top-3 (não top-1 forçado); supervisão humana; acurácia medida. |

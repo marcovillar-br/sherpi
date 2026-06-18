@@ -16,7 +16,7 @@ tags: [adr, arquitetura, decisao]
 
 ## Contexto
 
-O SHERPI é LLM-agnóstico (ver ADR 0003), mas precisa de um provider default para o POC. As petições podem ter 100+ páginas, exigindo janela de contexto grande. Sendo um projeto acadêmico, custo é restrição. Maritaca Sabiá é forte em português jurídico, mas fica como adapter para um segundo momento.
+O SHERPI é LLM-agnóstico (ver ADR 0003), mas precisa de um provider default para o MVP. As petições podem ter 100+ páginas, exigindo janela de contexto grande. Sendo um projeto acadêmico, custo é restrição. Maritaca Sabiá é forte em português jurídico, mas fica como adapter para um segundo momento.
 
 ## Decisão
 
@@ -27,7 +27,7 @@ Adotar **Google Gemini Flash** como default (`gemini.py`), pela janela de contex
 **Positivas**
 
 - Contexto grande reduz a necessidade de chunking em peças longas.
-- Free tier viabiliza o POC sem custo.
+- Free tier viabiliza o MVP sem custo.
 - Default trocável por configuração; Sabiá pronta para avaliação posterior.
 
 **Negativas / trade-offs**

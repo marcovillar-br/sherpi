@@ -16,7 +16,7 @@ tags: [adr, arquitetura, decisao]
 
 ## Contexto
 
-Containerizar tudo (backend, frontend, banco) num POC de 3 semanas atrasa o desenvolvimento e prejudica o hot reload. Mas o banco é uma dependência com estado que precisa ser reproduzível entre máquinas.
+Containerizar tudo (backend, frontend, banco) num MVP de 2 semanas atrasa o desenvolvimento e prejudica o hot reload. Mas o banco é uma dependência com estado que precisa ser reproduzível entre máquinas.
 
 ## Decisão
 
@@ -32,5 +32,5 @@ Usar **docker-compose apenas para Postgres+pgvector** (e MinIO opcional). Backen
 
 **Negativas / trade-offs**
 
-- O ambiente de dev não é idêntico ao de produção (sem container para app) — divergência aceitável no POC, resolvida na Fase 4 com containerização completa e CI/CD.
+- O ambiente de dev não é idêntico ao de produção (sem container para app) — divergência aceitável no MVP, resolvida na Fase 4 com containerização completa e CI/CD.
 - Exige Python/Node instalados localmente para rodar a aplicação.

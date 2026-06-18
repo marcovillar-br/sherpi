@@ -26,6 +26,7 @@ META: dict[str, dict[str, object]] = {
         "description": "Visão, problema, personas, histórias de usuário, escopo e métricas do SHERPI.",
         "doc_type": "prd",
         "status": "approved",
+        "version": "1.1",
         "tags": ["produto", "requisitos", "personas", "metricas"],
     },
     "tech-spec-sherpi.md": {
@@ -37,18 +38,20 @@ META: dict[str, dict[str, object]] = {
         "tags": ["arquitetura", "ddd", "hexagonal", "api", "llm", "interpretabilidade"],
     },
     "roadmap.md": {
-        "title": "Roadmap (idea → produção)",
-        "description": "Sprints com Definition of Done, Fase 4 de produção e marcos.",
+        "title": "Roadmap do MVP (2 sprints)",
+        "description": "Roadmap do MVP em 2 sprints (2 semanas), com Definition of Done, visão de futuro e marcos.",
         "doc_type": "roadmap",
         "status": "approved",
-        "tags": ["roadmap", "sprints", "planejamento"],
+        "version": "1.1",
+        "tags": ["roadmap", "sprints", "planejamento", "mvp"],
     },
     "agile-process.md": {
         "title": "Processo Ágil de Desenvolvimento",
-        "description": "Papéis (8 integrantes), backlog, Kanban, cerimônias e retrospectivas.",
+        "description": "Papéis (8 integrantes), Design Sprint, Kanban, cerimônias e retrospectivas.",
         "doc_type": "process",
         "status": "approved",
-        "tags": ["agil", "scrum", "kanban", "papeis", "processo"],
+        "version": "1.1",
+        "tags": ["agil", "scrum", "kanban", "design-sprint", "papeis", "processo"],
     },
     "ddd-context-map.md": {
         "title": "Mapa de Contextos DDD",
@@ -66,7 +69,7 @@ META: dict[str, dict[str, object]] = {
     },
     "security.md": {
         "title": "Segurança e Confiabilidade",
-        "description": "Controles de segurança e confiabilidade, separados em POC e Fase 4.",
+        "description": "Controles de segurança e confiabilidade, separados em MVP e Fase 4.",
         "doc_type": "security",
         "status": "approved",
         "tags": ["seguranca", "confiabilidade", "lgpd", "observabilidade"],
@@ -91,6 +94,27 @@ META: dict[str, dict[str, object]] = {
         "doc_type": "adr-index",
         "status": "reference",
         "tags": ["adr", "arquitetura", "index"],
+    },
+    "pgp.md": {
+        "title": "Plano de Gerenciamento do Projeto (PGP)",
+        "description": "Escopo, tempo, custos, riscos, equipe, comunicação e qualidade do projeto SHERPI.",
+        "doc_type": "pgp",
+        "status": "approved",
+        "tags": ["gerenciamento-de-projeto", "pgp", "escopo", "riscos", "cronograma"],
+    },
+    "eap.md": {
+        "title": "Estrutura Analítica do Projeto (EAP/WBS)",
+        "description": "Decomposição hierárquica do trabalho do SHERPI, com Gerenciamento de Projeto e Gestão e Rituais Ágeis.",
+        "doc_type": "wbs",
+        "status": "approved",
+        "tags": ["eap", "wbs", "gerenciamento-de-projeto", "escopo"],
+    },
+    "backlog.md": {
+        "title": "Backlog do Produto e Sprint Backlog",
+        "description": "Backlog do Produto (épicos e histórias, visão de futuro) e Sprint Backlog (tasks estimadas das 2 sprints).",
+        "doc_type": "backlog",
+        "status": "approved",
+        "tags": ["backlog", "epicos", "historias-de-usuario", "sprint", "estimativas"],
     },
 }
 

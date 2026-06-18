@@ -17,7 +17,7 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | Documento | Context Map + Glossário |
 | Versão | 1.0 |
 | Status | Aprovado |
-| Última atualização | 2026-06-17 |
+| Última atualização | 2026-06-18 |
 
 ---
 
@@ -85,9 +85,9 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **Emenda à inicial** | Correção da petição determinada pelo juiz (art. 321 do CPC), em prazo de 15 dias, quando há vício sanável; descumprimento pode levar ao indeferimento (art. 330). |
 | **Tutela de urgência / liminar** | Provimento antecipado para evitar perecimento de direito; sua presença exige priorização. No SHERPI, sinalizada com destaque. |
 | **Valor da causa** | Expressão econômica do pedido; requisito do art. 319; validado quanto à presença e razoabilidade. |
-| **Segredo de justiça** | Restrição de acesso a autos por sigilo legal; motiva o uso de dados sintéticos no POC. |
+| **Segredo de justiça** | Restrição de acesso a autos por sigilo legal; motiva o uso de dados sintéticos no MVP. |
 | **Litigância de má-fé** | Conduta processual desleal punível (arts. 5º, 77, 80 do CPC); base para sanção em casos de prompt injection. |
-| **Litigância predatória** | Ajuizamento massivo e abusivo de ações sem lastro fático (sham litigation). Fora do escopo do POC. |
+| **Litigância predatória** | Ajuizamento massivo e abusivo de ações sem lastro fático (sham litigation). Fora do escopo do MVP. |
 | **TPU (Tabelas Processuais Unificadas)** | Padrão nacional do CNJ (Res. 46/2007, alt. 326/2020) para classificar classe, assunto e movimentação processual em 6 níveis hierárquicos. |
 | **CPF / CNPJ** | Identificadores fiscais de pessoa física/jurídica; validados por checksum (`validate-docbr`). |
 | **Art. 319 do CPC** | Requisitos da petição inicial (partes, fatos, fundamentos, pedido, valor da causa). |
