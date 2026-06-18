@@ -28,18 +28,21 @@ jobs:
       - name: Eval gate
         run: uv run python -m evals.run --ci
       - name: Supply-chain audit
-        run: uv run pip-audit || true  # não bloqueia o POC; falha vira gate na Fase 4
+        run: uv run pip-audit || true  # não bloqueia o MVP; falha vira gate na Fase 4
 
-  frontend:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+  # O job de frontend é adicionado na Sprint 2, junto do scaffold do Next.js
+  # (ver docs/roadmap.md). Enquanto frontend/ não existir, o job ficaria sem
+  # diretório de trabalho e falharia — por isso está desativado.
+  # frontend:
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: frontend
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "22"
+  #     - run: npm ci
+  #     - run: npm run lint
+  #     - run: npm run build

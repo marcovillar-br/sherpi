@@ -72,8 +72,10 @@ def main() -> int:
     print("== Firewall (document_integrity) ==")
     print(f"  precision={fw.precision:.3f}  recall={fw.recall:.3f}  f1={fw.f1:.3f}")
     print(f"  tp={fw.tp} fp={fw.fp} fn={fw.fn} tn={fw.tn}")
-    print(f"  limiar: precision>={MIN_PRECISION} recall>={MIN_RECALL} -> "
-          f"{'OK' if fw.passed() else 'FALHOU'}")
+    print(
+        f"  limiar: precision>={MIN_PRECISION} recall>={MIN_RECALL} -> "
+        f"{'OK' if fw.passed() else 'FALHOU'}"
+    )
 
     if args.ci and not fw.passed():
         print("\nEval gate: FALHOU — métrica abaixo do limiar.", file=sys.stderr)
