@@ -5,7 +5,7 @@ consome, preservando os atributos visuais necessários à análise forense.
 Trata o arquivo como hostil: qualquer falha de parsing vira
 `UntrustedDocumentError` (nunca propaga exceção crua do PyMuPDF).
 
-Limitações conhecidas (POC → refinar na Fase 4):
+Limitações conhecidas (MVP → refinar na Fase 4):
 - `/ActualText` por span não é extraído pelo PyMuPDF; o detector cobre o vetor
   via testes sintéticos, e este adapter o deixa como None.
 - Atribuição de span↔camada OCG é best-effort (diff de texto on/off).

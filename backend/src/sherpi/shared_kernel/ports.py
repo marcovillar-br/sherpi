@@ -47,7 +47,7 @@ class LLMProvider(Protocol):
 class BlobStorage(Protocol):
     """Port de armazenamento de blobs (PDFs originais).
 
-    Adapter LocalFS no POC; S3/MinIO na Fase 4. A chave é o hash de conteúdo
+    Adapter LocalFS no MVP; S3/MinIO na Fase 4. A chave é o hash de conteúdo
     (deduplicação/idempotência).
     """
 
