@@ -63,10 +63,10 @@ export interface AdmissibilityReport {
 }
 
 export interface TpuSuggestion {
-  code: string;
-  label: string;
+  tpu_code: string;
+  description: string;
   confidence: number;
-  anchor: string | null;
+  anchor_excerpt: string;
 }
 
 export interface AnalysisResult {
