@@ -67,7 +67,7 @@ do MVP está registrado como **visão de futuro** (ver [`backlog.md`](backlog.md
 - [x] Orquestrador testado com `FakeProvider` (sem rede): caminho feliz e early-exit por `BLOCK`.
 - [x] Validadores determinísticos (checksum CPF/CNPJ, valor da causa, pedidos) com testes exatos.
 - [x] `POST /analyze`: PDF limpo → resumo + admissibilidade; PDF com injeção → `BLOCK` **sem chamada LLM**; análise persistida e recuperável.
-- [ ] UI: upload → laudo + resumo lado a lado; tarja vermelha quando houver injeção.
+- [x] UI: upload → laudo + resumo lado a lado; tarja vermelha quando houver injeção.
 - [x] `uv run python -m evals.run` produz métricas; CI falha abaixo do limiar.
 - [x] `ruff` e `mypy` limpos.
 - [ ] **Sprint Review (sábado)**: demo do MVP completo (upload → análise consolidada na UI).
