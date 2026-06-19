@@ -46,6 +46,9 @@ curl localhost:8000/health   # → {"status":"ok"}
 curl localhost:8000/ready    # → {"status":"ok"}
 ```
 
+> **Credenciais de demo:** `gabinete@sherpi.local` / `6aeda6bf73531cd01c2e449c`
+> (definidas em `SHERPI_SEED_USER_EMAIL` + `SHERPI_SEED_USER_PASSWORD` no `backend/.env`; criadas automaticamente no startup do backend).
+
 > Tenha abertos: navegador em `localhost:3000`, `http://localhost:8000/docs` (Swagger), este roteiro.
 
 ---
