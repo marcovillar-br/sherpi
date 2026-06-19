@@ -153,6 +153,29 @@ def _body_cpf_invalido() -> list[str]:
     ]
 
 
+def _body_cumulacao_pedidos() -> list[str]:
+    # Cumulação de pedidos (art. 327 do CPC): causas de pedir distintas em uma só peça.
+    return [
+        _ENDERECAMENTO,
+        "",
+        "AÇÃO DECLARATÓRIA C/C REPETIÇÃO DE INDÉBITO C/C INDENIZAÇÃO COM PEDIDO DE TUTELA DE URGÊNCIA",
+        "",
+        *_qualificacao(),
+        "",
+        "DOS FATOS (PRIMEIRO): A ré cobrou tarifa não contratada no plano do autor, gerando débito indevido.",
+        "DOS FATOS (SEGUNDO): O autor pagou em duplicidade três faturas, por falha de baixa da ré.",
+        "DOS FATOS (TERCEIRO): Em razão do débito indevido, o nome do autor foi negativado no SPC/Serasa.",
+        "DA TUTELA DE URGÊNCIA: Requer-se liminar para baixa imediata da negativação (art. 300 do CPC).",
+        "DO DIREITO: CDC (arts. 42, par. único, e 6º); arts. 186 e 927 do Código Civil; art. 327 do CPC.",
+        "DOS PEDIDOS: a) liminar de baixa da negativação; b) declaração de inexigibilidade do débito;",
+        "c) repetição do indébito em dobro (R$ 4.000,00); d) restituição do pagamento em duplicidade;",
+        "e) condenação em danos morais de R$ 8.000,00; f) confirmação da tutela ao final.",
+        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 16.000,00.",
+        "",
+        *_conciliacao_provas(),
+    ]
+
+
 # --- Renderização ---------------------------------------------------------------
 
 
@@ -283,6 +306,15 @@ _CATALOG: dict[str, _Spec] = {
         False,
         "PASS",
         expect_liminar=False,
+    ),
+    "clean_cumulacao_pedidos": _Spec(
+        "clean",
+        "Cumulação de pedidos (art. 327): 3 causas de pedir + vários pedidos.",
+        _body_cumulacao_pedidos,
+        _render_clean,
+        False,
+        "PASS",
+        expect_liminar=True,
     ),
     # --- vícios de admissibilidade (firewall PASS; problema é cognitivo) ---
     "defect_sem_valor_da_causa": _Spec(
