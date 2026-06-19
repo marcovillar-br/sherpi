@@ -30,13 +30,15 @@ class Settings(BaseSettings):
 
     # --- LLM (port + adapter) ---
     llm_backend: LLMBackend = "gemini"
-    llm_model: str = "gemini-2.0-flash"
+    llm_model: str = "gemini-2.5-flash"
     llm_api_key: str | None = None
     llm_base_url: str | None = None  # usado por openai_compat (Maritaca/OpenAI/Ollama)
     llm_timeout_seconds: float = 30.0
     llm_max_retries: int = 3
     # Guarda de custo: corta requisições acima deste nº estimado de tokens de entrada.
     llm_max_input_tokens: int = 200_000
+    # Temperatura da geração; 0.0 = determinístico (recomendado p/ extração jurídica).
+    llm_temperature: float = 0.0
 
     # --- Anonimização (LGPD) ---
     anonymize_before_llm: bool = True

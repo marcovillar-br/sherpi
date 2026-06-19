@@ -44,7 +44,7 @@ do MVP está registrado como **visão de futuro** (ver [`backlog.md`](backlog.md
 - [x] `uv run pytest` verde no domínio puro e no firewall (um teste por vetor de injeção).
 - [x] CI executa lint (ruff), type (mypy) e testes em cada push.
 - [x] Dataset sintético com rótulos disponível via `synthetic.generate`.
-- [ ] `LLMProvider` trocável por config; `ExtractPetition` retorna `PetitionSummary` validado (com `FakeProvider`).
+- [x] `LLMProvider` trocável por config; `ExtractPetition` retorna `PetitionSummary` validado (com `FakeProvider`).
 - [ ] **Sprint Review (sábado)**: demo do firewall bloqueando PDF malicioso + extração de uma petição limpa.
 
 ---
@@ -64,12 +64,12 @@ do MVP está registrado como **visão de futuro** (ver [`backlog.md`](backlog.md
 
 **Definition of Done**
 
-- [ ] Orquestrador testado com `FakeProvider` (sem rede): caminho feliz e early-exit por `BLOCK`.
-- [ ] Validadores determinísticos (checksum CPF/CNPJ, valor da causa, pedidos) com testes exatos.
-- [ ] `POST /analyze`: PDF limpo → resumo + admissibilidade; PDF com injeção → `BLOCK` **sem chamada LLM**; análise persistida e recuperável.
-- [ ] UI: upload → laudo + resumo lado a lado; tarja vermelha quando houver injeção.
-- [ ] `uv run python -m evals.run` produz métricas; CI falha abaixo do limiar.
-- [ ] `ruff` e `mypy` limpos.
+- [x] Orquestrador testado com `FakeProvider` (sem rede): caminho feliz e early-exit por `BLOCK`.
+- [x] Validadores determinísticos (checksum CPF/CNPJ, valor da causa, pedidos) com testes exatos.
+- [x] `POST /analyze`: PDF limpo → resumo + admissibilidade; PDF com injeção → `BLOCK` **sem chamada LLM**; análise persistida e recuperável.
+- [x] UI: upload → laudo + resumo lado a lado; tarja vermelha quando houver injeção.
+- [x] `uv run python -m evals.run` produz métricas; CI falha abaixo do limiar.
+- [x] `ruff` e `mypy` limpos.
 - [ ] **Sprint Review (sábado)**: demo do MVP completo (upload → análise consolidada na UI).
 
 ---

@@ -12,13 +12,19 @@ adicionadas aqui e ao gate do CI.
 from __future__ import annotations
 
 import argparse
+import asyncio
 import sys
 from dataclasses import dataclass
 
-from synthetic.builder import build_corpus
+from synthetic.builder import build_clean, build_corpus
 
+from sherpi.config import get_settings
 from sherpi.contexts.document_integrity.application.analyze import AnalyzeDocumentIntegrity
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
+from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
+from sherpi.infrastructure.llm.factory import build_llm_provider
+from sherpi.shared_kernel.errors import LLMProviderError
+from sherpi.shared_kernel.ports import LLMProvider
 from sherpi.shared_kernel.value_objects import RiskVerdict
 
 # Limiares mínimos para o corpus sintético (ground truth determinístico):
@@ -63,6 +69,27 @@ def eval_firewall() -> Metrics:
     return Metrics(precision, recall, f1, tp, fp, fn, tn)
 
 
+async def eval_extraction(provider: LLMProvider) -> float:
+    """Acurácia de campo da extração sobre a petição sintética limpa (gold conhecido).
+
+    Não é F1 rigoroso (exige um conjunto anotado maior — Fase 4); é uma medida de
+    campo honesta para acompanhar regressões com um LLM real.
+    """
+    doc = PyMuPDFParser().parse(build_clean(), max_pages=300)
+    summary = await ExtractPetition(provider).run(doc.visible_text())
+    # Gold da peça sintética limpa (ver synthetic/builder.py).
+    checks = {
+        "partes>=2": len(summary.partes) >= 2,
+        "valor_causa~15.000": bool(summary.valor_causa and "15.000" in summary.valor_causa),
+        "sem_liminar": summary.tem_liminar is False,
+        "pedidos>=1": len(summary.pedidos) >= 1,
+    }
+    acertos = sum(1 for ok in checks.values() if ok)
+    for nome, ok in checks.items():
+        print(f"    {'✓' if ok else '✗'} {nome}")
+    return acertos / len(checks)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Eval harness do SHERPI.")
     parser.add_argument("--ci", action="store_true", help="sai com código != 0 se abaixo do limiar")
@@ -76,6 +103,17 @@ def main() -> int:
         f"  limiar: precision>={MIN_PRECISION} recall>={MIN_RECALL} -> "
         f"{'OK' if fw.passed() else 'FALHOU'}"
     )
+
+    # Extração: requer LLM real (rede). Sem chave/backend externo, é pulada — por
+    # isso NÃO faz parte do gate de CI (que valida só o firewall determinístico).
+    print("\n== Extração (petition_analysis) ==")
+    try:
+        provider = build_llm_provider(get_settings())
+    except LLMProviderError as exc:
+        print(f"  (pulada — sem LLM configurado: {exc})")
+    else:
+        acc = asyncio.run(eval_extraction(provider))
+        print(f"  acurácia de campo = {acc:.3f}")
 
     if args.ci and not fw.passed():
         print("\nEval gate: FALHOU — métrica abaixo do limiar.", file=sys.stderr)

@@ -246,37 +246,35 @@ O `risk_score` agrega as anomalias; o `verdict` (`BLOCK/WARN/PASS`) é derivado 
 
 ## 8. Contrato da API REST
 
-FastAPI como **driving adapter**. Rotas de análise protegidas por JWT (cookie httpOnly).
+FastAPI como **driving adapter**. Endpoints de domínio versionados sob **`/v1`**; probes
+operacionais (`/health`, `/ready`) ficam **sem versão** (padrão de orquestradores).
 
-| Método | Rota | Auth | Descrição |
+| Método | Rota | Status | Descrição |
 |---|---|---|---|
-| `POST` | `/auth/login` | não | OAuth2 password flow; retorna JWT (cookie httpOnly). |
-| `POST` | `/analyze` | JWT | Recebe PDF (multipart); roda o orquestrador; retorna análise consolidada. |
-| `GET` | `/analyses/{id}` | JWT | Retorna a análise persistida. |
-| `POST` | `/analyses/{id}/review` | JWT | Registra a decisão de revisão humana; grava `AuditEvent`. |
-| `GET` | `/health` | não | Liveness. |
-| `GET` | `/ready` | não | Readiness (checa DB). |
+| `POST` | `/v1/analyze` | ✅ MVP | Recebe PDF (multipart); roda o orquestrador; persiste e retorna a análise. |
+| `GET` | `/v1/analyses/{id}` | ✅ MVP | Retorna a análise persistida. |
+| `GET` | `/health` | ✅ MVP | Liveness. |
+| `GET` | `/ready` | ✅ MVP | Readiness (checa o DB; 503 se indisponível). |
+| `POST` | `/v1/auth/login` | ⚪ Fase 4 | OAuth2 password flow; retorna JWT (cookie httpOnly). |
+| `POST` | `/v1/analyses/{id}/review` | ⚪ Fase 4 | Decisão de revisão humana; grava `AuditEvent`. |
 
-### 8.1 `POST /auth/login`
+> No MVP as rotas ainda **não exigem JWT** (autenticação é do contexto `identity`, Fase 4).
+> O versionamento `/v1` permite evoluir o contrato sem quebrar clientes.
 
-- **Request**: `application/x-www-form-urlencoded` — `username`, `password`.
-- **200**: JWT emitido (corpo + cookie httpOnly+Secure+SameSite).
-- **401**: credenciais inválidas. **429**: lockout por brute-force.
-
-### 8.2 `POST /analyze`
+### 8.1 `POST /v1/analyze`
 
 - **Request**: `multipart/form-data` — campo `file` (PDF).
-- **200**: objeto consolidado `{ id, forensics_report, petition_summary?, admissibility_report?, tpu_suggestions? }`. Quando `verdict = BLOCK`, vêm apenas `id` e `forensics_report` (sem campos de LLM).
-- **401**: sem token. **413**: arquivo grande demais. **415**: não é PDF. **422**: payload inválido.
+- **200**: `{ id, result: { forensics, summary?, admissibility? } }`. Quando `forensics.verdict = BLOCK`, `summary` e `admissibility` vêm `null` (encerrou antes do LLM).
+- **413**: arquivo grande demais. **415**: não é PDF. **422**: payload inválido. **502**: falha do LLM.
 
-### 8.3 `GET /analyses/{id}`
+### 8.2 `GET /v1/analyses/{id}`
 
-- **200**: a análise persistida. **401**: sem token. **404**: inexistente.
+- **200**: a análise persistida (`{ id, result }`). **404**: inexistente.
 
-### 8.4 `POST /analyses/{id}/review`
+### 8.3 Fase 4 — `POST /v1/auth/login` e `POST /v1/analyses/{id}/review`
 
-- **Request**: `application/json` — `{ decision: "ACCEPT" | "REJECT" | "CORRECT", notes?, corrected_fields? }`.
-- **201**: `AuditEvent` gravado, vinculado ao usuário autenticado. **401**: sem token. **404**: análise inexistente.
+Autenticação (JWT, lockout) e registro de revisão humana (`AuditEvent`) entram com os contextos
+`identity` e `review` na Fase 4.
 
 Erros são consistentes e **não vazam stack trace**; validação de entrada via Pydantic (→ 422).
 

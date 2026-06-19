@@ -218,6 +218,9 @@ __marimo__/
 .streamlit/secrets.toml
 
 # --- SHERPI ---
+# O padrão 'lib/' acima (packaging Python) também pegaria o código do frontend;
+# reincluir o diretório de libs do front (api client, tipos).
+!frontend/src/lib/
 # Diretório de arquivos ad-hoc/temporários (anexos, rascunhos)
 tmp/
 # Dados gerados/enviados: uploads (PII) e corpus sintético regenerável

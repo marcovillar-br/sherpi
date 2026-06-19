@@ -30,12 +30,17 @@ Domínio com PII jurídica — controle crítico.
 **MVP**
 
 - **Synthetic-first**: petições sintéticas evitam que PII real saia para o Gemini externo.
-- Port **`Anonymizer`**: mascara CPF/CNPJ/nomes/endereços antes do envio ao LLM, com flag em `config`.
+- **`RegexAnonymizer`** (implementa o port `Anonymizer`, ativo via `anonymize_before_llm` + LLM
+  externo): mascara **identificadores estruturados** (CPF, CNPJ, e-mail, telefone, CEP) **antes** do
+  envio ao LLM. A validação determinística de CPF/CNPJ roda sobre o **texto original**, então o
+  mascaramento **não degrada** a admissibilidade.
 - Invariante de domínio **"nunca decisão automática"** (human-in-the-loop obrigatório).
 - **Sem PII em log**.
 
 **Fase 4**
 
+- **Anonimização de nomes** (NER — Presidio/spaCy): o `RegexAnonymizer` do MVP não cobre nomes.
+- Anonimização reversível (placeholders + restauração) onde a utilidade exigir.
 - Criptografia em repouso.
 - Política de **retenção e eliminação** de PDFs/análises (direito ao esquecimento).
 - DPIA (relatório de impacto à proteção de dados).
