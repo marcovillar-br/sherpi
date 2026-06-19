@@ -9,7 +9,11 @@ const STATUS: Record<AdmissibilityStatus, { dot: string; label: string }> = {
 export function AdmissibilityPanel({ report }: { report: AdmissibilityReport }) {
   const s = STATUS[report.status];
   return (
-    <section className="space-y-3 rounded-lg border border-gray-200 p-4">
+    <section
+      data-testid="admissibility-panel"
+      data-status={report.status}
+      className="space-y-3 rounded-lg border border-gray-200 p-4"
+    >
       <div className="flex items-center gap-2">
         <span className={`inline-block h-3 w-3 rounded-full ${s.dot}`} aria-hidden />
         <h2 className="font-semibold text-gray-800">Admissibilidade — {s.label}</h2>

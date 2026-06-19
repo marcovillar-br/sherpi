@@ -22,6 +22,7 @@ help:
 	@echo "  make dev-backend-fake  Inicia o backend com FakeProvider (sem tokens)"
 	@echo "  make dev-frontend      Inicia o frontend (hot reload)"
 	@echo "  make e2e               Roda testes E2E Playwright (requer dev-backend-fake)"
+	@echo "  make e2e-llm           Roda testes de admissibilidade com LLM real (requer dev-backend)"
 
 # --- Banco ---
 
@@ -77,3 +78,9 @@ dev-frontend:
 # Pré-requisito: `make dev-backend-fake` rodando em outro terminal.
 e2e:
 	cd $(FRONTEND_DIR) && npx playwright test
+
+# Testes E2E com LLM real — valida semáforo de admissibilidade e liminar.
+# Pré-requisito: `make dev-backend` rodando em outro terminal (consome tokens).
+# ~8 cenários × 1 chamada LLM cada. Sem retry, sem loop.
+e2e-llm:
+	cd $(FRONTEND_DIR) && npx playwright test --config=playwright.llm.config.ts

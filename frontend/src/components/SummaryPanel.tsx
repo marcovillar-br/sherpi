@@ -6,7 +6,10 @@ export function SummaryPanel({ summary }: { summary: PetitionSummary }) {
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-gray-800">Resumo estruturado</h2>
         {summary.has_injunction && (
-          <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+          <span
+            data-testid="summary-has-injunction"
+            className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700"
+          >
             ⚠ Pedido de liminar
           </span>
         )}
