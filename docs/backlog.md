@@ -175,11 +175,11 @@ concluídas (MVP + multi-domínio); Sprints 4–7 (Fase 4) planejadas.
 
 ### Sprint 7 — Integração PJe/E-Proc
 
-| Épico | Task | SP |
-|---|---|---|
-| EP8 | Bounded context de integração: adapter PJe/E-Proc (sandbox) | 8 |
-| EP8 | Ingestão em lote + execução assíncrona/fila | 5 |
-| **Total Sprint 7** | | **13** |
+| Épico | Task | SP | Status |
+|---|---|---|---|
+| EP8 | Bounded context de integração: adapter PJe/E-Proc (sandbox) | 8 | ✅ |
+| EP8 | Ingestão em lote + execução assíncrona/fila | 5 | ✅ |
+| **Total Sprint 7** | | **13** | ✅ |
 
 > As estimativas serão recalibradas em cada *Sprint Planning* conforme a capacidade real da equipe e
 > o framework de Design Sprint.
