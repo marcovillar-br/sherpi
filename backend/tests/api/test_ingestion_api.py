@@ -90,7 +90,12 @@ def unauth_client() -> Iterator[TestClient]:
 def test_create_job_returns_202(client: TestClient) -> None:
     resp = client.post(
         "/v1/ingestion/jobs",
-        json={"source": "SANDBOX", "tribunal": "TJSP", "date_from": "2024-01-01", "date_to": "2024-01-07"},
+        json={
+            "source": "SANDBOX",
+            "tribunal": "TJSP",
+            "date_from": "2024-01-01",
+            "date_to": "2024-01-07",
+        },
     )
     assert resp.status_code == 202
     body = resp.json()
@@ -102,7 +107,12 @@ def test_create_job_returns_202(client: TestClient) -> None:
 def test_list_jobs(client: TestClient) -> None:
     client.post(
         "/v1/ingestion/jobs",
-        json={"source": "SANDBOX", "tribunal": "TJSP", "date_from": "2024-01-01", "date_to": "2024-01-07"},
+        json={
+            "source": "SANDBOX",
+            "tribunal": "TJSP",
+            "date_from": "2024-01-01",
+            "date_to": "2024-01-07",
+        },
     )
     resp = client.get("/v1/ingestion/jobs")
     assert resp.status_code == 200
@@ -112,7 +122,12 @@ def test_list_jobs(client: TestClient) -> None:
 def test_get_job_status(client: TestClient) -> None:
     created = client.post(
         "/v1/ingestion/jobs",
-        json={"source": "SANDBOX", "tribunal": "TRT2", "date_from": "2024-01-01", "date_to": "2024-01-07"},
+        json={
+            "source": "SANDBOX",
+            "tribunal": "TRT2",
+            "date_from": "2024-01-01",
+            "date_to": "2024-01-07",
+        },
     ).json()
     resp = client.get(f"/v1/ingestion/jobs/{created['id']}")
     assert resp.status_code == 200
@@ -126,7 +141,12 @@ def test_get_unknown_job_returns_404(client: TestClient) -> None:
 def test_create_job_unauthorized(unauth_client: TestClient) -> None:
     resp = unauth_client.post(
         "/v1/ingestion/jobs",
-        json={"source": "SANDBOX", "tribunal": "TJSP", "date_from": "2024-01-01", "date_to": "2024-01-07"},
+        json={
+            "source": "SANDBOX",
+            "tribunal": "TJSP",
+            "date_from": "2024-01-01",
+            "date_to": "2024-01-07",
+        },
     )
     assert resp.status_code == 401
 

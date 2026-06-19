@@ -84,8 +84,12 @@ async def test_ingest_job_persisted(engine) -> None:  # type: ignore[no-untyped-
         created_at=datetime.now(UTC),
     )
 
-    use_case = IngestPetitions(source=SandboxSourceAdapter(), orchestrator=orchestrator,
-                               analysis_repo=analysis_repo, job_repo=job_repo)
+    use_case = IngestPetitions(
+        source=SandboxSourceAdapter(),
+        orchestrator=orchestrator,
+        analysis_repo=analysis_repo,
+        job_repo=job_repo,
+    )
     await use_case.run(job)
 
     persisted = job_repo.get("job-002")
