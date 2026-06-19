@@ -4,8 +4,8 @@ description: "Decomposição hierárquica do trabalho do SHERPI, com Gerenciamen
 doc_type: wbs
 project: SHERPI
 status: approved
-version: 1.0
-updated: 2026-06-18
+version: 1.1
+updated: 2026-06-19
 language: pt-BR
 tags: [eap, wbs, gerenciamento-de-projeto, escopo]
 ---
@@ -14,8 +14,8 @@ tags: [eap, wbs, gerenciamento-de-projeto, escopo]
 
 Decomposição hierárquica de **todo o trabalho** do projeto. Conforme o Guia de Diretrizes, há uma
 ramificação principal dedicada ao **Gerenciamento de Projeto**, com a **Gestão e Rituais Ágeis** como
-sub-ramificação (`1.1 → 1.1.1`). Legenda: 🔵 entregue (MVP, Sprints 1–2); **S3–S6** = sprint da Fase 4
-em que o pacote será executado (ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md)).
+sub-ramificação (`1.1 → 1.1.1`). Legenda: 🔵 entregue (Sprints 1–3: MVP + multi-domínio); **S4–S7** =
+sprint da Fase 4 restante em que o pacote será executado (ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md)).
 
 ```mermaid
 flowchart TD
@@ -40,7 +40,7 @@ flowchart TD
 - **1.1.1 Gestão e Rituais Ágeis** — Design Sprint semanal, Sprint Planning, Dailies, Sprint Review
   (sábados), Retrospective e refinamento de backlog.
 - **1.1.2 Gestão de Escopo** — Backlog do Produto, Sprint Backlog, esta EAP, controle de mudanças.
-- **1.1.3 Gestão de Tempo** — cronograma das 2 sprints, marcos (M1–M3), acompanhamento.
+- **1.1.3 Gestão de Tempo** — cronograma das sprints (S1–S7), marcos (M1–M7), acompanhamento.
 - **1.1.4 Gestão de Custos** — *free tier* do LLM, infra local, guarda de tokens.
 - **1.1.5 Gestão de Riscos** — registro e mitigação de riscos (ver [`pmp.md`](pmp.md) §5).
 - **1.1.6 Comunicação e Qualidade** — canais, *Definition of Done*, gate de CI.
@@ -51,7 +51,7 @@ flowchart TD
 - **1.2.3 Orquestração** 🔵 — use case `analyze_petition` (firewall → extração → admissibilidade).
 - **1.2.4 Persistência** 🔵 — modelos SQLModel, repositórios, migrations.
 - **1.2.5 Interface (UI mínima)** 🔵 — upload do PDF → laudo + resumo estruturado.
-- **1.2.10 Multi-domínio (rito-aware) + Trabalhista** **S3** — enum `Rito`, estratégias de
+- **1.2.10 Multi-domínio (rito-aware) + Trabalhista** 🔵 (S3) — enum `Rito`, estratégias de
   admissibilidade por rito; `TrabalhistaStrategy` (CLT 840, pedido líquido). Ver ADR-0008.
 - **1.2.7 Identidade & Acesso** **S4** — login OAuth2/JWT (perfil único), rotas protegidas.
 - **1.2.8 Revisão & Auditoria** **S4** — *human-in-the-loop* + trilha append-only (CNJ 615/2025).

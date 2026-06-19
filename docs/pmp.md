@@ -4,8 +4,8 @@ description: "Escopo, tempo, custos, riscos, equipe, comunicação e qualidade d
 doc_type: pmp
 project: SHERPI
 status: approved
-version: 1.0
-updated: 2026-06-18
+version: 1.1
+updated: 2026-06-19
 language: pt-BR
 tags: [gerenciamento-de-projeto, pgp, pmp, escopo, riscos, cronograma]
 ---
@@ -23,7 +23,7 @@ Complementa o backlog (responsabilidade do PO, [`backlog.md`](backlog.md)) e a
 | Projeto | **SHERPI** — Sistema Híbrido de Extração e Resumo Estruturado de Petições Iniciais |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
 | **Formato da entrega** | **MVP** (sistema funcional, com código implementado e executável) |
-| Duração | **MVP em 2 Sprints (entregue)** + **Fase 4** em 4 sprints (3–6) |
+| Duração | **MVP em 2 Sprints** + **Fase 4** em 5 sprints (3–7); **Sprints 1–3 entregues** |
 | Cliente/patrocinador (simulado) | Gabinete judicial de 1º grau (persona: magistrado/assessor) |
 | Avaliador | Professor (Sprint Reviews aos sábados) |
 
@@ -42,9 +42,10 @@ supervisão humana.
 
 ### 2.3 Escopo da Fase 4 (pós-MVP, agendado em sprints)
 Com o MVP entregue, as capacidades adiadas foram **agendadas em sprints** por importância/ganho:
-identidade + revisão/auditoria (Sprint 3), classificação TPU (Sprint 4), hardening de produção —
-observabilidade/LGPD pleno/deploy (Sprint 5) e integração PJe/E-Proc (Sprint 6). Detalhe das
-histórias/tasks em [`backlog.md`](backlog.md); objetivos e DoD em [`roadmap.md`](roadmap.md).
+domínio trabalhista + rito-aware (Sprint 3, ✅), identidade + revisão/auditoria (Sprint 4),
+classificação TPU (Sprint 5), hardening de produção — observabilidade/LGPD pleno/deploy (Sprint 6)
+e integração PJe/E-Proc (Sprint 7). Detalhe das histórias/tasks em [`backlog.md`](backlog.md);
+objetivos e DoD em [`roadmap.md`](roadmap.md).
 
 > A divisão escopo-completo (produto) × escopo-de-execução (sprint) segue formalizada no backlog,
 > conforme exigência do Guia.
@@ -59,14 +60,14 @@ Ritmo de **Design Sprint semanal** (modelo Google), **Dailies** de alinhamento c
 |---|---|---|
 | **Sprint 1** | Fundações + firewall + extração estruturada | ✅ entregue |
 | **Sprint 2** | Admissibilidade + orquestrador + persistência + UI mínima | ✅ entregue |
-| **Sprint 3** | **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo) | planejada |
+| **Sprint 3** | **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo) | ✅ entregue |
 | **Sprint 4** | Confiança & Conformidade: `identity` (JWT) + `review` (human-in-the-loop + auditoria) | planejada |
 | **Sprint 5** | Classificação TPU (`taxonomy`) por ramo: JurisBERT + k-NN/pgvector | planejada |
 | **Sprint 6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | planejada |
 | **Sprint 7** | Integração PJe/E-Proc (ingestão assíncrona) | planejada |
 | *(pós-3)* | Domínios adicionais: previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware) | backlog |
 
-Marcos: **M1** firewall (✅); **M2** MVP completo (✅); **M3** trabalhista + rito-aware; **M4**
+Marcos: **M1** firewall (✅); **M2** MVP completo (✅); **M3** trabalhista + rito-aware (✅); **M4**
 conformidade/auditoria; **M5** TPU; **M6** produção; **M7** integração processual. Detalhe em
 [`roadmap.md`](roadmap.md).
 
@@ -78,7 +79,7 @@ Projeto acadêmico de **baixíssimo custo**, por decisão de arquitetura:
 |---|---|---|
 | LLM | Gemini Flash (free tier acadêmico) + `FakeProvider` nos testes | ~R$ 0 |
 | Infra | Docker local (Postgres+pgvector); sem nuvem no MVP | R$ 0 |
-| Modelos ML | TPU na Sprint 4: JurisBERT via HuggingFace, inferência em CPU | R$ 0 |
+| Modelos ML | TPU na Sprint 5: JurisBERT via HuggingFace, inferência em CPU | R$ 0 |
 | Mão de obra | 8 integrantes (esforço acadêmico) | — |
 
 Guarda de custo de tokens configurável (`SHERPI_LLM_MAX_INPUT_TOKENS`) evita estouro de *free tier*.
