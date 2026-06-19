@@ -134,6 +134,7 @@ _ADRS = {
     "adr/0005-gemini-flash-default.md": "ADR-0005: Gemini Flash como LLM default",
     "adr/0006-docker-db-only.md": "ADR-0006: Docker apenas para o banco",
     "adr/0007-auth-jwt-single-profile.md": "ADR-0007: Autenticação JWT com perfil único",
+    "adr/0008-multi-dominio-rito-aware.md": "ADR-0008: Arquitetura multi-domínio (rito-aware)",
 }
 for rel, title in _ADRS.items():
     META[rel] = {

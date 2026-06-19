@@ -59,13 +59,16 @@ Ritmo de **Design Sprint semanal** (modelo Google), **Dailies** de alinhamento c
 |---|---|---|
 | **Sprint 1** | Fundações + firewall + extração estruturada | ✅ entregue |
 | **Sprint 2** | Admissibilidade + orquestrador + persistência + UI mínima | ✅ entregue |
-| **Sprint 3** | Confiança & Conformidade: `identity` (JWT) + `review` (human-in-the-loop + auditoria) | planejada |
-| **Sprint 4** | Classificação TPU (`taxonomy`): JurisBERT + k-NN/pgvector | planejada |
-| **Sprint 5** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | planejada |
-| **Sprint 6** | Integração PJe/E-Proc (ingestão assíncrona) | planejada |
+| **Sprint 3** | **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo) | planejada |
+| **Sprint 4** | Confiança & Conformidade: `identity` (JWT) + `review` (human-in-the-loop + auditoria) | planejada |
+| **Sprint 5** | Classificação TPU (`taxonomy`) por ramo: JurisBERT + k-NN/pgvector | planejada |
+| **Sprint 6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | planejada |
+| **Sprint 7** | Integração PJe/E-Proc (ingestão assíncrona) | planejada |
+| *(pós-3)* | Domínios adicionais: previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware) | backlog |
 
-Marcos: **M1** firewall (✅); **M2** MVP completo (✅); **M3** conformidade/auditoria; **M4** TPU;
-**M5** produção; **M6** integração processual. Detalhe em [`roadmap.md`](roadmap.md).
+Marcos: **M1** firewall (✅); **M2** MVP completo (✅); **M3** trabalhista + rito-aware; **M4**
+conformidade/auditoria; **M5** TPU; **M6** produção; **M7** integração processual. Detalhe em
+[`roadmap.md`](roadmap.md).
 
 ## 4. Gerenciamento de Custos
 

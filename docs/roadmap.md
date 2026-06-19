@@ -79,7 +79,22 @@ do MVP está registrado como **visão de futuro** (ver [`backlog.md`](backlog.md
 Pós-MVP, ordenadas por `(importância × ganho) ÷ (esforço × risco)`, respeitando dependências.
 Detalhe das histórias/tasks em [`backlog.md`](backlog.md); gerência em [`pmp.md`](pmp.md).
 
-### Sprint 3 — Confiança & Conformidade (`identity` + `review`)
+### Sprint 3 — Domínio Trabalhista (CLT 840) + arquitetura rito-aware
+
+**Objetivo**: foco do grupo. Tornar o domínio **plugável por rito** (ver [ADR-0008](adr/0008-multi-dominio-rito-aware.md))
+e entregar o **trabalhista** como primeira nova estratégia de admissibilidade.
+
+**Entregáveis**
+- Enum `Rito` + `AdmissibilityStrategy` + registro; cível extraído para `CivelStrategy`.
+- `TrabalhistaStrategy` (CLT art. 840 §1º), incluindo a checagem de **pedido líquido** (valor por pedido);
+  `Pedido.valor` no `PetitionSummary`.
+- Parâmetro `rito` no `POST /v1/analyze` (default cível); cenários sintéticos **trabalhistas** na massa.
+
+**Definition of Done**
+- [ ] Admissibilidade despacha por rito; cível inalterado; `TrabalhistaStrategy` valida pedido líquido.
+- [ ] Massa com cenários trabalhistas (cumulação massiva, pedido líquido × ilíquido). Testes verdes.
+
+### Sprint 4 — Confiança & Conformidade (`identity` + `review`)
 
 **Objetivo**: nenhum tribunal adota IA sem controle humano auditável (Res. CNJ 615/2025). Entregar
 login obrigatório e o *human-in-the-loop* completo.
@@ -97,9 +112,10 @@ login obrigatório e o *human-in-the-loop* completo.
 - [ ] `POST /v1/analyses/{id}/review` grava `AuditEvent` vinculado ao usuário; trilha append-only.
 - [ ] UI: login → análise → registrar revisão. Testes; `ruff`/`mypy`/eval verdes.
 
-### Sprint 4 — Classificação TPU (`taxonomy`)
+### Sprint 5 — Classificação TPU (`taxonomy`)
 
-**Objetivo**: 3ª capacidade núcleo — sugerir a classe/assunto do CNJ, atacando o gargalo da autuação.
+**Objetivo**: 3ª capacidade núcleo — sugerir a classe/assunto do CNJ, atacando o gargalo da autuação
+(por ramo: cível e trabalhista).
 
 **Entregáveis**
 - Deps de ML (`uv sync --extra ml`); **seed rotulado** petição→código TPU.
@@ -111,7 +127,7 @@ login obrigatório e o *human-in-the-loop* completo.
 - [ ] `SuggestTpu` retorna top-3 com confiança sobre o seed; índice pgvector populado.
 - [ ] Eval reporta acurácia top-1/top-3 **honestamente** (sem prometer número). Testes verdes.
 
-### Sprint 5 — Produção (observabilidade, LGPD pleno, deploy)
+### Sprint 6 — Produção (observabilidade, LGPD pleno, deploy)
 
 **Objetivo**: tornar operável, observável e conforme para sair do escopo acadêmico.
 
@@ -125,7 +141,7 @@ login obrigatório e o *human-in-the-loop* completo.
 - [ ] Logs estruturados com correlation id e **sem PII**; política de retenção configurável.
 - [ ] Imagem da app + pipeline de deploy; `pip-audit` como gate (sem alta severidade).
 
-### Sprint 6 — Integração PJe/E-Proc
+### Sprint 7 — Integração PJe/E-Proc
 
 **Objetivo**: ingestão real a partir dos sistemas processuais (maior ganho de adoção; maior dependência externa).
 
@@ -135,6 +151,12 @@ login obrigatório e o *human-in-the-loop* completo.
 **Definition of Done**
 - [ ] Ingestão de ao menos um sistema (sandbox/homologação) processada ponta a ponta de forma assíncrona.
 
+### Domínios adicionais (épicos incrementais, pós rito-aware)
+
+Com a arquitetura rito-aware pronta (Sprint 3), cada novo domínio é um **encaixe** (estratégia +
+cenários + ramo de TPU), por ordem de volume: **Previdenciário/INSS** → **Execução fiscal** →
+**Família/JEC**. Planejados como épicos próprios quando priorizados.
+
 ---
 
 ## Tabela de marcos
@@ -143,7 +165,8 @@ login obrigatório e o *human-in-the-loop* completo.
 |---|---|---|
 | M1 — Firewall + dados + extração | 1 | ✅ Firewall por vetor; dataset sintético; LLM agnóstico + extração. |
 | M2 — MVP completo | 2 | ✅ Admissibilidade + orquestrador + persistência + UI + eval. |
-| M3 — Confiança & Conformidade | 3 | Identity (JWT) + review (human-in-the-loop + auditoria). |
-| M4 — Classificação TPU | 4 | SuggestTpu (JurisBERT + k-NN/pgvector); top-3 com confiança. |
-| M5 — Produção | 5 | Observabilidade, LGPD pleno (NER), deploy/CI-CD. |
-| M6 — Integração processual | 6 | Ingestão PJe/E-Proc assíncrona. |
+| M3 — Domínio Trabalhista + rito-aware | 3 | Arquitetura por rito; `TrabalhistaStrategy` (CLT 840, pedido líquido). |
+| M4 — Confiança & Conformidade | 4 | Identity (JWT) + review (human-in-the-loop + auditoria). |
+| M5 — Classificação TPU | 5 | SuggestTpu (JurisBERT + k-NN/pgvector) por ramo; top-3 com confiança. |
+| M6 — Produção | 6 | Observabilidade, LGPD pleno (NER), deploy/CI-CD. |
+| M7 — Integração processual | 7 | Ingestão PJe/E-Proc assíncrona. |

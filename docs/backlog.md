@@ -60,11 +60,13 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 
 | Épico | Histórias (resumo) | Prio | Sprint |
 |---|---|---|---|
-| EP6 — Identidade & Acesso | Login obrigatório (JWT, perfil único); rotas protegidas. | M | 3 |
-| EP7 — Revisão & Auditoria | Registrar decisão humana; trilha append-only (CNJ 615/2025). | M | 3 |
-| EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ (embeddings JurisBERT + k-NN). | S | 4 |
-| EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD pleno (NER), deploy/CI-CD. | S | 5 |
-| EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 6 |
+| EP10 — Domínio Trabalhista + rito-aware | Arquitetura por rito (ADR-0008); `TrabalhistaStrategy` (CLT 840, pedido líquido). | **M** | 3 |
+| EP6 — Identidade & Acesso | Login obrigatório (JWT, perfil único); rotas protegidas. | M | 4 |
+| EP7 — Revisão & Auditoria | Registrar decisão humana; trilha append-only (CNJ 615/2025). | M | 4 |
+| EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ (JurisBERT + k-NN), por ramo. | S | 5 |
+| EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD pleno (NER), deploy/CI-CD. | S | 6 |
+| EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 7 |
+| EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-3 |
 
 ---
 
@@ -103,7 +105,17 @@ concluídas; Sprints 3–6 (Fase 4) planejadas.
 | US4.2 | Tarja de risco (BLOCK) na UI | 2 |
 | **Total Sprint 2** | | **36** ✅ |
 
-### Sprint 3 — Confiança & Conformidade (`identity` + `review`)
+### Sprint 3 — Domínio Trabalhista (CLT 840) + rito-aware
+
+| Épico | Task | SP |
+|---|---|---|
+| EP10 | Enum `Rito` + `AdmissibilityStrategy` + registro; extrair `CivelStrategy` (sem mudar comportamento) | 5 |
+| EP10 | `TrabalhistaStrategy` (CLT art. 840 §1º) + checagem de **pedido líquido** | 5 |
+| EP10 | `Pedido.valor` no `PetitionSummary` + prompt; parâmetro `rito` no `POST /v1/analyze` | 3 |
+| EP10 | Cenários sintéticos trabalhistas (cumulação massiva; pedido líquido × ilíquido) | 3 |
+| **Total Sprint 3** | | **16** |
+
+### Sprint 4 — Confiança & Conformidade (`identity` + `review`)
 
 | Épico | Task | SP |
 |---|---|---|
@@ -115,7 +127,7 @@ concluídas; Sprints 3–6 (Fase 4) planejadas.
 | EP6/EP7 | UI: tela de login + ações de revisão (aceitar/rejeitar/corrigir) | 5 |
 | **Total Sprint 3** | | **26** |
 
-### Sprint 4 — Classificação TPU (`taxonomy`)
+### Sprint 5 — Classificação TPU (`taxonomy`)
 
 | Épico | Task | SP |
 |---|---|---|
@@ -126,7 +138,7 @@ concluídas; Sprints 3–6 (Fase 4) planejadas.
 | EP5 | UI: top-3 sugestões com confiança e exemplos-âncora | 3 |
 | **Total Sprint 4** | | **21** |
 
-### Sprint 5 — Produção (observabilidade, LGPD pleno, deploy)
+### Sprint 6 — Produção (observabilidade, LGPD pleno, deploy)
 
 | Épico | Task | SP |
 |---|---|---|
@@ -137,7 +149,7 @@ concluídas; Sprints 3–6 (Fase 4) planejadas.
 | EP9 | Containerização completa (app+db) + CI/CD com deploy + secrets manager + TLS | 5 |
 | **Total Sprint 5** | | **19** |
 
-### Sprint 6 — Integração PJe/E-Proc
+### Sprint 7 — Integração PJe/E-Proc
 
 | Épico | Task | SP |
 |---|---|---|

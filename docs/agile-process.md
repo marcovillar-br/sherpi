@@ -16,7 +16,7 @@ tags: [agil, scrum, kanban, design-sprint, papeis, processo]
 |---|---|
 | Documento | Processo Ágil de Desenvolvimento |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
-| Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; MVP em 2 sprints + Fase 4 (sprints 3–6) |
+| Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; MVP em 2 sprints + Fase 4 (sprints 3–7+) |
 | Versão | 1.1 |
 
 > Este documento registra **como** o SHERPI é desenvolvido — papéis, artefatos e cerimônias —
@@ -78,10 +78,11 @@ MVP (1–2) entregue; Fase 4 (3–6) planejada por importância/ganho. Tasks em 
 |---|---|---|---|
 | **1** | Fundações + firewall + extração estruturada | EP1, EP3, EP2 | ✅ |
 | **2** | Admissibilidade + orquestração + persistência + UI mínima | EP2, EP3, EP4 | ✅ |
-| **3** | Confiança & Conformidade: identidade (JWT) + revisão/auditoria | EP6, EP7 | planejada |
-| **4** | Classificação TPU (JurisBERT + k-NN/pgvector) | EP5 | planejada |
-| **5** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | EP9 | planejada |
-| **6** | Integração PJe/E-Proc (ingestão assíncrona) | EP8 | planejada |
+| **3** | **Domínio Trabalhista (CLT 840) + rito-aware** (foco do grupo) | EP10 | planejada |
+| **4** | Confiança & Conformidade: identidade (JWT) + revisão/auditoria | EP6, EP7 | planejada |
+| **5** | Classificação TPU por ramo (JurisBERT + k-NN/pgvector) | EP5 | planejada |
+| **6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | EP9 | planejada |
+| **7** | Integração PJe/E-Proc (ingestão assíncrona) | EP8 | planejada |
 
 > Priorização: **risco-primeiro** no MVP (firewall/extração antes); na Fase 4, **valor/conformidade
 > primeiro** (controle humano auditável destrava adoção), depois a capacidade que falta (TPU),

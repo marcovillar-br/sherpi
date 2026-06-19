@@ -84,9 +84,11 @@ Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/READM
 
 - **Sprint 1** ✅ — Fundações DDD + firewall + dados sintéticos + extração estruturada (LLM agnóstico)
 - **Sprint 2** ✅ — Admissibilidade + orquestrador + persistência + UI mínima + eval → **MVP concluído**
-- **Sprint 3** — Confiança & Conformidade: autenticação (JWT) + revisão/auditoria (human-in-the-loop)
-- **Sprint 4** — Classificação TPU (JurisBERT + k-NN/pgvector)
-- **Sprint 5** — Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD
-- **Sprint 6** — Integração PJe/E-Proc
+- **Sprint 3** — **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo)
+- **Sprint 4** — Confiança & Conformidade: autenticação (JWT) + revisão/auditoria (human-in-the-loop)
+- **Sprint 5** — Classificação TPU por ramo (JurisBERT + k-NN/pgvector)
+- **Sprint 6** — Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD
+- **Sprint 7** — Integração PJe/E-Proc
+- **Domínios adicionais** (pós rito-aware) — previdenciário/INSS, execução fiscal, família/JEC
 
 Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pmp.md`](docs/pmp.md), [`docs/wbs.md`](docs/wbs.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).
