@@ -1,15 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { AdmissibilityPanel } from "@/components/AdmissibilityPanel";
 import { ForensicsBanner } from "@/components/ForensicsBanner";
+import { ReviewPanel } from "@/components/ReviewPanel";
 import { SummaryPanel } from "@/components/SummaryPanel";
+import { TpuPanel } from "@/components/TpuPanel";
 import { analyzePetition, ApiError } from "@/lib/api";
-import type { AnalyzeResponse } from "@/lib/types";
+import type { AnalyzeResponse, Rito } from "@/lib/types";
+
+const RITOS: { value: Rito; label: string }[] = [
+  { value: "CIVEL", label: "Cível" },
+  { value: "TRABALHISTA", label: "Trabalhista" },
+];
 
 export default function Home() {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
+  const [rito, setRito] = useState<Rito>("CIVEL");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState<AnalyzeResponse | null>(null);
@@ -21,8 +31,12 @@ export default function Home() {
     setError(null);
     setResponse(null);
     try {
-      setResponse(await analyzePetition(file));
+      setResponse(await analyzePetition(file, rito));
     } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        router.replace("/login");
+        return;
+      }
       setError(err instanceof ApiError ? err.message : "Erro inesperado ao analisar.");
     } finally {
       setLoading(false);
@@ -33,20 +47,40 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-6">
-      <header>
-        <h1 className="text-2xl font-bold text-gray-900">SHERPI</h1>
-        <p className="text-sm text-gray-500">
-          Triagem assistida de petições iniciais — firewall, resumo e admissibilidade.
-        </p>
+      <header className="flex items-baseline justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">SHERPI</h1>
+          <p className="text-sm text-gray-500">
+            Triagem assistida de petições iniciais — firewall, resumo e admissibilidade.
+          </p>
+        </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="flex items-center gap-3">
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-3">
         <input
           type="file"
           accept="application/pdf"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           className="text-sm"
         />
+
+        <div className="flex overflow-hidden rounded-md border border-gray-300">
+          {RITOS.map((r) => (
+            <button
+              key={r.value}
+              type="button"
+              onClick={() => setRito(r.value)}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                rito === r.value
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+
         <button
           type="submit"
           disabled={!file || loading}
@@ -65,17 +99,29 @@ export default function Home() {
       {result && (
         <div className="space-y-4">
           <ForensicsBanner report={result.forensics} />
+
           {result.summary && result.admissibility ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              <SummaryPanel summary={result.summary} />
-              <AdmissibilityPanel report={result.admissibility} />
-            </div>
+            <>
+              <div className="grid gap-4 md:grid-cols-2">
+                <SummaryPanel summary={result.summary} />
+                <AdmissibilityPanel report={result.admissibility} />
+              </div>
+
+              {result.tpu_suggestions && result.tpu_suggestions.length > 0 && (
+                <TpuPanel suggestions={result.tpu_suggestions} />
+              )}
+
+              <ReviewPanel analysisId={response!.id} />
+            </>
           ) : (
             <p className="text-sm text-gray-500">
               Análise cognitiva não executada — o documento foi bloqueado pelo firewall.
             </p>
           )}
-          <p className="text-xs text-gray-400">id da análise: {response?.id}</p>
+
+          <p className="text-xs text-gray-400">
+            id: {response?.id} · rito: {result.rito?.toLowerCase() ?? "cível"}
+          </p>
         </div>
       )}
     </main>

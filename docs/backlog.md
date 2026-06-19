@@ -61,9 +61,9 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 | Épico | Histórias (resumo) | Prio | Sprint |
 |---|---|---|---|
 | EP10 — Domínio Trabalhista + rito-aware | Arquitetura por rito (ADR-0008); `TrabalhistaStrategy` (CLT 840, pedido líquido). | **M** | 3 | ✅ |
-| EP6 — Identidade & Acesso | Login obrigatório (JWT, perfil único); rotas protegidas. | M | 4 | ✅ (backend) |
-| EP7 — Revisão & Auditoria | Registrar decisão humana; trilha append-only (CNJ 615/2025). | M | 4 | ✅ (backend) |
-| EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ (JurisBERT + k-NN), por ramo. | S | 5 | ✅ (backend) |
+| EP6 — Identidade & Acesso | Login obrigatório (JWT, perfil único); rotas protegidas. | M | 4/8 | ✅ |
+| EP7 — Revisão & Auditoria | Registrar decisão humana; trilha append-only (CNJ 615/2025). | M | 4/8 | ✅ |
+| EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ (JurisBERT + k-NN), por ramo. | S | 5/8 | ✅ |
 | EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD pleno (NER), deploy/CI-CD. | S | 6 | ✅ |
 | EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 7 | ✅ |
 | EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-7 | — |
@@ -72,8 +72,8 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 
 ## Parte 2 — Sprint Backlog (execução)
 
-Histórias selecionadas por sprint, desdobradas em **tasks técnicas estimadas**. Sprints 1–3
-concluídas (MVP + multi-domínio); Fase 4 (Sprints 4–7) concluída (UI frontend pendente).
+Histórias selecionadas por sprint, desdobradas em **tasks técnicas estimadas**. Sprints 1–8
+concluídas (MVP + multi-domínio + Fase 4 backend + UI frontend S4–S7).
 
 ### Sprint 1 — Fundações + Firewall + Extração *(grande parte concluída)*
 
@@ -180,6 +180,25 @@ concluídas (MVP + multi-domínio); Fase 4 (Sprints 4–7) concluída (UI fronte
 | EP8 | Bounded context de integração: adapter PJe/E-Proc (sandbox) | 8 | ✅ |
 | EP8 | Ingestão em lote + execução assíncrona/fila | 5 | ✅ |
 | **Total Sprint 7** | | **13** | ✅ |
+
+### Sprint 8 — UI das Sprints 4–7 (Auth + Rito + TPU + Revisão)
+
+| Épico | Task | SP | Status |
+|---|---|---|---|
+| EP6 | Página de login (`/login`): formulário email+senha, cookie httpOnly via backend, redirect em 401 | 5 | ✅ |
+| EP6/EP7 | `api.ts`: `credentials:"include"` em todos os fetches; `login()`, `submitReview()`, `getReviews()` | 3 | ✅ |
+| EP5/S3 | `types.ts`: `Rito`, `ReviewDecision`, `AuditEvent`, `TpuSuggestion`; seletor de rito no formulário | 3 | ✅ |
+| EP5 | `TpuPanel`: top-3 sugestões com barra de confiança e trecho-âncora | 3 | ✅ |
+| EP7 | `ReviewPanel`: botões ACEITAR/CORRIGIR/REJEITAR + comentário + trilha append-only | 5 | ✅ |
+| **Total Sprint 8** | | **19** | ✅ |
+
+**Definition of Done (Sprint 8)**
+
+- [x] `npm run build` e `npm run lint` limpos; zero erros de TypeScript.
+- [x] Login page em `/login`; 401 em `/` redireciona para `/login` automaticamente.
+- [x] Seletor de rito (Cível/Trabalhista) no formulário de análise.
+- [x] `TpuPanel` exibido quando `tpu_suggestions` retornado pela API.
+- [x] `ReviewPanel` com seleção de decisão, comentário e trilha de auditoria abaixo da análise.
 
 > As estimativas serão recalibradas em cada *Sprint Planning* conforme a capacidade real da equipe e
 > o framework de Design Sprint.

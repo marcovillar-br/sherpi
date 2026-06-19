@@ -151,6 +151,23 @@ login obrigatório e o *human-in-the-loop* completo.
 **Definition of Done**
 - [x] Ingestão de ao menos um sistema (sandbox) processada ponta a ponta de forma assíncrona.
 
+### Sprint 8 — UI das Sprints 4–7 (Auth + Rito + TPU + Revisão)
+
+**Objetivo**: fechar o gap entre backend completo e a interface — tornar as capacidades entregues nas
+Sprints 4–7 acessíveis ao usuário final sem exigir o Swagger.
+
+**Entregáveis**
+- Página `/login` com formulário email+senha; cookie httpOnly definido pelo backend; redirecionamento
+  automático em 401 no fluxo de análise.
+- Seletor de rito (Cível/Trabalhista) no formulário de upload.
+- `TpuPanel`: top-3 sugestões TPU com barra de confiança e trecho-âncora.
+- `ReviewPanel`: botões ACEITAR/CORRIGIR/REJEITAR, campo de comentário, trilha de auditoria append-only.
+
+**Definition of Done**
+- [x] `npm run build` e `npm run lint` limpos; zero erros TypeScript.
+- [x] Login → análise → revisão funcionando ponta a ponta no navegador.
+- [x] 401 em `/` redireciona para `/login` automaticamente.
+
 ### Domínios adicionais (épicos incrementais, pós rito-aware)
 
 Com a arquitetura rito-aware pronta (Sprint 3), cada novo domínio é um **encaixe** (estratégia +
@@ -170,3 +187,4 @@ cenários + ramo de TPU), por ordem de volume: **Previdenciário/INSS** → **Ex
 | M5 — Classificação TPU | 5 | ✅ `SuggestTpu` (FakeEmbeddingModel + JurisbertEmbeddingModel) top-3 com confiança; eval honesto. |
 | M6 — Produção | 6 | ✅ structlog + correlation ID; `MappedRegexAnonymizer` + `PresidioAnonymizer` (extra `ner`); Dockerfile; `pip-audit` gate. |
 | M7 — Integração processual | 7 | ✅ `SandboxSourceAdapter` + `IngestPetitions` + `IngestQueue` (asyncio); `POST /v1/ingestion/jobs` (202). |
+| M8 — UI completa (S4–S7) | 8 | ✅ Login + seletor de rito + `TpuPanel` + `ReviewPanel`; frontend ponta a ponta. |
