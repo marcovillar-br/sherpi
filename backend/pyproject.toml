@@ -64,10 +64,10 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
-
-[tool.ruff.lint.per-file-ignores]
-# Massa de testes: linhas são texto jurídico fictício (fixture); comprimento não importa.
-"synthetic/builder.py" = ["E501"]
+# E501 (linha longa) fica a cargo do formatador `ruff format`, que quebra o código
+# automaticamente. A regra de lint só sobraria reclamando de strings/URLs que o
+# formatador não quebra — ruído sem controle prático. Largura segue em line-length=100.
+ignore = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
