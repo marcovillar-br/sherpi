@@ -109,6 +109,13 @@ META: dict[str, dict[str, object]] = {
         "status": "approved",
         "tags": ["eap", "wbs", "gerenciamento-de-projeto", "escopo"],
     },
+    "demo-sprint-review.md": {
+        "title": "Roteiro de Demo — Sprint Review",
+        "description": "Runbook passo a passo para apresentar o MVP do SHERPI ao professor na Sprint Review.",
+        "doc_type": "runbook",
+        "status": "approved",
+        "tags": ["demo", "sprint-review", "runbook", "apresentacao"],
+    },
     "backlog.md": {
         "title": "Backlog do Produto e Sprint Backlog",
         "description": "Backlog do Produto (épicos e histórias, visão de futuro) e Sprint Backlog (tasks estimadas das 2 sprints).",

@@ -35,6 +35,7 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 | Documento | Conteúdo |
 |---|---|
 | [agile-process.md](agile-process.md) | Papéis (8 integrantes), Design Sprint, Kanban (GitHub Projects), cerimônias e retrospectivas. |
+| [demo-sprint-review.md](demo-sprint-review.md) | Runbook da demo do MVP na Sprint Review (passos, tempos, plano B). |
 
 ## Arquitetura e técnica
 
