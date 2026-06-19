@@ -31,6 +31,22 @@ class RiskVerdict(StrEnum):
     BLOCK = "BLOCK"
 
 
+class Rito(StrEnum):
+    """Rito processual que define quais regras de admissibilidade se aplicam.
+
+    O firewall e a extração são agnósticos ao rito; o que varia é a
+    admissibilidade (e, futuramente, a taxonomia TPU). Ver ADR-0008.
+
+    CIVEL        — CPC art. 319 (rito padrão do MVP).
+    TRABALHISTA  — CLT art. 840 §1º (exige pedido líquido).
+
+    Cresce por demanda (PREVIDENCIARIO, FISCAL, …) sem tocar nos ritos existentes.
+    """
+
+    CIVEL = "CIVEL"
+    TRABALHISTA = "TRABALHISTA"
+
+
 class CPF(BaseModel):
     """CPF de uma pessoa física, validado por dígitos verificadores."""
 

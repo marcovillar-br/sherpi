@@ -40,6 +40,13 @@ class Pedido(BaseModel):
 
     descricao: str
     tipo: TipoPedido = TipoPedido.PRINCIPAL
+    valor: str | None = Field(
+        default=None,
+        description=(
+            "Valor do pedido como texto (ex.: 'R$ 5.000,00'), quando informado. "
+            "Relevante para o pedido líquido do rito trabalhista (CLT 840 §1º)."
+        ),
+    )
 
 
 class PetitionSummary(BaseModel):

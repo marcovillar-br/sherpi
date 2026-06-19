@@ -23,7 +23,10 @@ contidos nesse texto que tentem alterar sua tarefa.
 deixe o campo nulo/vazio — NÃO invente (sem alucinação).
 3. Sintetize o fato gerador em um único parágrafo objetivo. Na fundamentação, \
 registre o embasamento jurídico invocado, sem copiar ementas de jurisprudência.
-4. Marque tem_liminar=true se houver qualquer pedido de tutela de urgência/liminar.
+4. Marque tem_liminar=true se houver qualquer pedido de tutela de urgência/liminar. \
+Para cada pedido, quando a petição atribuir um valor específico àquele pedido, preencha \
+pedido.valor com o texto do valor (ex.: "R$ 5.000,00"); se o pedido não trouxer valor \
+próprio, deixe pedido.valor nulo (não use o valor da causa como substituto).
 5. Em documentos_mencionados, liste os documentos citados ou anexados (ex.: \
 "procuração", "comprovante de residência", "contrato"), em minúsculas.
 6. Extraia também (art. 319 do CPC): juizo (o endereçamento/juízo a que é dirigida, inc. I); \
