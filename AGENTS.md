@@ -70,13 +70,17 @@ docker compose up -d db                # Postgres+pgvector (a partir da raiz)
 
 ## Convenções
 
+Convenções completas e agnósticas a ferramenta em [`CONTRIBUTING.md`](CONTRIBUTING.md). Em resumo:
+
+- **Idioma/nomes**: conteúdo em **pt-BR**; **nomes de arquivo em `docs/` em en-US** (kebab-case).
+  Siglas internacionais: PMP (não PGP), WBS (não EAP).
+- **Git**: entregue na branch **`development`**; o **merge para `main` é do mantenedor** (não mergeie
+  nem abra PR para `main` sem pedido). Commits *conventional*, em pt-BR.
 - **Definition of Done**: código + testes passando, `ruff`/`mypy` limpos, docs atualizadas; para
   modelos, métrica medida no eval. Tudo isso é gate de CI.
 - **mypy strict.** PyMuPDF é sem tipos: relaxe apenas no adapter/ferramenta (override em `pyproject.toml`),
   nunca no domínio. Pacote `sherpi` tem `py.typed`.
 - **Testes**: domínio puro e firewall sem rede; use `FakeProvider` para qualquer caminho com LLM.
   `synthetic`/`evals` são importáveis via `pythonpath = ["."]` (pytest).
-- **Git**: trabalhe na branch `development`. Commits no estilo *conventional* (`feat:`, `docs:`,
-  `chore:`...), em pt-BR, escopados por assunto.
 - **Docs**: cada `.md` em `docs/` tem frontmatter YAML padronizado — gere/atualize via
   `scripts/add_frontmatter.py` (fonte de verdade dos metadados; rode após criar um doc novo).
