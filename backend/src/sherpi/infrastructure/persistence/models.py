@@ -41,3 +41,15 @@ class AuditEventRow(SQLModel, table=True):
     decision: str
     comment: str | None = None
     created_at: datetime
+
+
+class TpuEntryRow(SQLModel, table=True):
+    __tablename__ = "tpu_entries"
+
+    id: str = Field(primary_key=True)
+    tpu_code: str = Field(index=True)
+    description: str
+    rito: str
+    text_excerpt: str
+    embedding: bytes
+    embedding_dim: int

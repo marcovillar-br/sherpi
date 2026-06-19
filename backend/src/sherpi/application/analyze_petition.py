@@ -23,6 +23,8 @@ from sherpi.contexts.petition_analysis.domain.admissibility import (
     CheckAdmissibility,
 )
 from sherpi.contexts.petition_analysis.domain.summary import PetitionSummary
+from sherpi.contexts.taxonomy.application.suggest_tpu import SuggestTpu
+from sherpi.contexts.taxonomy.domain.tpu import TpuSuggestion
 from sherpi.shared_kernel.ports import Anonymizer
 from sherpi.shared_kernel.value_objects import Rito
 
@@ -40,6 +42,7 @@ class AnalysisResult(BaseModel):
     forensics: ForensicsReport
     summary: PetitionSummary | None = None
     admissibility: AdmissibilityReport | None = None
+    tpu_suggestions: list[TpuSuggestion] | None = None
 
     @property
     def blocked(self) -> bool:
@@ -55,12 +58,14 @@ class AnalyzePetition:
         detector: DetectInjection | None = None,
         admissibility: CheckAdmissibility | None = None,
         anonymizer: Anonymizer | None = None,
+        suggest_tpu: SuggestTpu | None = None,
     ) -> None:
         self._parser = parser
         self._extractor = extractor
         self._detector = detector or DetectInjection()
         self._admissibility = admissibility or CheckAdmissibility()
         self._anonymizer = anonymizer
+        self._suggest_tpu = suggest_tpu
 
     async def run(
         self, content: bytes, *, max_pages: int, rito: Rito = Rito.CIVEL
@@ -80,6 +85,13 @@ class AnalyzePetition:
         )
         summary = await self._extractor.run(llm_text)
         admissibility = self._admissibility.run(summary, rito, raw_text=original_text)
+        tpu_suggestions: list[TpuSuggestion] | None = None
+        if self._suggest_tpu is not None:
+            tpu_suggestions = self._suggest_tpu.run(original_text, rito=rito)
         return AnalysisResult(
-            rito=rito, forensics=forensics, summary=summary, admissibility=admissibility
+            rito=rito,
+            forensics=forensics,
+            summary=summary,
+            admissibility=admissibility,
+            tpu_suggestions=tpu_suggestions,
         )

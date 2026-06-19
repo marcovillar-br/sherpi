@@ -27,12 +27,32 @@ from sherpi.contexts.petition_analysis.application.extract import ExtractPetitio
 from sherpi.contexts.review.application.record_review import RecordReview
 from sherpi.contexts.review.domain.ports import AuditRepository
 from sherpi.contexts.review.infrastructure.repository import SqlAuditRepository
+from sherpi.contexts.taxonomy.application.suggest_tpu import SuggestTpu
+from sherpi.contexts.taxonomy.infrastructure.embedding import FakeEmbeddingModel
+from sherpi.contexts.taxonomy.infrastructure.sql_index import SqlTpuIndex
 from sherpi.infrastructure.anonymization.factory import build_anonymizer
 from sherpi.infrastructure.llm.factory import build_llm_provider
 from sherpi.infrastructure.persistence.engine import make_engine
 from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
 
 _bearer = HTTPBearer(auto_error=False)
+
+
+@lru_cache
+def _build_tpu_index() -> SqlTpuIndex:
+    settings: Settings = get_settings()
+    return SqlTpuIndex(make_engine(settings.database_url))
+
+
+def _build_suggest_tpu() -> SuggestTpu | None:
+    try:
+        index = _build_tpu_index()
+        if index.count() == 0:
+            return None
+    except Exception:
+        return None
+    embedder = FakeEmbeddingModel()
+    return SuggestTpu(embedder, index, top_k=get_settings().tpu_top_k)
 
 
 @lru_cache
@@ -43,6 +63,7 @@ def _build_orchestrator() -> AnalyzePetition:
         PyMuPDFParser(),
         ExtractPetition(llm, temperature=settings.llm_temperature),
         anonymizer=build_anonymizer(settings),
+        suggest_tpu=_build_suggest_tpu(),
     )
 
 

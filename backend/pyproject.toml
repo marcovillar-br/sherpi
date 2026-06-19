@@ -92,6 +92,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = [
     "sherpi.contexts.document_integrity.infrastructure.pymupdf_parser",
+    "sherpi.contexts.taxonomy.infrastructure.embedding",
     "sherpi.infrastructure.llm.gemini",
     "synthetic.*",
 ]
