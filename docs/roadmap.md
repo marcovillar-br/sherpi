@@ -1,6 +1,6 @@
 ---
 title: "Roadmap (MVP + Fase 4)"
-description: "Roadmap das sprints (MVP em 2 semanas + Fase 4), com Definition of Done, visão de futuro e marcos."
+description: "Roadmap das sprints (MVP em 2 semanas + Fase 4 concluída), com Definition of Done e marcos."
 doc_type: roadmap
 project: SHERPI
 status: approved

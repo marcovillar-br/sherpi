@@ -4,7 +4,7 @@ description: "Papéis (8 integrantes), Design Sprint, Kanban, cerimônias e retr
 doc_type: process
 project: SHERPI
 status: approved
-version: 1.2
+version: 1.3
 updated: 2026-06-19
 language: pt-BR
 tags: [agil, scrum, kanban, design-sprint, papeis, processo]
