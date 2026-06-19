@@ -11,6 +11,7 @@ from synthetic.builder import build_clean, build_white_on_white
 
 from sherpi.application.analyze_petition import AnalyzePetition
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
+from sherpi.contexts.identity.domain.user import Role, User
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
 from sherpi.contexts.petition_analysis.domain.summary import (
     Parte,
@@ -21,8 +22,10 @@ from sherpi.contexts.petition_analysis.domain.summary import (
 from sherpi.infrastructure.llm.fake import FakeProvider
 from sherpi.infrastructure.persistence.engine import create_all
 from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
-from sherpi.interfaces.api.dependencies import get_orchestrator, get_repository
+from sherpi.interfaces.api.dependencies import get_current_user, get_orchestrator, get_repository
 from sherpi.interfaces.api.main import create_app
+
+_FAKE_USER = User(id="u-test", email="test@sherpi.local", hashed_password="x", role=Role.REVISOR)
 
 _SUMMARY = PetitionSummary(
     juizo="Vara Cível de São Paulo",
@@ -54,6 +57,7 @@ def client() -> Iterator[TestClient]:
     repository = SqlAnalysisRepository(engine)
     app.dependency_overrides[get_orchestrator] = lambda: orchestrator
     app.dependency_overrides[get_repository] = lambda: repository
+    app.dependency_overrides[get_current_user] = lambda: _FAKE_USER
     yield TestClient(app)
     app.dependency_overrides.clear()
 

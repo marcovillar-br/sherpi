@@ -2,11 +2,18 @@
 
 Expõe o pipeline de análise via HTTP. Erros de domínio são traduzidos em
 respostas consistentes **sem vazar stack trace**.
+
+CSRF: as rotas autenticadas aceitam Bearer (stateless, imune a CSRF) ou cookie
+httpOnly+SameSite=lax. O atributo SameSite=lax bloqueia envio de cookie em
+requisições cross-site iniciadas pelo navegador, mitigando CSRF em browsers modernos
+sem necessidade de token CSRF adicional (aceito para o MVP académico).
 """
 
 from __future__ import annotations
 
 import uuid
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Annotated
 
@@ -17,8 +24,26 @@ from pydantic import BaseModel
 from sherpi.application.analyze_petition import AnalysisResult, AnalyzePetition
 from sherpi.application.persistence import AnalysisRecord, AnalysisRepository
 from sherpi.config import Settings, get_settings
-from sherpi.interfaces.api.dependencies import get_orchestrator, get_repository
-from sherpi.shared_kernel.errors import LLMProviderError, UntrustedDocumentError
+from sherpi.contexts.identity.application.authenticate import Authenticate
+from sherpi.contexts.identity.domain.hasher import BcryptHasher
+from sherpi.contexts.identity.domain.user import Role, User
+from sherpi.contexts.identity.infrastructure.repository import SqlUserRepository
+from sherpi.contexts.review.application.record_review import RecordReview
+from sherpi.contexts.review.domain.events import AuditEvent, ReviewDecision
+from sherpi.contexts.review.domain.ports import AuditRepository
+from sherpi.interfaces.api.dependencies import (
+    get_audit_repository,
+    get_authenticate,
+    get_current_user,
+    get_orchestrator,
+    get_record_review,
+    get_repository,
+)
+from sherpi.shared_kernel.errors import (
+    AuthenticationError,
+    LLMProviderError,
+    UntrustedDocumentError,
+)
 from sherpi.shared_kernel.value_objects import Rito
 
 
@@ -27,9 +52,44 @@ class AnalyzeResponse(BaseModel):
     result: AnalysisResult
 
 
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class ReviewRequest(BaseModel):
+    decision: ReviewDecision
+    comment: str | None = None
+
+
+def _seed_user(settings: Settings) -> None:
+    if not settings.seed_user_password:
+        return
+    from sherpi.infrastructure.persistence.engine import make_engine
+
+    engine = make_engine(settings.database_url)
+    repo = SqlUserRepository(engine)
+    if not repo.exists(settings.seed_user_email):
+        hasher = BcryptHasher()
+        repo.save(
+            User(
+                id=uuid.uuid4().hex,
+                email=settings.seed_user_email,
+                hashed_password=hasher.hash(settings.seed_user_password),
+                role=Role.ADMIN,
+            )
+        )
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     cfg = settings or get_settings()
-    app = FastAPI(title="SHERPI API", version="0.1.0")
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        _seed_user(cfg)
+        yield
+
+    app = FastAPI(title="SHERPI API", version="0.1.0", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cfg.cors_origins,
@@ -38,7 +98,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Probes operacionais ficam sem versão (padrão de orquestradores).
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
@@ -53,13 +112,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         response.status_code = 503
         return {"status": "unavailable"}
 
-    # Endpoints de domínio sob /v1 (permite evoluir o contrato sem quebrar clientes).
     v1 = APIRouter(prefix="/v1")
+
+    @v1.post("/auth/login", response_model=TokenResponse)
+    def login(
+        authenticate: Annotated[Authenticate, Depends(get_authenticate)],
+        response: Response,
+        username: Annotated[str, Form()],
+        password: Annotated[str, Form()],
+    ) -> TokenResponse:
+        try:
+            token = authenticate.run(username, password)
+        except AuthenticationError as exc:
+            raise HTTPException(status_code=401, detail=str(exc)) from exc
+        response.set_cookie("access_token", token, httponly=True, samesite="lax")
+        return TokenResponse(access_token=token)
 
     @v1.post("/analyze", response_model=AnalyzeResponse)
     async def analyze(
         orchestrator: Annotated[AnalyzePetition, Depends(get_orchestrator)],
         repository: Annotated[AnalysisRepository, Depends(get_repository)],
+        current_user: Annotated[User, Depends(get_current_user)],
         file: Annotated[UploadFile, File(description="PDF da petição inicial")],
         rito: Annotated[Rito, Form(description="Rito processual (default cível)")] = Rito.CIVEL,
     ) -> AnalyzeResponse:
@@ -87,11 +160,32 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def get_analysis(
         analysis_id: str,
         repository: Annotated[AnalysisRepository, Depends(get_repository)],
+        current_user: Annotated[User, Depends(get_current_user)],
     ) -> AnalyzeResponse:
         record = repository.get(analysis_id)
         if record is None:
             raise HTTPException(status_code=404, detail="Análise não encontrada.")
         return AnalyzeResponse(id=record.id, result=record.result)
+
+    @v1.post("/analyses/{analysis_id}/review", response_model=AuditEvent)
+    def create_review(
+        analysis_id: str,
+        body: ReviewRequest,
+        current_user: Annotated[User, Depends(get_current_user)],
+        repository: Annotated[AnalysisRepository, Depends(get_repository)],
+        record_review: Annotated[RecordReview, Depends(get_record_review)],
+    ) -> AuditEvent:
+        if repository.get(analysis_id) is None:
+            raise HTTPException(status_code=404, detail="Análise não encontrada.")
+        return record_review.run(analysis_id, current_user, body.decision, body.comment)
+
+    @v1.get("/analyses/{analysis_id}/reviews", response_model=list[AuditEvent])
+    def list_reviews(
+        analysis_id: str,
+        current_user: Annotated[User, Depends(get_current_user)],
+        audit_repo: Annotated[AuditRepository, Depends(get_audit_repository)],
+    ) -> list[AuditEvent]:
+        return audit_repo.list_by_analysis(analysis_id)
 
     app.include_router(v1)
     return app
