@@ -65,6 +65,10 @@ src = ["src", "tests"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+# Massa de testes: linhas são texto jurídico fictício (fixture); comprimento não importa.
+"synthetic/builder.py" = ["E501"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
