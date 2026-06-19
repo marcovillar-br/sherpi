@@ -14,8 +14,8 @@ tags: [eap, wbs, gerenciamento-de-projeto, escopo]
 
 Decomposição hierárquica de **todo o trabalho** do projeto. Conforme o Guia de Diretrizes, há uma
 ramificação principal dedicada ao **Gerenciamento de Projeto**, com a **Gestão e Rituais Ágeis** como
-sub-ramificação (`1.1 → 1.1.1`). Pacotes marcados com 🔵 estão no recorte das 2 Sprints (MVP);
-⚪ são visão de futuro (ver [`backlog.md`](backlog.md)).
+sub-ramificação (`1.1 → 1.1.1`). Legenda: 🔵 entregue (MVP, Sprints 1–2); **S3–S6** = sprint da Fase 4
+em que o pacote será executado (ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md)).
 
 ```mermaid
 flowchart TD
@@ -51,17 +51,18 @@ flowchart TD
 - **1.2.3 Orquestração** 🔵 — use case `analyze_petition` (firewall → extração → admissibilidade).
 - **1.2.4 Persistência** 🔵 — modelos SQLModel, repositórios, migrations.
 - **1.2.5 Interface (UI mínima)** 🔵 — upload do PDF → laudo + resumo estruturado.
-- **1.2.6 Classificação Taxonômica (TPU)** ⚪ — embeddings + k-NN (futuro).
-- **1.2.7 Identidade & Acesso** ⚪ — autenticação/RBAC (futuro).
-- **1.2.8 Revisão & Auditoria** ⚪ — *human-in-the-loop* completo, trilha append-only (futuro).
-- **1.2.9 Integração Judicial** ⚪ — conectores PJe/E-Proc (futuro).
+- **1.2.7 Identidade & Acesso** **S3** — login OAuth2/JWT (perfil único), rotas protegidas.
+- **1.2.8 Revisão & Auditoria** **S3** — *human-in-the-loop* + trilha append-only (CNJ 615/2025).
+- **1.2.6 Classificação Taxonômica (TPU)** **S4** — embeddings JurisBERT + k-NN sobre pgvector.
+- **1.2.9 Integração Judicial** **S6** — conectores PJe/E-Proc, ingestão assíncrona.
 
 ### 1.3 Plataforma e Qualidade
 - **1.3.1 Scaffold DDD/Hexagonal** 🔵 — estrutura de contextos, `shared_kernel`, ports.
-- **1.3.2 CI/CD e Ferramentas** 🔵 — ruff, mypy, pytest, pre-commit, GitHub Actions.
+- **1.3.2 CI/CD e Ferramentas** 🔵 (deploy/CD em **S5**) — ruff, mypy, pytest, pre-commit, GitHub Actions.
 - **1.3.3 Dados Sintéticos** 🔵 — gerador de petições rotuladas (synthetic-first).
 - **1.3.4 Eval Harness** 🔵 — métricas (firewall, extração) e gate de CI.
-- **1.3.5 Segurança & Observabilidade** 🔵 — segurança de upload, logging estruturado, `/health`.
+- **1.3.5 Segurança & Observabilidade** 🔵 segurança de upload/`/health`+`/ready`; **S5** logging
+  estruturado + correlation IDs, LGPD pleno (NER), *error tracking*.
 
 ### 1.4 Documentação
 - **1.4.1 Produto** — PRD.

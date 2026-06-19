@@ -16,7 +16,7 @@ tags: [agil, scrum, kanban, design-sprint, papeis, processo]
 |---|---|
 | Documento | Processo Ágil de Desenvolvimento |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
-| Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; **2 Sprints / 2 semanas** |
+| Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; MVP em 2 sprints + Fase 4 (sprints 3–6) |
 | Versão | 1.1 |
 
 > Este documento registra **como** o SHERPI é desenvolvido — papéis, artefatos e cerimônias —
@@ -70,18 +70,22 @@ O backlog completo (Épicos → histórias) e o Sprint Backlog (tasks estimadas)
 [`backlog.md`](backlog.md), conforme a divisão **visão completa × escopo de execução** exigida pelo
 Guia. A EAP está em [`wbs.md`](wbs.md). Resumo abaixo.
 
-### 3.1 Metas das Sprints (recorte do MVP — 2 semanas)
+### 3.1 Metas das Sprints
 
-| Sprint | Meta | Épicos/histórias |
-|---|---|---|
-| **1** | Fundações + firewall + extração estruturada | EP1 (US1.x), EP3 (US3.2), EP2 (US2.1) |
-| **2** | Admissibilidade + orquestração + persistência + UI mínima | EP2 (US2.2–2.4), EP3 (US3.1/3.3/3.4), EP4 (US4.x) |
+MVP (1–2) entregue; Fase 4 (3–6) planejada por importância/ganho. Tasks em [`backlog.md`](backlog.md).
 
-Visão de futuro (fora do recorte): TPU (EP5), autenticação (EP6), auditoria (EP7), integração
-judicial (EP8), hardening (EP9) — registrados no backlog do produto.
+| Sprint | Meta | Épicos | Status |
+|---|---|---|---|
+| **1** | Fundações + firewall + extração estruturada | EP1, EP3, EP2 | ✅ |
+| **2** | Admissibilidade + orquestração + persistência + UI mínima | EP2, EP3, EP4 | ✅ |
+| **3** | Confiança & Conformidade: identidade (JWT) + revisão/auditoria | EP6, EP7 | planejada |
+| **4** | Classificação TPU (JurisBERT + k-NN/pgvector) | EP5 | planejada |
+| **5** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | EP9 | planejada |
+| **6** | Integração PJe/E-Proc (ingestão assíncrona) | EP8 | planejada |
 
-> Priorização **risco-primeiro**: itens de maior incerteza técnica (firewall, extração) puxados para
-> o início, para falhar cedo e barato.
+> Priorização: **risco-primeiro** no MVP (firewall/extração antes); na Fase 4, **valor/conformidade
+> primeiro** (controle humano auditável destrava adoção), depois a capacidade que falta (TPU),
+> hardening e, por fim, a integração externa (maior dependência).
 
 ### 3.2 Definition of Done (transversal)
 

@@ -74,30 +74,66 @@ do MVP está registrado como **visão de futuro** (ver [`backlog.md`](backlog.md
 
 ---
 
-## Visão de futuro (pós-MVP) — Fase 4 — Hardening e expansão
+## Fase 4 — Continuação em sprints (priorizadas por importância/ganho)
 
-**Objetivo**: transformar o MVP em sistema produtivo, seguro e operável, incorporando as capacidades adiadas.
+Pós-MVP, ordenadas por `(importância × ganho) ÷ (esforço × risco)`, respeitando dependências.
+Detalhe das histórias/tasks em [`backlog.md`](backlog.md); gerência em [`pmp.md`](pmp.md).
+
+### Sprint 3 — Confiança & Conformidade (`identity` + `review`)
+
+**Objetivo**: nenhum tribunal adota IA sem controle humano auditável (Res. CNJ 615/2025). Entregar
+login obrigatório e o *human-in-the-loop* completo.
 
 **Entregáveis**
-
-- **Capacidades adiadas do MVP** (visão de futuro do backlog):
-  - **taxonomy**: `SuggestTpu` (embedding JurisBERT + k-NN sobre pgvector) — top-3 classes/assuntos do CNJ.
-  - **identity**: login OAuth2/JWT (perfil único) e, depois, RBAC.
-  - **review**: `RecordReview` (human-in-the-loop) + trilha de auditoria append-only (CNJ 615/2025).
-- Autenticação/autorização: RBAC, refresh tokens, MFA, segredos em secrets manager, TLS/HTTPS.
-- Observabilidade: tracing distribuído, métricas/dashboards, error tracking (Sentry), tracing de LLM.
-- Conformidade LGPD: criptografia em repouso, política de retenção/eliminação, DPIA, opção de LLM local (Ollama/Maritaca on-prem) para dados sensíveis reais.
-- Integração PJe/E-Proc (novo bounded context).
-- Blob storage em S3/MinIO; execução assíncrona/fila para escala; containerização completa; CI/CD e deploy.
-- Cadeia de suprimentos: SBOM, Dependabot, secret scanning, revisão de segurança/pentest, backups e DR.
-- Ativar adapter **Maritaca Sabiá** conforme avaliação.
+- **identity**: `User`/`Role`, `Authenticate` (OAuth2 password + JWT), `BcryptHasher`, `JwtIssuer`,
+  `UserRepository`; usuário semeado via `.env`; `POST /v1/auth/login`; rotas de domínio protegidas por JWT.
+- **review**: `ReviewDecision` + `AuditEvent`, `RecordReview`, `AuditRepository` (append-only);
+  `POST /v1/analyses/{id}/review`.
+- **Hardening de auth**: cookie httpOnly+Secure+SameSite, rate-limit/lockout no login, CSRF.
+- **UI**: tela de login + ações de revisão (aceitar/rejeitar/corrigir).
 
 **Definition of Done**
+- [ ] `/v1/analyze` sem token → 401; `POST /v1/auth/login` retorna JWT; lockout após N falhas.
+- [ ] `POST /v1/analyses/{id}/review` grava `AuditEvent` vinculado ao usuário; trilha append-only.
+- [ ] UI: login → análise → registrar revisão. Testes; `ruff`/`mypy`/eval verdes.
 
-- [ ] Auth/RBAC, observabilidade e conformidade LGPD em produção.
-- [ ] Integração com pelo menos um sistema processual (PJe ou E-Proc).
-- [ ] Pipeline CI/CD com deploy gerenciado e backups/DR.
-- [ ] Revisão de segurança/pentest concluída.
+### Sprint 4 — Classificação TPU (`taxonomy`)
+
+**Objetivo**: 3ª capacidade núcleo — sugerir a classe/assunto do CNJ, atacando o gargalo da autuação.
+
+**Entregáveis**
+- Deps de ML (`uv sync --extra ml`); **seed rotulado** petição→código TPU.
+- `EmbeddingModel` (JurisBERT via HuggingFace) + `TpuIndex` (k-NN em **pgvector**); `ClassifyTpu` +
+  `SuggestTpu`; ligação no orquestrador (`… → tpu`).
+- UI: top-3 sugestões com confiança e exemplos-âncora (interpretabilidade).
+
+**Definition of Done**
+- [ ] `SuggestTpu` retorna top-3 com confiança sobre o seed; índice pgvector populado.
+- [ ] Eval reporta acurácia top-1/top-3 **honestamente** (sem prometer número). Testes verdes.
+
+### Sprint 5 — Produção (observabilidade, LGPD pleno, deploy)
+
+**Objetivo**: tornar operável, observável e conforme para sair do escopo acadêmico.
+
+**Entregáveis**
+- **Observabilidade**: logging estruturado (`structlog`) + **correlation IDs** (middleware), *error
+  tracking* (Sentry), métricas básicas.
+- **LGPD pleno**: NER de nomes (Presidio/spaCy), anonimização reversível, retenção/eliminação.
+- **Deploy**: containerização completa (app+db), CI/CD com deploy; segredos em *secrets manager*; TLS.
+
+**Definition of Done**
+- [ ] Logs estruturados com correlation id e **sem PII**; política de retenção configurável.
+- [ ] Imagem da app + pipeline de deploy; `pip-audit` como gate (sem alta severidade).
+
+### Sprint 6 — Integração PJe/E-Proc
+
+**Objetivo**: ingestão real a partir dos sistemas processuais (maior ganho de adoção; maior dependência externa).
+
+**Entregáveis**
+- Novo bounded context de integração (adapter PJe/E-Proc); ingestão em lote; execução assíncrona/fila para escala.
+
+**Definition of Done**
+- [ ] Ingestão de ao menos um sistema (sandbox/homologação) processada ponta a ponta de forma assíncrona.
 
 ---
 
@@ -105,6 +141,9 @@ do MVP está registrado como **visão de futuro** (ver [`backlog.md`](backlog.md
 
 | Marco | Sprint | Resultado |
 |---|---|---|
-| M1 — Firewall + dados + extração | Semana 1 | Firewall testado por vetor; dataset sintético; LLM agnóstico + extração estruturada. |
-| M2 — MVP completo | Semana 2 | Admissibilidade + orquestrador + persistência + UI + eval; demo ponta a ponta. |
-| M3 — Expansão/Produção | Fase 4 | TPU, auth, auditoria, integração processual, observabilidade, CI/CD. |
+| M1 — Firewall + dados + extração | 1 | ✅ Firewall por vetor; dataset sintético; LLM agnóstico + extração. |
+| M2 — MVP completo | 2 | ✅ Admissibilidade + orquestrador + persistência + UI + eval. |
+| M3 — Confiança & Conformidade | 3 | Identity (JWT) + review (human-in-the-loop + auditoria). |
+| M4 — Classificação TPU | 4 | SuggestTpu (JurisBERT + k-NN/pgvector); top-3 com confiança. |
+| M5 — Produção | 5 | Observabilidade, LGPD pleno (NER), deploy/CI-CD. |
+| M6 — Integração processual | 6 | Ingestão PJe/E-Proc assíncrona. |

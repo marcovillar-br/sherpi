@@ -56,21 +56,22 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 | US4.1 | Como **assessor**, quero uma tela para enviar o PDF e ver **laudo + resumo lado a lado**. | M | 🔵 S2 |
 | US4.2 | Como **magistrado**, quero **tarja vermelha** quando houver injeção detectada, para perceber o risco de imediato. | M | 🔵 S2 |
 
-### Épicos de visão de futuro (fora do recorte das 2 Sprints)
+### Épicos da Fase 4 (agendados em sprints — ordem por importância/ganho)
 
-| Épico | Histórias (resumo) | Prio |
-|---|---|---|
-| EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ por similaridade (embeddings + k-NN). | C ⚪ |
-| EP6 — Identidade & Acesso | Login (perfil único), depois RBAC. | W ⚪ |
-| EP7 — Revisão & Auditoria | Registrar decisão humana; trilha append-only (CNJ 615/2025). | W ⚪ |
-| EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote. | W ⚪ |
-| EP9 — Hardening de Produção | Observabilidade, LGPD, deploy, escala (Fase 4). | W ⚪ |
+| Épico | Histórias (resumo) | Prio | Sprint |
+|---|---|---|---|
+| EP6 — Identidade & Acesso | Login obrigatório (JWT, perfil único); rotas protegidas. | M | 3 |
+| EP7 — Revisão & Auditoria | Registrar decisão humana; trilha append-only (CNJ 615/2025). | M | 3 |
+| EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ (embeddings JurisBERT + k-NN). | S | 4 |
+| EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD pleno (NER), deploy/CI-CD. | S | 5 |
+| EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 6 |
 
 ---
 
 ## Parte 2 — Sprint Backlog (execução)
 
-Apenas as histórias selecionadas para as 2 Sprints, desdobradas em **tasks técnicas estimadas**.
+Histórias selecionadas por sprint, desdobradas em **tasks técnicas estimadas**. Sprints 1–2 (MVP)
+concluídas; Sprints 3–6 (Fase 4) planejadas.
 
 ### Sprint 1 — Fundações + Firewall + Extração *(grande parte concluída)*
 
@@ -81,10 +82,10 @@ Apenas as histórias selecionadas para as 2 Sprints, desdobradas em **tasks téc
 | US1.1 | Adapter PyMuPDF (CropBox→MediaBox) | 3 | ✅ |
 | US1.3 | Guarda de upload (tipo/tamanho/páginas) | 2 | ✅ |
 | — | Gerador de dados sintéticos + corpus rotulado | 3 | ✅ |
-| US3.2 | Port `LLMProvider` + adapter Gemini + `FakeProvider` | 5 | ⏳ |
-| US2.1 | `ExtractPetition` + schema `PetitionSummary` + retry | 5 | ⏳ |
-| US2.1 | *Defensive prompting* + *chunking* (>100 págs) | 3 | ⏳ |
-| **Total Sprint 1** | | **31** | |
+| US3.2 | Port `LLMProvider` + adapter Gemini + `FakeProvider` | 5 | ✅ |
+| US2.1 | `ExtractPetition` + schema `PetitionSummary` + retry | 5 | ✅ |
+| US2.1 | *Defensive prompting* + *chunking* (>100 págs) | 3 | ✅ |
+| **Total Sprint 1** | | **31** | ✅ |
 
 ### Sprint 2 — Admissibilidade + Orquestração + Persistência + UI
 
@@ -100,7 +101,49 @@ Apenas as histórias selecionadas para as 2 Sprints, desdobradas em **tasks téc
 | US3.4 | Eval harness + métricas + gate de CI | 5 |
 | US4.1 | UI mínima: upload → painel laudo + resumo | 5 |
 | US4.2 | Tarja de risco (BLOCK) na UI | 2 |
-| **Total Sprint 2** | | **36** |
+| **Total Sprint 2** | | **36** ✅ |
 
-> As estimativas serão recalibradas na *Sprint Planning* conforme a capacidade real da equipe e o
-> framework de Design Sprint apresentado pelo professor.
+### Sprint 3 — Confiança & Conformidade (`identity` + `review`)
+
+| Épico | Task | SP |
+|---|---|---|
+| EP6 | Contexto `identity`: `User`/`Role`, `BcryptHasher`, `JwtIssuer`, `UserRepository` (SQLModel) | 5 |
+| EP6 | `Authenticate` (OAuth2 password + JWT) + `POST /v1/auth/login` + usuário semeado | 3 |
+| EP6 | Proteção de rotas por JWT (cookie httpOnly+Secure+SameSite) + rate-limit/lockout + CSRF | 5 |
+| EP7 | Contexto `review`: `ReviewDecision`, `AuditEvent`, `RecordReview`, `AuditRepository` (append-only) | 5 |
+| EP7 | `POST /v1/analyses/{id}/review` (decisão vinculada ao usuário) | 3 |
+| EP6/EP7 | UI: tela de login + ações de revisão (aceitar/rejeitar/corrigir) | 5 |
+| **Total Sprint 3** | | **26** |
+
+### Sprint 4 — Classificação TPU (`taxonomy`)
+
+| Épico | Task | SP |
+|---|---|---|
+| EP5 | Deps de ML (`--extra ml`) + **seed rotulado** petição→código TPU | 5 |
+| EP5 | `EmbeddingModel` (JurisBERT/HuggingFace) + `TpuIndex` (k-NN em pgvector) | 5 |
+| EP5 | `ClassifyTpu` + `SuggestTpu` (top-3 com confiança) + ligação no orquestrador | 5 |
+| EP5 | Eval: acurácia top-1/top-3 sobre o seed (honesta) | 3 |
+| EP5 | UI: top-3 sugestões com confiança e exemplos-âncora | 3 |
+| **Total Sprint 4** | | **21** |
+
+### Sprint 5 — Produção (observabilidade, LGPD pleno, deploy)
+
+| Épico | Task | SP |
+|---|---|---|
+| EP9 | Logging estruturado (`structlog`) + correlation IDs (middleware) | 3 |
+| EP9 | *Error tracking* (Sentry) + métricas básicas | 3 |
+| EP9 | LGPD: NER de nomes (Presidio/spaCy) + anonimização reversível | 5 |
+| EP9 | Retenção/eliminação de PDFs/análises (direito ao esquecimento) | 3 |
+| EP9 | Containerização completa (app+db) + CI/CD com deploy + secrets manager + TLS | 5 |
+| **Total Sprint 5** | | **19** |
+
+### Sprint 6 — Integração PJe/E-Proc
+
+| Épico | Task | SP |
+|---|---|---|
+| EP8 | Bounded context de integração: adapter PJe/E-Proc (sandbox) | 8 |
+| EP8 | Ingestão em lote + execução assíncrona/fila | 5 |
+| **Total Sprint 6** | | **13** |
+
+> As estimativas serão recalibradas em cada *Sprint Planning* conforme a capacidade real da equipe e
+> o framework de Design Sprint.

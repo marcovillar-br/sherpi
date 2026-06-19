@@ -29,10 +29,10 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 | Bounded context | Papel | Status |
 |---|---|---|
 | `document_integrity` | Firewall anti *prompt-injection* (sem LLM) | ✅ Sprint 1 |
-| `petition_analysis` | Extração + admissibilidade (**core domain**) | 🔵 Sprint 1–2 |
-| `taxonomy` | Classificação TPU (embedding + k-NN) | ⚪ Futuro |
-| `review` | *Human-in-the-loop* + auditoria | ⚪ Futuro |
-| `identity` | Autenticação (perfil único) | ⚪ Futuro |
+| `petition_analysis` | Extração + admissibilidade (**core domain**) | ✅ Sprint 1–2 |
+| `identity` | Autenticação (perfil único) | 🟡 Sprint 3 |
+| `review` | *Human-in-the-loop* + auditoria | 🟡 Sprint 3 |
+| `taxonomy` | Classificação TPU (embedding + k-NN) | 🟡 Sprint 4 |
 
 ## Stack
 
@@ -80,10 +80,13 @@ Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/READM
 | [`docs/adr/`](docs/adr/) | Decisões de arquitetura (ADRs) |
 | [`docs/threat-model.md`](docs/threat-model.md) · [`docs/security.md`](docs/security.md) | Segurança e confiabilidade |
 
-## Roadmap (MVP em 2 sprints)
+## Roadmap
 
-- **Sprint 1** — Fundações DDD + firewall ✅ + dados sintéticos ✅ + extração estruturada (LLM agnóstico)
-- **Sprint 2** — Admissibilidade + orquestrador + persistência + UI mínima + eval → **MVP concluído**
-- **Futuro (Fase 4)** — TPU, autenticação, auditoria, integração PJe/E-Proc, observabilidade, deploy
+- **Sprint 1** ✅ — Fundações DDD + firewall + dados sintéticos + extração estruturada (LLM agnóstico)
+- **Sprint 2** ✅ — Admissibilidade + orquestrador + persistência + UI mínima + eval → **MVP concluído**
+- **Sprint 3** — Confiança & Conformidade: autenticação (JWT) + revisão/auditoria (human-in-the-loop)
+- **Sprint 4** — Classificação TPU (JurisBERT + k-NN/pgvector)
+- **Sprint 5** — Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD
+- **Sprint 6** — Integração PJe/E-Proc
 
 Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pmp.md`](docs/pmp.md), [`docs/wbs.md`](docs/wbs.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).

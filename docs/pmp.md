@@ -23,7 +23,7 @@ Complementa o backlog (responsabilidade do PO, [`backlog.md`](backlog.md)) e a
 | Projeto | **SHERPI** — Sistema Híbrido de Extração e Resumo Estruturado de Petições Iniciais |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
 | **Formato da entrega** | **MVP** (sistema funcional, com código implementado e executável) |
-| Duração | **2 semanas / 2 Sprints** |
+| Duração | **MVP em 2 Sprints (entregue)** + **Fase 4** em 4 sprints (3–6) |
 | Cliente/patrocinador (simulado) | Gabinete judicial de 1º grau (persona: magistrado/assessor) |
 | Avaliador | Professor (Sprint Reviews aos sábados) |
 
@@ -40,11 +40,13 @@ supervisão humana.
 - Checagem de admissibilidade (validadores determinísticos + extração semântica).
 - Orquestrador do fluxo + API + persistência básica + UI mínima (upload → laudo + resumo).
 
-### 2.3 Fora do escopo (registrado como visão de futuro no Backlog do Produto)
-Classificação TPU (embeddings/k-NN), autenticação/RBAC completa, trilha de auditoria completa,
-integração PJe/E-Proc, *hardening* de produção (Fase 4). Detalhamento em [`backlog.md`](backlog.md).
+### 2.3 Escopo da Fase 4 (pós-MVP, agendado em sprints)
+Com o MVP entregue, as capacidades adiadas foram **agendadas em sprints** por importância/ganho:
+identidade + revisão/auditoria (Sprint 3), classificação TPU (Sprint 4), hardening de produção —
+observabilidade/LGPD pleno/deploy (Sprint 5) e integração PJe/E-Proc (Sprint 6). Detalhe das
+histórias/tasks em [`backlog.md`](backlog.md); objetivos e DoD em [`roadmap.md`](roadmap.md).
 
-> A divisão escopo-completo (futuro) × escopo-de-execução (sprints) está formalizada no backlog,
+> A divisão escopo-completo (produto) × escopo-de-execução (sprint) segue formalizada no backlog,
 > conforme exigência do Guia.
 
 ## 3. Gerenciamento de Tempo (cronograma)
@@ -53,12 +55,17 @@ Ritmo de **Design Sprint semanal** (modelo Google), **Dailies** de alinhamento c
 **Sprint Review aos sábados** com o professor. Mapa detalhado dos dias em
 [`agile-process.md`](agile-process.md).
 
-| Sprint | Semana | Foco | Review |
-|---|---|---|---|
-| **Sprint 1** | 1 | Fundações + firewall + extração estruturada | Sábado, fim da semana 1 |
-| **Sprint 2** | 2 | Admissibilidade + orquestrador + persistência + UI mínima | Sábado, fim da semana 2 |
+| Sprint | Foco | Status |
+|---|---|---|
+| **Sprint 1** | Fundações + firewall + extração estruturada | ✅ entregue |
+| **Sprint 2** | Admissibilidade + orquestrador + persistência + UI mínima | ✅ entregue |
+| **Sprint 3** | Confiança & Conformidade: `identity` (JWT) + `review` (human-in-the-loop + auditoria) | planejada |
+| **Sprint 4** | Classificação TPU (`taxonomy`): JurisBERT + k-NN/pgvector | planejada |
+| **Sprint 5** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | planejada |
+| **Sprint 6** | Integração PJe/E-Proc (ingestão assíncrona) | planejada |
 
-Marcos: **M1** firewall funcional (atingido); **M2** extração ponta-a-ponta; **M3** MVP demonstrável.
+Marcos: **M1** firewall (✅); **M2** MVP completo (✅); **M3** conformidade/auditoria; **M4** TPU;
+**M5** produção; **M6** integração processual. Detalhe em [`roadmap.md`](roadmap.md).
 
 ## 4. Gerenciamento de Custos
 
@@ -68,7 +75,7 @@ Projeto acadêmico de **baixíssimo custo**, por decisão de arquitetura:
 |---|---|---|
 | LLM | Gemini Flash (free tier acadêmico) + `FakeProvider` nos testes | ~R$ 0 |
 | Infra | Docker local (Postgres+pgvector); sem nuvem no MVP | R$ 0 |
-| Modelos ML | Apenas se a TPU entrar (HuggingFace, CPU) — fora do recorte atual | R$ 0 |
+| Modelos ML | TPU na Sprint 4: JurisBERT via HuggingFace, inferência em CPU | R$ 0 |
 | Mão de obra | 8 integrantes (esforço acadêmico) | — |
 
 Guarda de custo de tokens configurável (`SHERPI_LLM_MAX_INPUT_TOKENS`) evita estouro de *free tier*.
@@ -83,6 +90,9 @@ Guarda de custo de tokens configurável (`SHERPI_LLM_MAX_INPUT_TOKENS`) evita es
 | R4 | Dados reais com PII/segredo de justiça (LGPD) | Média | Alto | *Synthetic-first*; port `Anonymizer`; nenhum dado real no MVP. |
 | R5 | Metodologia de IA/Design Sprint só na aula de sábado | Alta | Baixo | *Placeholders* prontos; adaptar `agile-process.md` após a aula. |
 | R6 | Integração de múltiplos contextos atrasar | Média | Médio | Orquestrador explícito simples; *ports* desacoplam modelo de sistema. |
+| R7 | (Fase 4) Falta de *dataset* rotulado petição→TPU | Alta | Alto | Seed sintético rotulado; k-NN sobre embeddings (não exige fine-tuning); acurácia medida e reportada honestamente. |
+| R8 | (Fase 4) NER de nomes (PII) com baixa precisão | Média | Médio | Manter *synthetic-first*; Presidio/spaCy + revisão; anonimização estrutural (regex) já cobre CPF/CNPJ. |
+| R9 | (Fase 4) Acesso a PJe/E-Proc (credenciais/sandbox) indisponível | Alta | Médio | Adapter atrás de port; usar homologação/sandbox; manter upload manual como fallback. |
 
 ## 6. Gerenciamento de Recursos e Equipe
 
