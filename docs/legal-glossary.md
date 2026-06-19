@@ -4,8 +4,8 @@ description: "Primer dos principais conceitos jurídicos do SHERPI, em linguagem
 doc_type: reference
 project: SHERPI
 status: draft
-version: 1.0
-updated: 2026-06-18
+version: 1.1
+updated: 2026-06-19
 language: pt-BR
 tags: [juridico, glossario, cpc, clt, conceitos, validacao]
 ---
@@ -96,7 +96,8 @@ tem **regras de admissibilidade próprias**:
 - **Segredo de justiça:** processos com acesso restrito por sigilo legal (ex.: família, dados
   sensíveis) — motiva o uso de dados **sintéticos** no projeto.
 - **LGPD (Lei 13.709):** proteção de dados pessoais (CPF, nomes, endereços das partes) — motiva a
-  **anonimização** antes de enviar texto a um LLM externo.
+  **anonimização** de identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) antes de enviar
+  texto a um LLM externo; anonimização de **nomes** (NER) é Fase 4.
 
 ---
 
