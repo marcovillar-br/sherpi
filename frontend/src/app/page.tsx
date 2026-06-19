@@ -87,6 +87,7 @@ export default function Home() {
 
         <button
           type="submit"
+          data-testid="analyze-btn"
           disabled={!file || loading}
           className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
         >
@@ -101,7 +102,7 @@ export default function Home() {
       )}
 
       {result && (
-        <div className="space-y-4">
+        <div data-testid="analysis-result" className="space-y-4">
           <ForensicsBanner report={result.forensics} />
 
           {result.summary && result.admissibility ? (

@@ -9,7 +9,7 @@ const STYLES: Record<RiskVerdict, { box: string; label: string }> = {
 export function ForensicsBanner({ report }: { report: ForensicsReport }) {
   const style = STYLES[report.verdict];
   return (
-    <section className={`rounded-lg border p-4 ${style.box}`}>
+    <section data-testid={`forensics-${report.verdict}`} className={`rounded-lg border p-4 ${style.box}`}>
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">Laudo de integridade — {style.label}</h2>
         <span className="text-sm">risco {report.risk_score.toFixed(2)}</span>

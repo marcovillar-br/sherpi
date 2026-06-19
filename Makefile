@@ -5,7 +5,7 @@
 BACKEND_DIR := backend
 FRONTEND_DIR := frontend
 
-.PHONY: help up down setup migrate seed-tpu synthetic test lint typecheck dev-backend dev-frontend
+.PHONY: help up down setup migrate seed-tpu synthetic test lint typecheck dev-backend dev-backend-fake dev-frontend e2e
 
 help:
 	@echo "Comandos disponíveis:"
@@ -18,8 +18,10 @@ help:
 	@echo "  make test          Roda a suite de testes"
 	@echo "  make lint          ruff check + format --check"
 	@echo "  make typecheck     mypy strict"
-	@echo "  make dev-backend   Inicia o backend (hot reload)"
-	@echo "  make dev-frontend  Inicia o frontend (hot reload)"
+	@echo "  make dev-backend       Inicia o backend (hot reload, LLM real)"
+	@echo "  make dev-backend-fake  Inicia o backend com FakeProvider (sem tokens)"
+	@echo "  make dev-frontend      Inicia o frontend (hot reload)"
+	@echo "  make e2e               Roda testes E2E Playwright (requer dev-backend-fake)"
 
 # --- Banco ---
 
@@ -64,5 +66,14 @@ typecheck:
 dev-backend:
 	cd $(BACKEND_DIR) && uv run uvicorn sherpi.interfaces.api.main:app --reload --port 8000
 
+# Backend sem LLM real — obrigatório para `make e2e` (zero custo de token)
+dev-backend-fake:
+	cd $(BACKEND_DIR) && SHERPI_LLM_BACKEND=fake uv run uvicorn sherpi.interfaces.api.main:app --reload --port 8000
+
 dev-frontend:
 	cd $(FRONTEND_DIR) && npm run dev
+
+# Testes E2E Playwright — valida veredito do firewall de todos os cenários sintéticos.
+# Pré-requisito: `make dev-backend-fake` rodando em outro terminal.
+e2e:
+	cd $(FRONTEND_DIR) && npx playwright test
