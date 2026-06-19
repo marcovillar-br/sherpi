@@ -91,8 +91,8 @@ e entregar o **trabalhista** como primeira nova estratégia de admissibilidade.
 - Parâmetro `rito` no `POST /v1/analyze` (default cível); cenários sintéticos **trabalhistas** na massa.
 
 **Definition of Done**
-- [ ] Admissibilidade despacha por rito; cível inalterado; `TrabalhistaStrategy` valida pedido líquido.
-- [ ] Massa com cenários trabalhistas (cumulação massiva, pedido líquido × ilíquido). Testes verdes.
+- [x] Admissibilidade despacha por rito; cível inalterado; `TrabalhistaStrategy` valida pedido líquido.
+- [x] Massa com cenários trabalhistas (cumulação massiva, pedido líquido × ilíquido). Testes verdes.
 
 ### Sprint 4 — Confiança & Conformidade (`identity` + `review`)
 
@@ -165,7 +165,7 @@ cenários + ramo de TPU), por ordem de volume: **Previdenciário/INSS** → **Ex
 |---|---|---|
 | M1 — Firewall + dados + extração | 1 | ✅ Firewall por vetor; dataset sintético; LLM agnóstico + extração. |
 | M2 — MVP completo | 2 | ✅ Admissibilidade + orquestrador + persistência + UI + eval. |
-| M3 — Domínio Trabalhista + rito-aware | 3 | Arquitetura por rito; `TrabalhistaStrategy` (CLT 840, pedido líquido). |
+| M3 — Domínio Trabalhista + rito-aware | 3 | ✅ Arquitetura por rito; `TrabalhistaStrategy` (CLT 840, pedido líquido). |
 | M4 — Confiança & Conformidade | 4 | Identity (JWT) + review (human-in-the-loop + auditoria). |
 | M5 — Classificação TPU | 5 | SuggestTpu (JurisBERT + k-NN/pgvector) por ramo; top-3 com confiança. |
 | M6 — Produção | 6 | Observabilidade, LGPD pleno (NER), deploy/CI-CD. |

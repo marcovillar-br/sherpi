@@ -107,13 +107,36 @@ concluídas; Sprints 3–6 (Fase 4) planejadas.
 
 ### Sprint 3 — Domínio Trabalhista (CLT 840) + rito-aware
 
-| Épico | Task | SP |
-|---|---|---|
-| EP10 | Enum `Rito` + `AdmissibilityStrategy` + registro; extrair `CivelStrategy` (sem mudar comportamento) | 5 |
-| EP10 | `TrabalhistaStrategy` (CLT art. 840 §1º) + checagem de **pedido líquido** | 5 |
-| EP10 | `Pedido.valor` no `PetitionSummary` + prompt; parâmetro `rito` no `POST /v1/analyze` | 3 |
-| EP10 | Cenários sintéticos trabalhistas (cumulação massiva; pedido líquido × ilíquido) | 3 |
-| **Total Sprint 3** | | **16** |
+| Épico | Task | SP | Status |
+|---|---|---|---|
+| EP10 | Enum `Rito` + `AdmissibilityStrategy` (Protocol) + registro; extrair `CivelStrategy` (sem mudar comportamento) | 5 | ✅ |
+| EP10 | `TrabalhistaStrategy` (CLT art. 840 §1º) + checagem de **pedido líquido** | 5 | ✅ |
+| EP10 | `Pedido.valor` no `PetitionSummary` + prompt; parâmetro `rito` no `POST /v1/analyze` | 3 | ✅ |
+| EP10 | Cenários sintéticos trabalhistas (cumulação massiva; pedido líquido × ilíquido) | 3 | ✅ |
+| **Total Sprint 3** | | **16** | ✅ |
+
+**Desdobramento técnico** (execução):
+
+- **Rito-aware** (ADR-0008): `Rito` (enum) em `shared_kernel/value_objects.py`;
+  `AdmissibilityStrategy` (`Protocol`), `CivelStrategy`, `TrabalhistaStrategy` e
+  `DEFAULT_STRATEGIES` em `petition_analysis/domain/strategies.py`. `CheckAdmissibility`
+  vira **dispatcher** `Rito → estratégia` (default cível); cível byte-a-byte inalterado
+  (testes legados intactos como prova de não-regressão).
+- **Pedido líquido**: `TrabalhistaStrategy` herda o checklist do art. 319 e acrescenta o
+  requisito `PEDIDO_LIQUIDO` (cada `Pedido` precisa de `valor` parseável); ilíquido →
+  emenda (VERMELHO). `Pedido.valor` adicionado ao `PetitionSummary` + instrução no prompt.
+- **Roteamento**: `AnalyzePetition.run(..., rito=CIVEL)` e `AnalysisResult.rito`; `rito` como
+  *form field* em `POST /v1/analyze` (default cível; valor inválido → 422).
+- **Massa**: `trabalhista_pedido_liquido` (verde), `trabalhista_pedido_iliquido` (vermelho),
+  `trabalhista_cumulacao_massiva` (verde); rótulo `rito` no corpus/`labels.json`.
+
+**Definition of Done (Sprint 3)**
+
+- [x] Admissibilidade despacha por rito; cível inalterado; `TrabalhistaStrategy` valida pedido líquido.
+- [x] Massa com cenários trabalhistas (cumulação massiva, pedido líquido × ilíquido). Testes verdes.
+- [x] `POST /v1/analyze` aceita `rito` (default cível); rito inválido → 422.
+- [x] `ruff`/`mypy`/`pytest` limpos; eval do firewall no limiar (precision/recall = 1.0).
+- [ ] **Sprint Review (sábado)**: demo do trabalhista (pedido ilíquido → VERMELHO) vs. cível.
 
 ### Sprint 4 — Confiança & Conformidade (`identity` + `review`)
 
@@ -125,7 +148,7 @@ concluídas; Sprints 3–6 (Fase 4) planejadas.
 | EP7 | Contexto `review`: `ReviewDecision`, `AuditEvent`, `RecordReview`, `AuditRepository` (append-only) | 5 |
 | EP7 | `POST /v1/analyses/{id}/review` (decisão vinculada ao usuário) | 3 |
 | EP6/EP7 | UI: tela de login + ações de revisão (aceitar/rejeitar/corrigir) | 5 |
-| **Total Sprint 3** | | **26** |
+| **Total Sprint 4** | | **26** |
 
 ### Sprint 5 — Classificação TPU (`taxonomy`)
 
