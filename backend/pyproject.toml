@@ -105,6 +105,7 @@ ignore_missing_imports = true
 module = [
     "sherpi.contexts.document_integrity.infrastructure.pymupdf_parser",
     "sherpi.contexts.taxonomy.infrastructure.embedding",
+    "sherpi.contexts.integration.infrastructure.sandbox_adapter",
     "sherpi.infrastructure.llm.gemini",
     "synthetic.*",
 ]

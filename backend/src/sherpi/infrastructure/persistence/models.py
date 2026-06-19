@@ -6,7 +6,7 @@ Todos os modelos de tabela vivem aqui para que `engine.py` os registre em
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlmodel import Field, SQLModel
 
@@ -53,3 +53,20 @@ class TpuEntryRow(SQLModel, table=True):
     text_excerpt: str
     embedding: bytes
     embedding_dim: int
+
+
+class IngestJobRow(SQLModel, table=True):
+    __tablename__ = "ingest_jobs"
+
+    id: str = Field(primary_key=True)
+    source: str
+    tribunal: str
+    date_from: date
+    date_to: date
+    status: str = "QUEUED"
+    total: int = 0
+    processed: int = 0
+    failed: int = 0
+    created_at: datetime
+    finished_at: datetime | None = Field(default=None)
+    error: str | None = Field(default=None)

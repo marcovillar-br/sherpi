@@ -23,6 +23,8 @@ from sherpi.contexts.identity.domain.issuer import JwtIssuer
 from sherpi.contexts.identity.domain.ports import UserRepository
 from sherpi.contexts.identity.domain.user import User
 from sherpi.contexts.identity.infrastructure.repository import SqlUserRepository
+from sherpi.contexts.integration.infrastructure.queue import IngestQueue
+from sherpi.contexts.integration.infrastructure.sql_job_repository import SqlIngestJobRepository
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
 from sherpi.contexts.review.application.record_review import RecordReview
 from sherpi.contexts.review.domain.ports import AuditRepository
@@ -136,6 +138,27 @@ def get_record_review(
 ) -> RecordReview:
     """Dependency: use case de registro de revisão."""
     return RecordReview(audit_repo)
+
+
+@lru_cache
+def _build_job_repository() -> SqlIngestJobRepository:
+    settings: Settings = get_settings()
+    return SqlIngestJobRepository(make_engine(settings.database_url))
+
+
+@lru_cache
+def _build_ingest_queue() -> IngestQueue:
+    return IngestQueue()
+
+
+def get_job_repository() -> SqlIngestJobRepository:
+    """Dependency: repositório de jobs de ingestão."""
+    return _build_job_repository()
+
+
+def get_ingest_queue() -> IngestQueue:
+    """Dependency: fila assíncrona de ingestão (singleton)."""
+    return _build_ingest_queue()
 
 
 def get_current_user(

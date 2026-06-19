@@ -11,10 +11,11 @@ sem necessidade de token CSRF adicional (aceito para o MVP académico).
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-from datetime import UTC, datetime, timedelta
+from contextlib import asynccontextmanager, suppress
+from datetime import UTC, date, datetime, timedelta
 from typing import Annotated
 
 from fastapi import (
@@ -38,6 +39,11 @@ from sherpi.contexts.identity.application.authenticate import Authenticate
 from sherpi.contexts.identity.domain.hasher import BcryptHasher
 from sherpi.contexts.identity.domain.user import Role, User
 from sherpi.contexts.identity.infrastructure.repository import SqlUserRepository
+from sherpi.contexts.integration.application.ingest_petitions import IngestPetitions
+from sherpi.contexts.integration.domain.ingestion import IngestJob, IngestStatus
+from sherpi.contexts.integration.infrastructure.queue import IngestQueue
+from sherpi.contexts.integration.infrastructure.sandbox_adapter import SandboxSourceAdapter
+from sherpi.contexts.integration.infrastructure.sql_job_repository import SqlIngestJobRepository
 from sherpi.contexts.review.application.record_review import RecordReview
 from sherpi.contexts.review.domain.events import AuditEvent, ReviewDecision
 from sherpi.contexts.review.domain.ports import AuditRepository
@@ -46,6 +52,8 @@ from sherpi.interfaces.api.dependencies import (
     get_audit_repository,
     get_authenticate,
     get_current_user,
+    get_ingest_queue,
+    get_job_repository,
     get_orchestrator,
     get_record_review,
     get_repository,
@@ -72,6 +80,13 @@ class TokenResponse(BaseModel):
 class ReviewRequest(BaseModel):
     decision: ReviewDecision
     comment: str | None = None
+
+
+class IngestJobRequest(BaseModel):
+    source: str = "SANDBOX"
+    tribunal: str
+    date_from: date
+    date_to: date
 
 
 def _seed_user(settings: Settings) -> None:
@@ -106,7 +121,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         _seed_user(cfg)
+        ingest_queue = get_ingest_queue()
+        worker_task = asyncio.create_task(ingest_queue.worker())
         yield
+        worker_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await worker_task
 
     app = FastAPI(title="SHERPI API", version="0.1.0", lifespan=lifespan)
     app.add_middleware(CorrelationIdMiddleware)
@@ -232,7 +252,55 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         logger.info("analyses.bulk_delete", count=len(ids), older_than_days=older_than_days)
         return {"deleted": len(ids)}
 
+    ingestion = APIRouter(prefix="/v1/ingestion")
+
+    @ingestion.post("/jobs", response_model=IngestJob, status_code=202)
+    async def create_ingest_job(
+        body: IngestJobRequest,
+        current_user: Annotated[User, Depends(get_current_user)],
+        orchestrator: Annotated[AnalyzePetition, Depends(get_orchestrator)],
+        analysis_repo: Annotated[AnalysisRepository, Depends(get_repository)],
+        job_repo: Annotated[SqlIngestJobRepository, Depends(get_job_repository)],
+        ingest_queue: Annotated[IngestQueue, Depends(get_ingest_queue)],
+    ) -> IngestJob:
+        job = IngestJob(
+            id=uuid.uuid4().hex,
+            source=body.source,
+            tribunal=body.tribunal,
+            date_from=body.date_from,
+            date_to=body.date_to,
+            status=IngestStatus.QUEUED,
+            created_at=datetime.now(UTC),
+        )
+        job_repo.save(job)
+        source = SandboxSourceAdapter()
+        use_case = IngestPetitions(
+            source, orchestrator, analysis_repo, job_repo, max_pages=cfg.ingest_max_pages
+        )
+        await ingest_queue.enqueue(lambda: use_case.run(job))
+        logger.info("ingest.queued", job_id=job.id, tribunal=job.tribunal, user=current_user.email)
+        return job
+
+    @ingestion.get("/jobs", response_model=list[IngestJob])
+    def list_ingest_jobs(
+        current_user: Annotated[User, Depends(get_current_user)],
+        job_repo: Annotated[SqlIngestJobRepository, Depends(get_job_repository)],
+    ) -> list[IngestJob]:
+        return job_repo.list_all()
+
+    @ingestion.get("/jobs/{job_id}", response_model=IngestJob)
+    def get_ingest_job(
+        job_id: str,
+        current_user: Annotated[User, Depends(get_current_user)],
+        job_repo: Annotated[SqlIngestJobRepository, Depends(get_job_repository)],
+    ) -> IngestJob:
+        job = job_repo.get(job_id)
+        if job is None:
+            raise HTTPException(status_code=404, detail="Job não encontrado.")
+        return job
+
     app.include_router(v1)
+    app.include_router(ingestion)
     return app
 
 

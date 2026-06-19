@@ -72,6 +72,10 @@ class Settings(BaseSettings):
     # --- Retenção (LGPD — direito ao esquecimento) ---
     retention_days: int = 90  # análises mais antigas são elegíveis para exclusão
 
+    # --- Ingestão judicial ---
+    ingest_max_pages: int = 300
+    ingest_batch_limit: int = 50
+
     # --- CORS (frontend Next.js) ---
     cors_origins: list[str] = ["http://localhost:3000"]
 
