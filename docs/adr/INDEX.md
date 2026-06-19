@@ -25,6 +25,6 @@ que substitua outra cria um novo ADR que marca o anterior como *Substituído*.
 | [0005](0005-gemini-flash-default.md) | Google Gemini Flash como LLM default | ✅ Aceito |
 | [0006](0006-docker-db-only.md) | Docker apenas para o banco; app nativa em dev | ✅ Aceito |
 | [0007](0007-auth-jwt-single-profile.md) | Autenticação JWT com perfil único (extensível a RBAC) | ✅ Aceito |
-| [0008](0008-multi-dominio-rito-aware.md) | Arquitetura multi-domínio (rito-aware): estratégias de admissibilidade por rito | ✅ Aceito |
+| [0008](0008-multi-domain-architecture.md) | Arquitetura multi-domínio (rito-aware): estratégias de admissibilidade por rito | ✅ Aceito |
 
 > Convenção: arquivos nomeados `NNNN-titulo-em-kebab-case.md`, numeração sequencial.

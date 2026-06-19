@@ -81,7 +81,7 @@ Detalhe das histórias/tasks em [`backlog.md`](backlog.md); gerência em [`pmp.m
 
 ### Sprint 3 — Domínio Trabalhista (CLT 840) + arquitetura rito-aware
 
-**Objetivo**: foco do grupo. Tornar o domínio **plugável por rito** (ver [ADR-0008](adr/0008-multi-dominio-rito-aware.md))
+**Objetivo**: foco do grupo. Tornar o domínio **plugável por rito** (ver [ADR-0008](adr/0008-multi-domain-architecture.md))
 e entregar o **trabalhista** como primeira nova estratégia de admissibilidade.
 
 **Entregáveis**

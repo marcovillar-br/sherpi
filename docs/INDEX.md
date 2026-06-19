@@ -41,7 +41,7 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 
 | Documento | Conteúdo |
 |---|---|
-| [glossario-juridico.md](glossario-juridico.md) | Primer dos conceitos jurídicos do escopo (art. 319, CLT 840, admissibilidade…) para validar com especialista. |
+| [legal-glossary.md](legal-glossary.md) | Primer dos conceitos jurídicos do escopo (art. 319, CLT 840, admissibilidade…) para validar com especialista. |
 
 ## Arquitetura e técnica
 

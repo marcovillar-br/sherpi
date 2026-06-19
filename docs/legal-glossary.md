@@ -64,7 +64,7 @@ lista o que ela deve conter:
 
 ## 5. Domínios da Justiça (ritos) e suas diferenças
 
-O SHERPI será **multi-domínio** (ver [ADR-0008](adr/0008-multi-dominio-rito-aware.md)). Cada domínio
+O SHERPI será **multi-domínio** (ver [ADR-0008](adr/0008-multi-domain-architecture.md)). Cada domínio
 tem **regras de admissibilidade próprias**:
 
 | Domínio | Base legal | Diferença-chave | ⚠️ Confirmar |

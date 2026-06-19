@@ -109,7 +109,7 @@ META: dict[str, dict[str, object]] = {
         "status": "approved",
         "tags": ["eap", "wbs", "gerenciamento-de-projeto", "escopo"],
     },
-    "glossario-juridico.md": {
+    "legal-glossary.md": {
         "title": "Glossário Jurídico — Conceitos do Escopo",
         "description": "Primer dos principais conceitos jurídicos do SHERPI, em linguagem acessível, para validação com especialista.",
         "doc_type": "reference",
@@ -141,7 +141,7 @@ _ADRS = {
     "adr/0005-gemini-flash-default.md": "ADR-0005: Gemini Flash como LLM default",
     "adr/0006-docker-db-only.md": "ADR-0006: Docker apenas para o banco",
     "adr/0007-auth-jwt-single-profile.md": "ADR-0007: Autenticação JWT com perfil único",
-    "adr/0008-multi-dominio-rito-aware.md": "ADR-0008: Arquitetura multi-domínio (rito-aware)",
+    "adr/0008-multi-domain-architecture.md": "ADR-0008: Arquitetura multi-domínio (rito-aware)",
 }
 for rel, title in _ADRS.items():
     META[rel] = {
