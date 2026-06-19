@@ -64,7 +64,7 @@ lista o que ela deve conter:
 
 ## 5. Domínios da Justiça (ritos) e suas diferenças
 
-O SHERPI será **multi-domínio** (ver [ADR-0008](adr/0008-multi-domain-architecture.md)). Cada domínio
+O SHERPI **é multi-domínio** desde a Sprint 3 (ver [ADR-0008](adr/0008-multi-domain-architecture.md)). Cada domínio
 tem **regras de admissibilidade próprias**:
 
 | Domínio | Base legal | Diferença-chave | ⚠️ Confirmar |
@@ -92,12 +92,14 @@ tem **regras de admissibilidade próprias**:
   processual (Res. CNJ 46/2007 e 326/2020). O SHERPI sugerirá a classificação. ⚠️ *confirmar níveis
   hierárquicos e a base oficial vigente.*
 - **Resolução CNJ 615/2025:** regula o uso de **IA no Judiciário**, exigindo **supervisão humana**
-  (*human-in-the-loop*). ⚠️ *confirmar exigências aplicáveis a uma ferramenta como o SHERPI.*
+  (*human-in-the-loop*). Implementado na Sprint 4: `ReviewDecision` (ACEITAR/REJEITAR/CORRIGIR) +
+  `AuditEvent` append-only vinculado ao usuário autenticado. ⚠️ *confirmar exigências aplicáveis a uma ferramenta como o SHERPI.*
 - **Segredo de justiça:** processos com acesso restrito por sigilo legal (ex.: família, dados
   sensíveis) — motiva o uso de dados **sintéticos** no projeto.
 - **LGPD (Lei 13.709):** proteção de dados pessoais (CPF, nomes, endereços das partes) — motiva a
   **anonimização** de identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) antes de enviar
-  texto a um LLM externo; anonimização de **nomes** (NER) é Fase 4.
+  texto a um LLM externo (`MappedRegexAnonymizer`); anonimização de **nomes** via NER disponível
+  como extra opcional (`PresidioAnonymizer`, `--extra ner`) desde a Sprint 6.
 
 ---
 
