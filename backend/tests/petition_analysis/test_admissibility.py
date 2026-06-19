@@ -18,6 +18,7 @@ from sherpi.contexts.petition_analysis.domain.summary import (
     PetitionSummary,
     Polo,
 )
+from sherpi.shared_kernel.value_objects import Rito
 
 
 def _summary(**overrides: object) -> PetitionSummary:
@@ -107,3 +108,51 @@ def test_valor_causa_provenance_is_normalized() -> None:
 def test_parse_valor_causa(texto: str | None, esperado: Decimal | None) -> None:
     result = parse_valor_causa(texto)
     assert (result.amount if result else None) == esperado
+
+
+# --- Despacho por rito (rito-aware, ADR-0008) ------------------------------------
+
+
+def test_default_rito_e_civel() -> None:
+    # Sem rito explícito == cível: petição completa segue verde.
+    assert CheckAdmissibility().run(_summary()).semaforo is Semaforo.VERDE
+    assert CheckAdmissibility().run(_summary(), Rito.CIVEL).semaforo is Semaforo.VERDE
+
+
+def test_civel_nao_exige_pedido_liquido() -> None:
+    # Pedido sem valor é admissível no cível (não há requisito PEDIDO_LIQUIDO).
+    report = CheckAdmissibility().run(_summary(), Rito.CIVEL)
+    assert report.semaforo is Semaforo.VERDE
+    assert all(i.requisito is not Requisito.PEDIDO_LIQUIDO for i in report.itens)
+
+
+def test_trabalhista_pedido_liquido_e_verde() -> None:
+    report = CheckAdmissibility().run(
+        _summary(pedidos=[Pedido(descricao="Aviso prévio", valor="R$ 2.500,00")]),
+        Rito.TRABALHISTA,
+    )
+    assert report.semaforo is Semaforo.VERDE
+    assert report.requer_emenda is False
+    item = next(i for i in report.itens if i.requisito is Requisito.PEDIDO_LIQUIDO)
+    assert item.presente is True
+
+
+def test_trabalhista_pedido_iliquido_exige_emenda() -> None:
+    # Pedido sem valor (default do _summary) viola CLT 840 §1º no rito trabalhista.
+    report = CheckAdmissibility().run(_summary(), Rito.TRABALHISTA)
+    assert report.semaforo is Semaforo.VERMELHO
+    assert report.requer_emenda is True
+    item = next(i for i in report.itens if i.requisito is Requisito.PEDIDO_LIQUIDO)
+    assert item.presente is False
+    assert item.evidencia == "Pagamento"  # descrição do pedido ilíquido
+
+
+def test_trabalhista_cumulacao_liquida_e_verde() -> None:
+    pedidos = [
+        Pedido(descricao="Aviso prévio", valor="R$ 2.500,00"),
+        Pedido(descricao="Férias + 1/3", valor="R$ 1.111,00"),
+        Pedido(descricao="13º proporcional", valor="R$ 833,00"),
+    ]
+    report = CheckAdmissibility().run(_summary(pedidos=pedidos), Rito.TRABALHISTA)
+    assert report.semaforo is Semaforo.VERDE
+    assert report.requer_emenda is False
