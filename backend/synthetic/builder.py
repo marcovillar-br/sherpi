@@ -283,15 +283,41 @@ def _body_trabalhista_cumulacao_massiva() -> list[str]:
 # --- Renderização ---------------------------------------------------------------
 
 
+_USABLE_W = _A4_W - 2 * _MARGIN_X  # largura útil de texto (entre as margens)
+
+
+def _wrap(line: str) -> list[str]:
+    """Quebra a linha em sub-linhas que cabem na largura útil (Helvetica, _FONT).
+
+    `insert_text` não quebra linha sozinho; sem isto, títulos/endereçamentos longos
+    correm para fora da borda direita. Linhas vazias são preservadas.
+    """
+    if not line:
+        return [""]
+    wrapped: list[str] = []
+    current = ""
+    for word in line.split(" "):
+        candidate = f"{current} {word}".strip()
+        if pymupdf.get_text_length(candidate, fontname="helv", fontsize=_FONT) <= _USABLE_W:
+            current = candidate
+        else:
+            if current:
+                wrapped.append(current)
+            current = word
+    wrapped.append(current)
+    return wrapped
+
+
 def _write_paginated(doc: pymupdf.Document, body: list[str]) -> pymupdf.Page:
     page = doc.new_page(width=_A4_W, height=_A4_H)
     y = _TOP
-    for line in body:
-        if y > _BOTTOM_LIMIT:
-            page = doc.new_page(width=_A4_W, height=_A4_H)
-            y = _TOP
-        page.insert_text((_MARGIN_X, y), line, fontsize=_FONT, color=(0, 0, 0))
-        y += _LINE_H
+    for raw_line in body:
+        for line in _wrap(raw_line):
+            if y > _BOTTOM_LIMIT:
+                page = doc.new_page(width=_A4_W, height=_A4_H)
+                y = _TOP
+            page.insert_text((_MARGIN_X, y), line, fontsize=_FONT, color=(0, 0, 0))
+            y += _LINE_H
     return page
 
 
