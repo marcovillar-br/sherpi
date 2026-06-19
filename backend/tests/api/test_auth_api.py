@@ -62,18 +62,16 @@ def _make_engine() -> object:
 
 
 @pytest.fixture
-def auth_setup() -> (
-    tuple[
-        TestClient,
-        SqlUserRepository,
-        SqlAuditRepository,
-        SqlAnalysisRepository,
-        AnalyzePetition,
-        Authenticate,
-        User,
-        JwtIssuer,
-    ]
-):
+def auth_setup() -> tuple[
+    TestClient,
+    SqlUserRepository,
+    SqlAuditRepository,
+    SqlAnalysisRepository,
+    AnalyzePetition,
+    Authenticate,
+    User,
+    JwtIssuer,
+]:
     from sqlalchemy import Engine as _Engine
 
     engine: _Engine = _make_engine()  # type: ignore[assignment]
@@ -82,17 +80,13 @@ def auth_setup() -> (
     hasher = BcryptHasher()
     issuer = JwtIssuer(_SECRET, expire_minutes=60)
     user_repo = SqlUserRepository(engine)
-    user = User(
-        id="u-test", email=_EMAIL, hashed_password=hasher.hash(_PASSWORD), role=Role.ADMIN
-    )
+    user = User(id="u-test", email=_EMAIL, hashed_password=hasher.hash(_PASSWORD), role=Role.ADMIN)
     user_repo.save(user)
 
     audit_repo = SqlAuditRepository(engine)
     analysis_repo = SqlAnalysisRepository(engine)
     orchestrator = AnalyzePetition(PyMuPDFParser(), ExtractPetition(FakeProvider(_SUMMARY)))
-    authenticate = Authenticate(
-        user_repo, hasher, issuer, max_attempts=5, lockout_minutes=15
-    )
+    authenticate = Authenticate(user_repo, hasher, issuer, max_attempts=5, lockout_minutes=15)
     return (
         TestClient(create_app()),
         user_repo,
@@ -224,9 +218,7 @@ def test_lockout_after_max_attempts(
     """Após N tentativas falhadas, a conta é bloqueada."""
     tc, user_repo, _audit_repo, _analysis_repo, _, _, user, issuer = auth_setup
     hasher = BcryptHasher()
-    lock_auth = Authenticate(
-        user_repo, hasher, issuer, max_attempts=3, lockout_minutes=15
-    )
+    lock_auth = Authenticate(user_repo, hasher, issuer, max_attempts=3, lockout_minutes=15)
     app = tc.app
     app.dependency_overrides[get_authenticate] = lambda: lock_auth
     app.dependency_overrides[get_current_user] = lambda: user
