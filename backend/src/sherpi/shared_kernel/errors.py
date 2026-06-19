@@ -30,3 +30,7 @@ class LLMProviderError(SherpiError):
 
 class AuthenticationError(SherpiError):
     """Credenciais inválidas ou sessão não autenticada."""
+
+
+class ForbiddenError(SherpiError):
+    """Usuário autenticado mas sem permissão para a ação."""

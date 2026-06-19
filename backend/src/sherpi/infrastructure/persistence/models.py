@@ -1,8 +1,7 @@
 """Modelos de persistência (SQLModel).
 
-A análise consolidada é guardada como JSON (`result_json`), preservando a
-estrutura rica do resultado; colunas dedicadas (`verdict`, `created_at`)
-permitem consulta/filtragem. Portável entre SQLite (testes) e Postgres (prod).
+Todos os modelos de tabela vivem aqui para que `engine.py` os registre em
+`SQLModel.metadata` com uma única importação — sem risco de ciclos de importação.
 """
 
 from __future__ import annotations
@@ -20,3 +19,25 @@ class AnalysisRow(SQLModel, table=True):
     filename: str | None = Field(default=None)
     verdict: str = Field(index=True)
     result_json: str
+
+
+class UserRow(SQLModel, table=True):
+    __tablename__ = "users"
+
+    id: str = Field(primary_key=True)
+    email: str = Field(unique=True, index=True)
+    hashed_password: str
+    role: str
+    is_active: bool = True
+
+
+class AuditEventRow(SQLModel, table=True):
+    __tablename__ = "audit_events"
+
+    id: str = Field(primary_key=True)
+    analysis_id: str = Field(index=True)
+    user_id: str
+    user_email: str
+    decision: str
+    comment: str | None = None
+    created_at: datetime
