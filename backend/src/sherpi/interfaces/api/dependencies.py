@@ -13,6 +13,7 @@ from sherpi.application.persistence import AnalysisRepository
 from sherpi.config import Settings, get_settings
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
+from sherpi.infrastructure.anonymization.factory import build_anonymizer
 from sherpi.infrastructure.llm.factory import build_llm_provider
 from sherpi.infrastructure.persistence.engine import make_engine
 from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
@@ -22,7 +23,11 @@ from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
 def _build_orchestrator() -> AnalyzePetition:
     settings: Settings = get_settings()
     llm = build_llm_provider(settings)
-    return AnalyzePetition(PyMuPDFParser(), ExtractPetition(llm))
+    return AnalyzePetition(
+        PyMuPDFParser(),
+        ExtractPetition(llm),
+        anonymizer=build_anonymizer(settings),
+    )
 
 
 @lru_cache

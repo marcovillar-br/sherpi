@@ -49,6 +49,10 @@ _ESSENCIAIS = {Requisito.PARTES, Requisito.FATOS, Requisito.PEDIDOS, Requisito.V
 # Documentos essenciais cuja menção é checada semanticamente.
 _DOCS_ESSENCIAIS = ("procuração", "procuracao")
 
+# Candidatos a CPF/CNPJ no texto bruto (validação por checksum vem depois).
+_CNPJ_RE = re.compile(r"\b\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}\b")
+_CPF_RE = re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")
+
 
 class ChecklistItem(BaseModel):
     model_config = {"frozen": True}
@@ -112,14 +116,30 @@ def _valid_documento(value: str | None) -> str | None:
     return None
 
 
+def _scan_valid_documento(text: str) -> str | None:
+    """Procura no texto bruto o primeiro CPF/CNPJ com checksum válido."""
+    for pattern in (_CNPJ_RE, _CPF_RE):
+        for match in pattern.finditer(text):
+            doc = _valid_documento(match.group())
+            if doc:
+                return doc
+    return None
+
+
 class CheckAdmissibility:
     """Domain service: avalia a admissibilidade de um `PetitionSummary`."""
 
-    def run(self, summary: PetitionSummary) -> AdmissibilityReport:
+    def run(self, summary: PetitionSummary, *, raw_text: str | None = None) -> AdmissibilityReport:
+        """Avalia a admissibilidade.
+
+        Se `raw_text` (texto ORIGINAL, não anonimizado) for fornecido, a validação
+        de CPF/CNPJ roda sobre ele — assim o mascaramento de PII para o LLM não
+        degrada a checagem determinística.
+        """
         return AdmissibilityReport.from_items(
             [
                 self._check_partes(summary),
-                self._check_qualificacao(summary),
+                self._check_qualificacao(summary, raw_text),
                 self._check_texto(Requisito.FATOS, summary.fato_gerador),
                 self._check_texto(Requisito.FUNDAMENTACAO, summary.fundamentacao),
                 self._check_pedidos(summary),
@@ -151,7 +171,12 @@ class CheckAdmissibility:
             else "Falta polo ativo/passivo.",
         )
 
-    def _check_qualificacao(self, s: PetitionSummary) -> ChecklistItem:
+    def _check_qualificacao(self, s: PetitionSummary, raw_text: str | None) -> ChecklistItem:
+        # Preferir o texto ORIGINAL (robusto ao mascaramento de PII no resumo do LLM).
+        if raw_text is not None:
+            doc = _scan_valid_documento(raw_text)
+            detalhe = "CPF/CNPJ válido no documento (checksum)." if doc else "Sem CPF/CNPJ válido."
+            return self._det(Requisito.QUALIFICACAO, doc is not None, doc, detalhe)
         for parte in s.partes:
             if parte.polo is Polo.ATIVO:
                 doc = _valid_documento(parte.documento)

@@ -67,9 +67,13 @@ class AnalyzePetition:
         if forensics.blocked:
             return AnalysisResult(forensics=forensics)  # early-exit: sem LLM
 
-        text = document.visible_text()
-        if self._anonymizer is not None:
-            text = self._anonymizer.anonymize(text)
-        summary = await self._extractor.run(text)
-        admissibility = self._admissibility.run(summary)
+        original_text = document.visible_text()
+        # Texto que vai ao LLM é anonimizado (LGPD); a admissibilidade usa o original.
+        llm_text = (
+            self._anonymizer.anonymize(original_text)
+            if self._anonymizer is not None
+            else original_text
+        )
+        summary = await self._extractor.run(llm_text)
+        admissibility = self._admissibility.run(summary, raw_text=original_text)
         return AnalysisResult(forensics=forensics, summary=summary, admissibility=admissibility)

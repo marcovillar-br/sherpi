@@ -57,3 +57,24 @@ async def test_non_pdf_rejected() -> None:
 
     with pytest.raises(UntrustedDocumentError):
         await _orchestrator(FakeProvider(_SUMMARY)).run(b"not a pdf", max_pages=300)
+
+
+async def test_anonymizer_masks_pii_before_llm_but_admissibility_uses_original() -> None:
+    from sherpi.infrastructure.anonymization.regex import RegexAnonymizer
+
+    fake = FakeProvider(_SUMMARY)
+    orchestrator = AnalyzePetition(
+        PyMuPDFParser(), ExtractPetition(fake), anonymizer=RegexAnonymizer()
+    )
+    result = await orchestrator.run(build_clean(), max_pages=300)
+
+    # O texto enviado ao LLM NÃO contém o CPF bruto (mascarado).
+    user_msg = next(m.content for m in fake.calls[0] if m.role == "user")
+    assert "529.982.247-25" not in user_msg
+    assert "[CPF]" in user_msg
+
+    # Ainda assim a admissibilidade valida o CPF a partir do texto ORIGINAL.
+    qualificacao = next(
+        i for i in result.admissibility.itens if i.requisito.value == "qualificacao"
+    )
+    assert qualificacao.presente is True
