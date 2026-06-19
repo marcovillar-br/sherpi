@@ -7,7 +7,7 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
-from synthetic.builder import build_integra
+from synthetic.builder import build_clean
 
 from sherpi.application.analyze_petition import AnalyzePetition
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
@@ -58,7 +58,7 @@ def client() -> Iterator[TestClient]:
 
 
 def _post_analysis(client: TestClient) -> str:
-    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_integra(), "application/pdf")})
+    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")})
     assert resp.status_code == 200
     return resp.json()["id"]
 

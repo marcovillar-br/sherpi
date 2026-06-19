@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from datetime import date
 
-from synthetic.builder import build_injecao, build_integra
+from synthetic.builder import build_clean, build_white_on_white
 
 from sherpi.contexts.integration.domain.source import PetitionDoc
 from sherpi.shared_kernel.value_objects import Rito
@@ -30,7 +30,7 @@ class SandboxSourceAdapter:
         suffix = tribunal[-4:] if len(tribunal) >= 4 else "0100"
         for i in range(min(limit, 6)):
             is_injected = i % 3 == 2
-            content = build_injecao() if is_injected else build_integra()
+            content = build_white_on_white() if is_injected else build_clean()
             rito = ritos[i % len(ritos)]
             docs.append(
                 PetitionDoc(

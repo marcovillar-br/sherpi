@@ -7,7 +7,7 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
-from synthetic.builder import build_injecao, build_integra
+from synthetic.builder import build_clean, build_white_on_white
 
 from sherpi.application.analyze_petition import AnalyzePetition
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
@@ -71,7 +71,7 @@ def test_ready(client: TestClient) -> None:
 
 
 def test_analyze_clean_pdf(client: TestClient) -> None:
-    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_integra(), "application/pdf")})
+    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")})
     assert resp.status_code == 200
     body = resp.json()
     assert body["id"]
@@ -81,7 +81,7 @@ def test_analyze_clean_pdf(client: TestClient) -> None:
 
 
 def test_analyze_default_rito_is_civel(client: TestClient) -> None:
-    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_integra(), "application/pdf")})
+    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")})
     assert resp.status_code == 200
     assert resp.json()["result"]["rito"] == "CIVEL"
 
@@ -90,7 +90,7 @@ def test_analyze_rito_trabalhista_exige_pedido_liquido(client: TestClient) -> No
     # O FakeProvider devolve um pedido SEM valor → ilíquido no rito trabalhista.
     resp = client.post(
         "/v1/analyze",
-        files={"file": ("p.pdf", build_integra(), "application/pdf")},
+        files={"file": ("p.pdf", build_clean(), "application/pdf")},
         data={"rito": "TRABALHISTA"},
     )
     assert resp.status_code == 200
@@ -102,14 +102,16 @@ def test_analyze_rito_trabalhista_exige_pedido_liquido(client: TestClient) -> No
 def test_analyze_rito_invalido_retorna_422(client: TestClient) -> None:
     resp = client.post(
         "/v1/analyze",
-        files={"file": ("p.pdf", build_integra(), "application/pdf")},
+        files={"file": ("p.pdf", build_clean(), "application/pdf")},
         data={"rito": "CRIMINAL"},
     )
     assert resp.status_code == 422
 
 
 def test_analyze_injection_blocks(client: TestClient) -> None:
-    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_injecao(), "application/pdf")})
+    resp = client.post(
+        "/v1/analyze", files={"file": ("p.pdf", build_white_on_white(), "application/pdf")}
+    )
     assert resp.status_code == 200
     body = resp.json()
     assert body["result"]["forensics"]["verdict"] == "BLOCK"
@@ -123,7 +125,7 @@ def test_analyze_non_pdf_returns_415(client: TestClient) -> None:
 
 def test_analyze_persists_and_get_roundtrip(client: TestClient) -> None:
     created = client.post(
-        "/v1/analyze", files={"file": ("p.pdf", build_integra(), "application/pdf")}
+        "/v1/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")}
     ).json()
     fetched = client.get(f"/v1/analyses/{created['id']}")
     assert fetched.status_code == 200
