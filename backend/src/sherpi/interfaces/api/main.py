@@ -18,6 +18,7 @@ from contextlib import asynccontextmanager, suppress
 from datetime import UTC, date, datetime, timedelta
 from typing import Annotated
 
+import structlog
 from fastapi import (
     APIRouter,
     Depends,
@@ -176,6 +177,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         file: Annotated[UploadFile, File(description="PDF da petição inicial")],
         rito: Annotated[Rito, Form(description="Rito processual (default cível)")] = Rito.CIVEL,
     ) -> AnalyzeResponse:
+        analysis_id = uuid.uuid4().hex
+        structlog.contextvars.bind_contextvars(analysis_id=analysis_id)
         logger.info("analyze.start", filename=file.filename, rito=rito, user=current_user.email)
         content = await file.read()
         max_bytes = cfg.max_upload_mb * 1024 * 1024
@@ -189,7 +192,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=502, detail=str(exc)) from exc
 
         record = AnalysisRecord(
-            id=uuid.uuid4().hex,
+            id=analysis_id,
             created_at=datetime.now(UTC),
             filename=file.filename,
             result=result,

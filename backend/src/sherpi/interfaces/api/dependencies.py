@@ -33,6 +33,7 @@ from sherpi.contexts.taxonomy.application.suggest_tpu import SuggestTpu
 from sherpi.contexts.taxonomy.infrastructure.embedding import FakeEmbeddingModel
 from sherpi.contexts.taxonomy.infrastructure.sql_index import SqlTpuIndex
 from sherpi.infrastructure.anonymization.factory import build_anonymizer
+from sherpi.infrastructure.llm.audit import LoggingLLMProvider
 from sherpi.infrastructure.llm.factory import build_llm_provider
 from sherpi.infrastructure.persistence.engine import make_engine
 from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
@@ -60,7 +61,7 @@ def _build_suggest_tpu() -> SuggestTpu | None:
 @lru_cache
 def _build_orchestrator() -> AnalyzePetition:
     settings: Settings = get_settings()
-    llm = build_llm_provider(settings)
+    llm = LoggingLLMProvider(build_llm_provider(settings), label="extract")
     return AnalyzePetition(
         PyMuPDFParser(),
         ExtractPetition(llm, temperature=settings.llm_temperature),
