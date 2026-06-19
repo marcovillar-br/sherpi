@@ -6,6 +6,7 @@ from collections.abc import Iterator
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import StaticPool, create_engine
 from synthetic.builder import build_clean, build_white_on_white
 
 from sherpi.application.analyze_petition import AnalyzePetition
@@ -18,7 +19,9 @@ from sherpi.contexts.petition_analysis.domain.summary import (
     Polo,
 )
 from sherpi.infrastructure.llm.fake import FakeProvider
-from sherpi.interfaces.api.dependencies import get_orchestrator
+from sherpi.infrastructure.persistence.engine import create_all
+from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
+from sherpi.interfaces.api.dependencies import get_orchestrator, get_repository
 from sherpi.interfaces.api.main import create_app
 
 _SUMMARY = PetitionSummary(
@@ -39,7 +42,15 @@ _SUMMARY = PetitionSummary(
 def client() -> Iterator[TestClient]:
     app = create_app()
     orchestrator = AnalyzePetition(PyMuPDFParser(), ExtractPetition(FakeProvider(_SUMMARY)))
+    # Repositório real (SqlAnalysisRepository) sobre SQLite in-memory — exercita o
+    # caminho de persistência sem precisar de Postgres.
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    create_all(engine)
+    repository = SqlAnalysisRepository(engine)
     app.dependency_overrides[get_orchestrator] = lambda: orchestrator
+    app.dependency_overrides[get_repository] = lambda: repository
     yield TestClient(app)
     app.dependency_overrides.clear()
 
@@ -75,3 +86,24 @@ def test_analyze_injection_blocks(client: TestClient) -> None:
 def test_analyze_non_pdf_returns_415(client: TestClient) -> None:
     resp = client.post("/analyze", files={"file": ("x.txt", b"not a pdf", "text/plain")})
     assert resp.status_code == 415
+
+
+def test_analyze_persists_and_get_roundtrip(client: TestClient) -> None:
+    created = client.post(
+        "/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")}
+    ).json()
+    fetched = client.get(f"/analyses/{created['id']}")
+    assert fetched.status_code == 200
+    body = fetched.json()
+    assert body["id"] == created["id"]
+    assert body["result"]["summary"]["partes"][0]["nome"] == "Fulano"
+
+
+def test_get_unknown_analysis_returns_404(client: TestClient) -> None:
+    assert client.get("/analyses/inexistente").status_code == 404
+
+
+def test_ready_ok_with_reachable_db(client: TestClient) -> None:
+    resp = client.get("/ready")
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "ok"}
