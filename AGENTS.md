@@ -6,8 +6,9 @@ Contexto mínimo para agentes de IA a cada sessão. Conteúdo em **pt-BR**; nome
 
 **SHERPI** — Sistema Híbrido de Extração e Resumo Estruturado de Petições Iniciais. MVP acadêmico
 (disciplina DAIA) de apoio à triagem de petições no Judiciário brasileiro. Fluxo central:
-**firewall anti prompt-injection → extração estruturada → checagem de admissibilidade** (e, no futuro,
-classificação TPU). Sempre como **apoio à decisão humana**, nunca decisão automática.
+**firewall anti prompt-injection → extração estruturada → checagem de admissibilidade rito-aware**
+(cível + trabalhista; e, no futuro, classificação TPU). Sempre como **apoio à decisão humana**, nunca
+decisão automática.
 
 Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/INDEX.md)). Arquitetura:
 [`docs/tech-spec-sherpi.md`](docs/tech-spec-sherpi.md). Decisões: [`docs/adr/`](docs/adr/).
@@ -27,12 +28,13 @@ Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/IND
 5. **Métrica medida, nunca prometida.** Acurácia (ex.: TPU, extração) é reportada pelo eval, não afirmada.
 6. **Segredos fora do git.** Apenas `.env.example` é versionado; `.env` é local e ignorado.
 
-## Escopo atual (MVP — 2 sprints)
+## Escopo atual (Sprints 1–3 entregues)
 
-Em escopo: `document_integrity` (✅ firewall), `petition_analysis` (extração + admissibilidade),
-orquestração, persistência, UI mínima. **Futuro (Fase 4):** `taxonomy` (TPU), `identity` (auth),
-`review` (auditoria), integração PJe. Ver [`docs/roadmap.md`](docs/roadmap.md) e
-[`docs/backlog.md`](docs/backlog.md). Não implemente itens "Futuro" sem pedido explícito.
+Entregue: `document_integrity` (✅ firewall), `petition_analysis` (extração + admissibilidade
+**rito-aware**: cível + trabalhista, CLT 840 §1º — enum `Rito`, `domain/strategies.py`, ADR-0008),
+orquestração, persistência, UI mínima. **Futuro (Fase 4 restante):** `identity` (auth, S4),
+`review` (auditoria, S4), `taxonomy` (TPU, S5), integração PJe (S7). Ver [`docs/roadmap.md`](docs/roadmap.md)
+e [`docs/backlog.md`](docs/backlog.md). Não implemente itens "Futuro" sem pedido explícito.
 
 ## Arquitetura e estrutura
 
@@ -40,7 +42,7 @@ Monólito modular DDD + hexagonal. Backend é o projeto Python (uv); frontend se
 
 ```
 backend/src/sherpi/
-  shared_kernel/        # Value Objects (CPF, CNPJ, ValorCausa, RiskVerdict) + ports transversais
+  shared_kernel/        # Value Objects (CPF, CNPJ, ValorCausa, RiskVerdict, Rito) + ports transversais
   contexts/<ctx>/{domain,application,infrastructure}   # bounded contexts
   application/          # orquestrador cross-context (analyze_petition)
   infrastructure/{llm,persistence,storage}             # adapters

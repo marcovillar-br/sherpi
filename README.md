@@ -9,8 +9,9 @@ petições iniciais:
    ocultas em PDFs (texto branco no branco, fonte microscópica, texto fora da área visível, Unicode
    invisível, `/ActualText` divergente, metadados e comandos de IA embutidos). É o diferencial do
    produto e a primeira barreira do fluxo.
-2. **Extração estruturada + checagem de admissibilidade** — resume a petição e verifica os
-   requisitos dos arts. 319/321 do CPC (extração via LLM + validadores determinísticos).
+2. **Extração estruturada + checagem de admissibilidade *rito-aware*** — resume a petição e verifica
+   os requisitos por rito: arts. 319/321 do CPC no cível e CLT art. 840 §1º (pedido líquido) no
+   trabalhista (extração via LLM + validadores determinísticos).
 3. **Classificação taxonômica (TPU)** — sugere a classe/assunto do CNJ por similaridade semântica.
 
 Tudo sob **supervisão humana obrigatória** (*human-in-the-loop*) e *synthetic-first* (sem PII real),
@@ -29,10 +30,10 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 | Bounded context | Papel | Status |
 |---|---|---|
 | `document_integrity` | Firewall anti *prompt-injection* (sem LLM) | ✅ Sprint 1 |
-| `petition_analysis` | Extração + admissibilidade (**core domain**) | ✅ Sprint 1–2 |
-| `identity` | Autenticação (perfil único) | 🟡 Sprint 3 |
-| `review` | *Human-in-the-loop* + auditoria | 🟡 Sprint 3 |
-| `taxonomy` | Classificação TPU (embedding + k-NN) | 🟡 Sprint 4 |
+| `petition_analysis` | Extração + admissibilidade **rito-aware** (**core domain**) | ✅ Sprint 1–3 |
+| `identity` | Autenticação (perfil único) | 🟡 Sprint 4 |
+| `review` | *Human-in-the-loop* + auditoria | 🟡 Sprint 4 |
+| `taxonomy` | Classificação TPU (embedding + k-NN) | 🟡 Sprint 5 |
 
 ## Stack
 
@@ -73,7 +74,7 @@ Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/READM
 |---|---|
 | [`docs/prd-sherpi.md`](docs/prd-sherpi.md) | Requisitos de produto, personas, métricas |
 | [`docs/tech-spec-sherpi.md`](docs/tech-spec-sherpi.md) | Arquitetura, contratos, API, diagramas |
-| [`docs/roadmap.md`](docs/roadmap.md) | MVP em 2 sprints, *Definition of Done*, visão de futuro |
+| [`docs/roadmap.md`](docs/roadmap.md) | Sprints (MVP + Fase 4), *Definition of Done*, visão de futuro |
 | [`docs/pmp.md`](docs/pmp.md) · [`docs/wbs.md`](docs/wbs.md) · [`docs/backlog.md`](docs/backlog.md) | Gerenciamento de projeto: PGP, EAP/WBS e backlog (produto + sprints) |
 | [`docs/agile-process.md`](docs/agile-process.md) | Papéis, Design Sprint, Kanban, cerimônias, retrospectivas |
 | [`docs/ddd-context-map.md`](docs/ddd-context-map.md) | Mapa de contextos + linguagem ubíqua |
@@ -84,7 +85,7 @@ Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/READM
 
 - **Sprint 1** ✅ — Fundações DDD + firewall + dados sintéticos + extração estruturada (LLM agnóstico)
 - **Sprint 2** ✅ — Admissibilidade + orquestrador + persistência + UI mínima + eval → **MVP concluído**
-- **Sprint 3** — **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo)
+- **Sprint 3** ✅ — **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo)
 - **Sprint 4** — Confiança & Conformidade: autenticação (JWT) + revisão/auditoria (human-in-the-loop)
 - **Sprint 5** — Classificação TPU por ramo (JurisBERT + k-NN/pgvector)
 - **Sprint 6** — Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD
