@@ -4,7 +4,7 @@ description: "Bounded contexts, relações upstream/downstream e glossário da l
 doc_type: context-map
 project: SHERPI
 status: approved
-version: 1.1
+version: 1.2
 updated: 2026-06-19
 language: pt-BR
 tags: [ddd, bounded-context, linguagem-ubiqua]
@@ -15,7 +15,7 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | Campo | Valor |
 |---|---|
 | Documento | Context Map + Glossário |
-| Versão | 1.1 |
+| Versão | 1.2 |
 | Status | Aprovado |
 | Última atualização | 2026-06-19 |
 
@@ -29,8 +29,9 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | **petition_analysis** | **Core domain** | Extração estruturada (`PetitionSummary`) e checagem de admissibilidade **rito-aware** (`AdmissibilityReport`): `CheckAdmissibility` despacha por `Rito` para uma `AdmissibilityStrategy` — `CivelStrategy` (CPC 319/321) ou `TrabalhistaStrategy` (CLT 840 §1º). Razão de existir do sistema. |
 | **taxonomy** | Supporting subdomain | Classificação TPU: embedding (JurisBERT) + k-NN sobre seed → top-3 `TpuSuggestion`. |
 | **review** | Supporting | Human-in-the-loop e auditoria append-only (Res. CNJ 615/2025): `ReviewDecision`, `AuditEvent`. |
-| **identity** | Supporting | Autenticação (perfil único, extensível a RBAC): `User`, `Credential`, OAuth2/JWT. |
-| **shared_kernel** | Kernel compartilhado | VOs e ports usados por mais de um contexto (CPF, CNPJ, ValorCausa, RiskVerdict, Documento, Rito; LLMProvider, BlobStorage, Anonymizer). |
+| **identity** | Supporting | Autenticação (perfil único, extensível a RBAC): `User`, `Role`, `BcryptHasher`, `JwtIssuer`, OAuth2/JWT. |
+| **integration** | Supporting | Ingestão processual: `PetitionSource` port; `SandboxSourceAdapter`; `IngestPetitions`; `IngestQueue` (asyncio). Enfileira petições de sistemas externos (PJe/E-Proc/sandbox) para análise assíncrona. |
+| **shared_kernel** | Kernel compartilhado | VOs e ports usados por mais de um contexto (CPF, CNPJ, ValorCausa, RiskVerdict, Documento, Rito, Role; LLMProvider, BlobStorage, Anonymizer). |
 
 > O `document_integrity` é o **diferencial** do produto, mas tecnicamente é supporting: o **core** é `petition_analysis`, pois é onde mora o juízo de admissibilidade e o resumo estruturado — a razão de ser do SHERPI.
 
@@ -45,6 +46,7 @@ flowchart TB
     API[interfaces/api - FastAPI] --> ORCH[analyze_petition]
     API --> IDENTITY[identity]
     API --> REVIEW[review]
+    API --> INT[integration]
 
     ORCH -->|1. integridade| DI[document_integrity]
     ORCH -->|2. extração| PA[petition_analysis]
@@ -67,7 +69,9 @@ flowchart TB
 | `analyze_petition` → `taxonomy` | orquestrador | TPU | recebe texto sanitizado |
 | `interfaces/api` → `identity` | API | auth | gate JWT nas rotas protegidas |
 | `interfaces/api` → `review` | API | auditoria | grava decisão humana vinculada ao `User` |
+| `interfaces/api` → `integration` | API | ingestão | enfileira `IngestJob` via `IngestQueue` (asyncio) |
 | `review` → `petition_analysis` | review | core | `AuditEvent` referencia a `Analysis` |
+| `integration` → `petition_analysis` | integração | core | `IngestPetitions` aciona `AnalyzePetition` por cada `PetitionDoc` |
 | todos → `shared_kernel` | — | — | kernel compartilhado (VOs e ports) |
 
 Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **port** definido no contexto e um **adapter** na infraestrutura — nenhum contexto de domínio depende de framework.
@@ -112,8 +116,15 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **Bounded context** | Fronteira de modelo no DDD; cada "skill" do SHERPI é uma capacidade de um contexto. |
 | **Port / Adapter** | Interface no domínio (port) e sua implementação na infraestrutura (adapter); base do design hexagonal e do LLM-agnóstico. |
 | **LLMProvider** | Port que abstrai o modelo de linguagem; default Gemini Flash, com adapters Maritaca/OpenAI/Ollama e FakeProvider. |
-| **Anonymizer** | Port que mascara identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) antes do envio ao LLM externo (LGPD). Anonimização de **nomes** (NER) é Fase 4. |
+| **Anonymizer** | Port que mascara identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) antes do envio ao LLM externo (LGPD). |
+| **MappedRegexAnonymizer** | Anonimizador reversível com placeholders numerados (`[CPF_1]`); retorna mapa texto→placeholder para reconstituição posterior. |
+| **PresidioAnonymizer** | Adapter opcional (extra `ner`; lazy import) para NER de nomes com Presidio + spaCy. |
 | **Synthetic-first** | Estratégia de usar petições sintéticas para evitar PII real e prover ground truth. |
 | **Human-in-the-loop** | Princípio inegociável: a IA sugere, o humano decide; nunca decisão automática. |
-| **JurisBERT** | Modelo de embeddings jurídicos em português usado na classificação TPU. |
-| **k-NN** | Classificação por vizinhos mais próximos sobre embeddings indexados (pgvector). |
+| **JurisBERT** | Modelo de embeddings jurídicos em português usado na classificação TPU (extra `ml`). |
+| **k-NN** | Classificação por vizinhos mais próximos sobre embeddings (numpy/bytes, compatível SQLite+Postgres). |
+| **BcryptHasher / JwtIssuer** | Implementações de hashing de senha (bcrypt direto, sem passlib) e emissão/verificação de JWT (pyjwt) no contexto `identity`. |
+| **Role** | `StrEnum` do `identity`: `ADMIN`, `REVISOR`; base do RBAC. |
+| **AuditEvent** | Registro imutável append-only de uma decisão de revisão humana: quem (`User`), quando, qual `ReviewDecision` (`ACEITAR/REJEITAR/CORRIGIR`). |
+| **IngestJob / IngestQueue** | `IngestJob`: entidade de acompanhamento de uma tarefa de ingestão (`QUEUED/RUNNING/DONE/FAILED`). `IngestQueue`: fila asyncio que processa jobs em background (worker iniciado no lifespan FastAPI). |
+| **PetitionSource** | Port (Protocol async) que representa um sistema externo de petições (`fetch(job) → AsyncIterator[PetitionDoc]`). |

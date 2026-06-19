@@ -4,7 +4,7 @@ description: "Backlog do Produto (épicos e histórias, visão de futuro) e Spri
 doc_type: backlog
 project: SHERPI
 status: approved
-version: 1.1
+version: 1.2
 updated: 2026-06-19
 language: pt-BR
 tags: [backlog, epicos, historias-de-usuario, sprint, estimativas]
@@ -60,20 +60,20 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 
 | Épico | Histórias (resumo) | Prio | Sprint |
 |---|---|---|---|
-| EP10 — Domínio Trabalhista + rito-aware | Arquitetura por rito (ADR-0008); `TrabalhistaStrategy` (CLT 840, pedido líquido). | **M** | 3 |
-| EP6 — Identidade & Acesso | Login obrigatório (JWT, perfil único); rotas protegidas. | M | 4 |
-| EP7 — Revisão & Auditoria | Registrar decisão humana; trilha append-only (CNJ 615/2025). | M | 4 |
-| EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ (JurisBERT + k-NN), por ramo. | S | 5 |
-| EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD pleno (NER), deploy/CI-CD. | S | 6 |
-| EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 7 |
-| EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-3 |
+| EP10 — Domínio Trabalhista + rito-aware | Arquitetura por rito (ADR-0008); `TrabalhistaStrategy` (CLT 840, pedido líquido). | **M** | 3 | ✅ |
+| EP6 — Identidade & Acesso | Login obrigatório (JWT, perfil único); rotas protegidas. | M | 4 | ✅ (backend) |
+| EP7 — Revisão & Auditoria | Registrar decisão humana; trilha append-only (CNJ 615/2025). | M | 4 | ✅ (backend) |
+| EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ (JurisBERT + k-NN), por ramo. | S | 5 | ✅ (backend) |
+| EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD pleno (NER), deploy/CI-CD. | S | 6 | ✅ |
+| EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 7 | ✅ |
+| EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-7 | — |
 
 ---
 
 ## Parte 2 — Sprint Backlog (execução)
 
 Histórias selecionadas por sprint, desdobradas em **tasks técnicas estimadas**. Sprints 1–3
-concluídas (MVP + multi-domínio); Sprints 4–7 (Fase 4) planejadas.
+concluídas (MVP + multi-domínio); Fase 4 (Sprints 4–7) concluída (UI frontend pendente).
 
 ### Sprint 1 — Fundações + Firewall + Extração *(grande parte concluída)*
 
@@ -148,7 +148,7 @@ concluídas (MVP + multi-domínio); Sprints 4–7 (Fase 4) planejadas.
 | EP7 | Contexto `review`: `ReviewDecision`, `AuditEvent`, `RecordReview`, `AuditRepository` (append-only) | 5 | ✅ |
 | EP7 | `POST /v1/analyses/{id}/review` + `GET /v1/analyses/{id}/reviews` | 3 | ✅ |
 | EP6/EP7 | UI: tela de login + ações de revisão (aceitar/rejeitar/corrigir) | 5 | planejada |
-| **Total Sprint 4** | | **26** | |
+| **Total Sprint 4** | | **26** | ✅ (backend; UI frontend pendente) |
 
 ### Sprint 5 — Classificação TPU (`taxonomy`)
 
@@ -159,7 +159,7 @@ concluídas (MVP + multi-domínio); Sprints 4–7 (Fase 4) planejadas.
 | EP5 | `BuildTpuIndex` + `SuggestTpu` (top-3 com confiança + âncora) + ligação no orquestrador (`AnalysisResult.tpu_suggestions`) | 5 | ✅ |
 | EP5 | Eval: `eval_tpu()` top-1/top-3 sobre seed (sanidade honesta) integrado ao `evals.run` | 3 | ✅ |
 | EP5 | UI: top-3 sugestões com confiança e exemplos-âncora | 3 | planejada (frontend) |
-| **Total Sprint 5** | | **21** | |
+| **Total Sprint 5** | | **21** | ✅ (backend; UI frontend pendente) |
 
 ### Sprint 6 — Produção (observabilidade, LGPD pleno, deploy)
 

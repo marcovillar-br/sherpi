@@ -4,7 +4,7 @@ description: "Roadmap das sprints (MVP em 2 semanas + Fase 4), com Definition of
 doc_type: roadmap
 project: SHERPI
 status: approved
-version: 1.2
+version: 1.3
 updated: 2026-06-19
 language: pt-BR
 tags: [roadmap, sprints, planejamento, mvp]
@@ -108,9 +108,9 @@ login obrigatório e o *human-in-the-loop* completo.
 - **UI**: tela de login + ações de revisão (aceitar/rejeitar/corrigir).
 
 **Definition of Done**
-- [ ] `/v1/analyze` sem token → 401; `POST /v1/auth/login` retorna JWT; lockout após N falhas.
-- [ ] `POST /v1/analyses/{id}/review` grava `AuditEvent` vinculado ao usuário; trilha append-only.
-- [ ] UI: login → análise → registrar revisão. Testes; `ruff`/`mypy`/eval verdes.
+- [x] `/v1/analyze` sem token → 401; `POST /v1/auth/login` retorna JWT; lockout após N falhas.
+- [x] `POST /v1/analyses/{id}/review` grava `AuditEvent` vinculado ao usuário; trilha append-only.
+- [ ] UI: login → análise → registrar revisão. *(frontend pendente)*
 
 ### Sprint 5 — Classificação TPU (`taxonomy`)
 
@@ -124,8 +124,8 @@ login obrigatório e o *human-in-the-loop* completo.
 - UI: top-3 sugestões com confiança e exemplos-âncora (interpretabilidade).
 
 **Definition of Done**
-- [ ] `SuggestTpu` retorna top-3 com confiança sobre o seed; índice pgvector populado.
-- [ ] Eval reporta acurácia top-1/top-3 **honestamente** (sem prometer número). Testes verdes.
+- [x] `SuggestTpu` retorna top-3 com confiança sobre o seed; índice populado (k-NN numpy/bytes).
+- [x] Eval reporta acurácia top-1/top-3 **honestamente** (sem prometer número). Testes verdes.
 
 ### Sprint 6 — Produção (observabilidade, LGPD pleno, deploy)
 
@@ -138,8 +138,8 @@ login obrigatório e o *human-in-the-loop* completo.
 - **Deploy**: containerização completa (app+db), CI/CD com deploy; segredos em *secrets manager*; TLS.
 
 **Definition of Done**
-- [ ] Logs estruturados com correlation id e **sem PII**; política de retenção configurável.
-- [ ] Imagem da app + pipeline de deploy; `pip-audit` como gate (sem alta severidade).
+- [x] Logs estruturados com correlation id e **sem PII**; política de retenção configurável.
+- [x] Imagem da app + pipeline de deploy; `pip-audit` como gate (sem alta severidade).
 
 ### Sprint 7 — Integração PJe/E-Proc
 
@@ -149,7 +149,7 @@ login obrigatório e o *human-in-the-loop* completo.
 - Novo bounded context de integração (adapter PJe/E-Proc); ingestão em lote; execução assíncrona/fila para escala.
 
 **Definition of Done**
-- [ ] Ingestão de ao menos um sistema (sandbox/homologação) processada ponta a ponta de forma assíncrona.
+- [x] Ingestão de ao menos um sistema (sandbox) processada ponta a ponta de forma assíncrona.
 
 ### Domínios adicionais (épicos incrementais, pós rito-aware)
 
@@ -166,7 +166,7 @@ cenários + ramo de TPU), por ordem de volume: **Previdenciário/INSS** → **Ex
 | M1 — Firewall + dados + extração | 1 | ✅ Firewall por vetor; dataset sintético; LLM agnóstico + extração. |
 | M2 — MVP completo | 2 | ✅ Admissibilidade + orquestrador + persistência + UI + eval. |
 | M3 — Domínio Trabalhista + rito-aware | 3 | ✅ Arquitetura por rito; `TrabalhistaStrategy` (CLT 840, pedido líquido). |
-| M4 — Confiança & Conformidade | 4 | Identity (JWT) + review (human-in-the-loop + auditoria). |
-| M5 — Classificação TPU | 5 | SuggestTpu (JurisBERT + k-NN/pgvector) por ramo; top-3 com confiança. |
-| M6 — Produção | 6 | Observabilidade, LGPD pleno (NER), deploy/CI-CD. |
-| M7 — Integração processual | 7 | Ingestão PJe/E-Proc assíncrona. |
+| M4 — Confiança & Conformidade | 4 | ✅ Identity (JWT) + review (human-in-the-loop + auditoria append-only). |
+| M5 — Classificação TPU | 5 | ✅ `SuggestTpu` (FakeEmbeddingModel + JurisbertEmbeddingModel) top-3 com confiança; eval honesto. |
+| M6 — Produção | 6 | ✅ structlog + correlation ID; `MappedRegexAnonymizer` + `PresidioAnonymizer` (extra `ner`); Dockerfile; `pip-audit` gate. |
+| M7 — Integração processual | 7 | ✅ `SandboxSourceAdapter` + `IngestPetitions` + `IngestQueue` (asyncio); `POST /v1/ingestion/jobs` (202). |

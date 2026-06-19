@@ -4,7 +4,7 @@ description: "Escopo, tempo, custos, riscos, equipe, comunicação e qualidade d
 doc_type: pmp
 project: SHERPI
 status: approved
-version: 1.1
+version: 1.2
 updated: 2026-06-19
 language: pt-BR
 tags: [gerenciamento-de-projeto, pgp, pmp, escopo, riscos, cronograma]
@@ -23,7 +23,7 @@ Complementa o backlog (responsabilidade do PO, [`backlog.md`](backlog.md)) e a
 | Projeto | **SHERPI** — Sistema Híbrido de Extração e Resumo Estruturado de Petições Iniciais |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
 | **Formato da entrega** | **MVP** (sistema funcional, com código implementado e executável) |
-| Duração | **MVP em 2 Sprints** + **Fase 4** em 5 sprints (3–7); **Sprints 1–3 entregues** |
+| Duração | **MVP em 2 Sprints** + **Fase 4** em 5 sprints (3–7); **Sprints 1–7 entregues** |
 | Cliente/patrocinador (simulado) | Gabinete judicial de 1º grau (persona: magistrado/assessor) |
 | Avaliador | Professor (Sprint Reviews aos sábados) |
 
@@ -42,9 +42,9 @@ supervisão humana.
 
 ### 2.3 Escopo da Fase 4 (pós-MVP, agendado em sprints)
 Com o MVP entregue, as capacidades adiadas foram **agendadas em sprints** por importância/ganho:
-domínio trabalhista + rito-aware (Sprint 3, ✅), identidade + revisão/auditoria (Sprint 4),
-classificação TPU (Sprint 5), hardening de produção — observabilidade/LGPD pleno/deploy (Sprint 6)
-e integração PJe/E-Proc (Sprint 7). Detalhe das histórias/tasks em [`backlog.md`](backlog.md);
+domínio trabalhista + rito-aware (Sprint 3, ✅), identidade + revisão/auditoria (Sprint 4, ✅),
+classificação TPU (Sprint 5, ✅), hardening de produção — observabilidade/LGPD pleno/deploy (Sprint 6, ✅)
+e integração PJe/E-Proc (Sprint 7, ✅). UI frontend das sprints 4–7 permanece pendente. Detalhe das histórias/tasks em [`backlog.md`](backlog.md);
 objetivos e DoD em [`roadmap.md`](roadmap.md).
 
 > A divisão escopo-completo (produto) × escopo-de-execução (sprint) segue formalizada no backlog,
@@ -61,15 +61,13 @@ Ritmo de **Design Sprint semanal** (modelo Google), **Dailies** de alinhamento c
 | **Sprint 1** | Fundações + firewall + extração estruturada | ✅ entregue |
 | **Sprint 2** | Admissibilidade + orquestrador + persistência + UI mínima | ✅ entregue |
 | **Sprint 3** | **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo) | ✅ entregue |
-| **Sprint 4** | Confiança & Conformidade: `identity` (JWT) + `review` (human-in-the-loop + auditoria) | planejada |
-| **Sprint 5** | Classificação TPU (`taxonomy`) por ramo: JurisBERT + k-NN/pgvector | planejada |
-| **Sprint 6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | planejada |
-| **Sprint 7** | Integração PJe/E-Proc (ingestão assíncrona) | planejada |
+| **Sprint 4** | Confiança & Conformidade: `identity` (JWT) + `review` (human-in-the-loop + auditoria) | ✅ entregue (backend; UI pendente) |
+| **Sprint 5** | Classificação TPU (`taxonomy`) por ramo: JurisBERT + k-NN/pgvector | ✅ entregue (backend; UI pendente) |
+| **Sprint 6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | ✅ entregue |
+| **Sprint 7** | Integração PJe/E-Proc (ingestão assíncrona) | ✅ entregue |
 | *(pós-3)* | Domínios adicionais: previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware) | backlog |
 
-Marcos: **M1** firewall (✅); **M2** MVP completo (✅); **M3** trabalhista + rito-aware (✅); **M4**
-conformidade/auditoria; **M5** TPU; **M6** produção; **M7** integração processual. Detalhe em
-[`roadmap.md`](roadmap.md).
+Marcos: **M1** firewall (✅); **M2** MVP (✅); **M3** trabalhista (✅); **M4** identity+review (✅); **M5** TPU (✅); **M6** produção (✅); **M7** integração (✅). Detalhe em [`roadmap.md`](roadmap.md).
 
 ## 4. Gerenciamento de Custos
 

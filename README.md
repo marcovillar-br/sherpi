@@ -31,17 +31,20 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 |---|---|---|
 | `document_integrity` | Firewall anti *prompt-injection* (sem LLM) | ✅ Sprint 1 |
 | `petition_analysis` | Extração + admissibilidade **rito-aware** (**core domain**) | ✅ Sprint 1–3 |
-| `identity` | Autenticação (perfil único) | 🟡 Sprint 4 |
-| `review` | *Human-in-the-loop* + auditoria | 🟡 Sprint 4 |
-| `taxonomy` | Classificação TPU (embedding + k-NN) | 🟡 Sprint 5 |
+| `identity` | Autenticação JWT (perfil único) | ✅ Sprint 4 (backend) |
+| `review` | *Human-in-the-loop* + auditoria append-only | ✅ Sprint 4 (backend) |
+| `taxonomy` | Classificação TPU (embedding + k-NN) | ✅ Sprint 5 (backend) |
+| `integration` | Ingestão assíncrona de petições (PJe/E-Proc/sandbox) | ✅ Sprint 7 |
 
 ## Stack
 
-- **Backend**: Python 3.12+ · FastAPI · uv · PyMuPDF · Pydantic · SQLModel + Alembic
+- **Backend**: Python 3.12+ · FastAPI · uv · PyMuPDF · Pydantic v2 · SQLModel + Alembic
+- **Auth**: bcrypt + pyjwt (passlib incompatível com bcrypt>=5) · OAuth2 password flow
+- **Observabilidade**: structlog · correlation ID · Sentry (soft-dep)
 - **Frontend**: Next.js + TypeScript + Tailwind + shadcn/ui + react-pdf (desacoplado da API)
-- **Dados**: PostgreSQL + pgvector (relacional + embeddings TPU)
-- **IA**: camada `LLMProvider` agnóstica · classificação TPU local (JurisBERT)
-- **Infra**: Docker apenas para o banco; backend e frontend nativos em dev
+- **Dados**: PostgreSQL + SQLModel · embeddings como bytes (numpy/float32, sem pgvector extension)
+- **IA**: camada `LLMProvider` agnóstica · classificação TPU local (JurisBERT ou FakeEmbeddingModel)
+- **Infra**: Dockerfile multi-stage (non-root) · docker-compose.prod.yml · pip-audit gate real
 
 ## Estrutura do repositório
 
@@ -86,10 +89,10 @@ Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/READM
 - **Sprint 1** ✅ — Fundações DDD + firewall + dados sintéticos + extração estruturada (LLM agnóstico)
 - **Sprint 2** ✅ — Admissibilidade + orquestrador + persistência + UI mínima + eval → **MVP concluído**
 - **Sprint 3** ✅ — **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo)
-- **Sprint 4** — Confiança & Conformidade: autenticação (JWT) + revisão/auditoria (human-in-the-loop)
-- **Sprint 5** — Classificação TPU por ramo (JurisBERT + k-NN/pgvector)
-- **Sprint 6** — Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD
-- **Sprint 7** — Integração PJe/E-Proc
+- **Sprint 4** ✅ — Confiança & Conformidade: autenticação JWT + revisão/auditoria append-only *(UI pendente)*
+- **Sprint 5** ✅ — Classificação TPU por ramo (JurisBERT + k-NN/numpy) *(UI pendente)*
+- **Sprint 6** ✅ — Produção: structlog + correlation ID, LGPD pleno (NER), Dockerfile, pip-audit gate
+- **Sprint 7** ✅ — Integração PJe/E-Proc: ingestão assíncrona (asyncio.Queue + SandboxSourceAdapter)
 - **Domínios adicionais** (pós rito-aware) — previdenciário/INSS, execução fiscal, família/JEC
 
 Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pmp.md`](docs/pmp.md), [`docs/wbs.md`](docs/wbs.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).

@@ -4,7 +4,7 @@ description: "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilida
 doc_type: tech-spec
 project: SHERPI
 status: approved
-version: 1.2
+version: 1.3
 updated: 2026-06-19
 language: pt-BR
 tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
@@ -15,7 +15,7 @@ tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 | Campo | Valor |
 |---|---|
 | Documento | Especificação Técnica |
-| Versão | 1.2 |
+| Versão | 1.3 |
 | Status | Aprovado para MVP |
 | Última atualização | 2026-06-19 |
 
@@ -60,14 +60,19 @@ flowchart TB
         AUTH[Authenticate]
     end
 
+    subgraph INT["integration — ingestão processual"]
+        INGEST[IngestPetitions]
+    end
+
     subgraph SK["shared_kernel (VOs e ports transversais)"]
-        VO[CPF, CNPJ, ValorCausa, RiskVerdict, Documento, Rito]
+        VO[CPF, CNPJ, ValorCausa, RiskVerdict, Documento, Rito, Role]
         PORTS[LLMProvider, BlobStorage, Anonymizer]
     end
 
     API --> AUTH
     API --> ORCH
     API --> REVIEW
+    API --> INGEST
     ORCH --> DETECT
     ORCH --> EXTRACT
     ORCH --> ADMISS
@@ -75,6 +80,7 @@ flowchart TB
     Core --> SK
     DI --> SK
     TAX --> SK
+    INT --> SK
 ```
 
 ### 1.2 Fluxo do orquestrador `analyze_petition`
@@ -95,7 +101,7 @@ flowchart LR
 
 Regra inegociável: **se o firewall retornar `BLOCK`, o fluxo encerra sem nenhuma chamada de LLM** (economia de tokens + não alimentar o modelo com conteúdo manipulado).
 
-> **Escopo desta spec × recorte do MVP.** Este documento descreve a **arquitetura completa do produto**. O **MVP (2 sprints)** entrega o caminho **firewall → extração → admissibilidade** + persistência e UI mínima; a etapa `SuggestTpu` e os contextos `identity`/`review` são **visão de futuro** (ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md)). O orquestrador é desenhado para incorporá-los sem alterar os contratos.
+> **Arquitetura completa (Sprints 1–7).** O MVP (Sprints 1–2) entregou o caminho **firewall → extração → admissibilidade**; a Fase 4 (Sprints 3–7) adicionou rito-aware (S3), `identity`/`review` (S4), `taxonomy` TPU (S5), observabilidade/LGPD/deploy (S6) e `integration` PJe/E-Proc (S7). UI frontend das sprints 4–7 permanece pendente.
 
 ---
 
@@ -256,15 +262,20 @@ operacionais (`/health`, `/ready`) ficam **sem versão** (padrão de orquestrado
 
 | Método | Rota | Status | Descrição |
 |---|---|---|---|
-| `POST` | `/v1/analyze` | ✅ MVP | Recebe PDF (multipart); roda o orquestrador; persiste e retorna a análise. |
-| `GET` | `/v1/analyses/{id}` | ✅ MVP | Retorna a análise persistida. |
-| `GET` | `/health` | ✅ MVP | Liveness. |
-| `GET` | `/ready` | ✅ MVP | Readiness (checa o DB; 503 se indisponível). |
-| `POST` | `/v1/auth/login` | ⚪ Fase 4 | OAuth2 password flow; retorna JWT (cookie httpOnly). |
-| `POST` | `/v1/analyses/{id}/review` | ⚪ Fase 4 | Decisão de revisão humana; grava `AuditEvent`. |
+| `GET` | `/health` | ✅ S1 | Liveness. |
+| `GET` | `/ready` | ✅ S1 | Readiness (checa o DB; 503 se indisponível). |
+| `POST` | `/v1/analyze` | ✅ S2–S4 | Recebe PDF + `rito`; roda o orquestrador; persiste e retorna a análise. **JWT obrigatório.** |
+| `GET` | `/v1/analyses/{id}` | ✅ S2–S4 | Retorna a análise persistida. **JWT obrigatório.** |
+| `DELETE` | `/v1/analyses/{id}` | ✅ S6 | Remove uma análise. **JWT obrigatório.** |
+| `DELETE` | `/v1/analyses` | ✅ S6 | Remove análises mais antigas que `older_than_days`. **JWT obrigatório.** |
+| `POST` | `/v1/auth/login` | ✅ S4 | OAuth2 password flow; retorna JWT + cookie httpOnly+SameSite=lax. |
+| `POST` | `/v1/analyses/{id}/review` | ✅ S4 | Decisão de revisão humana; grava `AuditEvent`. **JWT obrigatório.** |
+| `GET` | `/v1/analyses/{id}/reviews` | ✅ S4 | Lista eventos de auditoria de uma análise. **JWT obrigatório.** |
+| `POST` | `/v1/ingestion/jobs` | ✅ S7 | Cria e enfileira um job de ingestão (202 Accepted). **JWT obrigatório.** |
+| `GET` | `/v1/ingestion/jobs` | ✅ S7 | Lista todos os jobs de ingestão. **JWT obrigatório.** |
+| `GET` | `/v1/ingestion/jobs/{id}` | ✅ S7 | Status de um job de ingestão. **JWT obrigatório.** |
 
-> No MVP as rotas ainda **não exigem JWT** (autenticação é do contexto `identity`, Fase 4).
-> O versionamento `/v1` permite evoluir o contrato sem quebrar clientes.
+O versionamento `/v1` permite evoluir o contrato sem quebrar clientes. Erros consistentes sem vazar stack trace; validação via Pydantic (→ 422).
 
 ### 8.1 `POST /v1/analyze`
 
@@ -276,12 +287,9 @@ operacionais (`/health`, `/ready`) ficam **sem versão** (padrão de orquestrado
 
 - **200**: a análise persistida (`{ id, result }`). **404**: inexistente.
 
-### 8.3 Fase 4 — `POST /v1/auth/login` e `POST /v1/analyses/{id}/review`
+### 8.3 Autenticação e revisão humana (S4)
 
-Autenticação (JWT, lockout) e registro de revisão humana (`AuditEvent`) entram com os contextos
-`identity` e `review` na Fase 4.
-
-Erros são consistentes e **não vazam stack trace**; validação de entrada via Pydantic (→ 422).
+`POST /v1/auth/login` retorna JWT assinado (`pyjwt`+`bcrypt`; **passlib não compatível com bcrypt>=5**); lockout após N falhas consecutivas. `AuditEvent` append-only registra cada decisão humana vinculada ao `User`. Todas as rotas `/v1/*` exigem `Authorization: Bearer <token>`.
 
 ---
 
@@ -345,10 +353,13 @@ sequenceDiagram
 | Backend | Python ≥3.12, FastAPI, uv |
 | Firewall | PyMuPDF |
 | LLM | google-genai (default) + openai (Maritaca/compat); FakeProvider |
-| Embeddings TPU | sentence-transformers/transformers (JurisBERT) |
-| Validação | Pydantic, pydantic-settings, validate-docbr |
-| Persistência | PostgreSQL + pgvector, SQLModel, Alembic, psycopg |
-| Auth | passlib[bcrypt], pyjwt, OAuth2 password flow |
+| Embeddings TPU | sentence-transformers/transformers (JurisBERT) via extra `ml`; FakeEmbeddingModel (sha256, sem ML) |
+| Validação | Pydantic v2, pydantic-settings, validate-docbr |
+| Persistência | PostgreSQL + SQLModel + Alembic + psycopg (dev/test: SQLite via aiosqlite) |
+| Auth | **bcrypt** direto + **pyjwt** (passlib incompatível com bcrypt>=5); OAuth2 password flow; lockout in-memory |
+| Observabilidade | structlog, CorrelationIdMiddleware, sentry-sdk[fastapi] (soft-dep) |
+| Anonimização | MappedRegexAnonymizer (reversível); PresidioAnonymizer (extra `ner`, lazy import) |
+| Integração | asyncio.Queue; SandboxSourceAdapter; PetitionSource port |
 | Frontend | Next.js + TypeScript + Tailwind + shadcn/ui + react-pdf (PDF.js) |
-| Infra local | docker-compose (apenas Postgres+pgvector) |
-| Qualidade | pytest, ruff, mypy, pre-commit, pip-audit (CI) |
+| Infra | Dockerfile multi-stage (builder uv / runtime python:3.12-slim, non-root); docker-compose.prod.yml |
+| Qualidade | pytest, ruff, mypy, pre-commit, pip-audit (CI — gate real sem `\|\| true`) |

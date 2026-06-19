@@ -6,8 +6,8 @@ Contexto mínimo para agentes de IA a cada sessão. Conteúdo em **pt-BR**; nome
 
 **SHERPI** — Sistema Híbrido de Extração e Resumo Estruturado de Petições Iniciais. MVP acadêmico
 (disciplina DAIA) de apoio à triagem de petições no Judiciário brasileiro. Fluxo central:
-**firewall anti prompt-injection → extração estruturada → checagem de admissibilidade rito-aware**
-(cível + trabalhista; e, no futuro, classificação TPU). Sempre como **apoio à decisão humana**, nunca
+**firewall → extração → admissibilidade rito-aware → classificação TPU → ingestão assíncrona**,
+com **identity/review/auditoria** e **observabilidade**. Sempre como **apoio à decisão humana**, nunca
 decisão automática.
 
 Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/INDEX.md)). Arquitetura:
@@ -28,13 +28,21 @@ Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/IND
 5. **Métrica medida, nunca prometida.** Acurácia (ex.: TPU, extração) é reportada pelo eval, não afirmada.
 6. **Segredos fora do git.** Apenas `.env.example` é versionado; `.env` é local e ignorado.
 
-## Escopo atual (Sprints 1–3 entregues)
+## Escopo atual (Sprints 1–7 entregues — backend completo)
 
-Entregue: `document_integrity` (✅ firewall), `petition_analysis` (extração + admissibilidade
-**rito-aware**: cível + trabalhista, CLT 840 §1º — enum `Rito`, `domain/strategies.py`, ADR-0008),
-orquestração, persistência, UI mínima. **Futuro (Fase 4 restante):** `identity` (auth, S4),
-`review` (auditoria, S4), `taxonomy` (TPU, S5), integração PJe (S7). Ver [`docs/roadmap.md`](docs/roadmap.md)
-e [`docs/backlog.md`](docs/backlog.md). Não implemente itens "Futuro" sem pedido explícito.
+Entregue:
+- `document_integrity` — firewall anti prompt-injection (PyMuPDF, 7 vetores)
+- `petition_analysis` — extração + admissibilidade **rito-aware** (cível + trabalhista, CLT 840 §1º, ADR-0008)
+- `identity` — auth JWT+bcrypt (pyjwt direto; passlib incompatível com bcrypt>=5), lockout, seed user
+- `review` — AuditEvent append-only, RecordReview, GetCurrentUser dependency
+- `taxonomy` — SuggestTpu (FakeEmbeddingModel hash SHA-256 + JurisbertEmbeddingModel), k-NN numpy/bytes
+- `integration` — IngestPetitions + IngestQueue (asyncio) + SandboxSourceAdapter
+- Observabilidade: structlog + CorrelationIdMiddleware + Sentry (soft-dep)
+- LGPD: MappedRegexAnonymizer (reversível) + PresidioAnonymizer (extra `ner`)
+- Dockerfile multi-stage, docker-compose.prod.yml, pip-audit gate real
+
+**UI frontend (sprints 4–7)** permanece pendente. Não implemente itens de UI sem pedido explícito.
+Ver [`docs/roadmap.md`](docs/roadmap.md) e [`docs/backlog.md`](docs/backlog.md).
 
 ## Arquitetura e estrutura
 
@@ -55,8 +63,10 @@ docs/                   # PRD, spec, roadmap, PGP, EAP, backlog, ADRs, seguranç
 
 ## Stack
 
-Python ≥3.12 · FastAPI · uv · PyMuPDF · Pydantic v2 · SQLModel + Alembic · PostgreSQL + pgvector ·
-google-genai (default) / openai (compat) · Next.js + TS (frontend) · Docker só para o banco.
+Python ≥3.12 · FastAPI · uv · PyMuPDF · Pydantic v2 · SQLModel + Alembic · PostgreSQL ·
+bcrypt + pyjwt (auth; **passlib não compatível com bcrypt>=5**) · structlog · sentry-sdk[fastapi] ·
+google-genai (default) / openai (compat) · sentence-transformers (extra `ml`) · presidio (extra `ner`) ·
+Next.js + TS (frontend) · Dockerfile multi-stage · pip-audit gate CI.
 
 ## Comandos (rodar em `backend/`)
 

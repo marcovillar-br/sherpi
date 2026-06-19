@@ -4,7 +4,7 @@ description: "Decomposição hierárquica do trabalho do SHERPI, com Gerenciamen
 doc_type: wbs
 project: SHERPI
 status: approved
-version: 1.1
+version: 1.2
 updated: 2026-06-19
 language: pt-BR
 tags: [eap, wbs, gerenciamento-de-projeto, escopo]
@@ -14,8 +14,7 @@ tags: [eap, wbs, gerenciamento-de-projeto, escopo]
 
 Decomposição hierárquica de **todo o trabalho** do projeto. Conforme o Guia de Diretrizes, há uma
 ramificação principal dedicada ao **Gerenciamento de Projeto**, com a **Gestão e Rituais Ágeis** como
-sub-ramificação (`1.1 → 1.1.1`). Legenda: 🔵 entregue (Sprints 1–3: MVP + multi-domínio); **S4–S7** =
-sprint da Fase 4 restante em que o pacote será executado (ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md)).
+sub-ramificação (`1.1 → 1.1.1`). Legenda: 🔵 entregue. Sprints 1–7 concluídas (backend completo; UI frontend das sprints 4–7 pendente). Ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md).
 
 ```mermaid
 flowchart TD
@@ -53,19 +52,18 @@ flowchart TD
 - **1.2.5 Interface (UI mínima)** 🔵 — upload do PDF → laudo + resumo estruturado.
 - **1.2.10 Multi-domínio (rito-aware) + Trabalhista** 🔵 (S3) — enum `Rito`, estratégias de
   admissibilidade por rito; `TrabalhistaStrategy` (CLT 840, pedido líquido). Ver ADR-0008.
-- **1.2.7 Identidade & Acesso** **S4** — login OAuth2/JWT (perfil único), rotas protegidas.
-- **1.2.8 Revisão & Auditoria** **S4** — *human-in-the-loop* + trilha append-only (CNJ 615/2025).
-- **1.2.6 Classificação Taxonômica (TPU)** **S5** — embeddings JurisBERT + k-NN sobre pgvector (por ramo).
-- **1.2.9 Integração Judicial** **S7** — conectores PJe/E-Proc, ingestão assíncrona.
+- **1.2.7 Identidade & Acesso** 🔵 (S4) — login OAuth2/JWT (perfil único), rotas protegidas; UI pendente.
+- **1.2.8 Revisão & Auditoria** 🔵 (S4) — *human-in-the-loop* + trilha append-only (CNJ 615/2025); UI pendente.
+- **1.2.6 Classificação Taxonômica (TPU)** 🔵 (S5) — embeddings JurisBERT + k-NN (numpy/bytes, por ramo); UI pendente.
+- **1.2.9 Integração Judicial** 🔵 (S7) — `SandboxSourceAdapter` + `IngestPetitions` + `IngestQueue`; ingestão assíncrona.
 - **1.2.11 Domínios adicionais** *(pós-S3)* — previdenciário/INSS, execução fiscal, família/JEC.
 
 ### 1.3 Plataforma e Qualidade
 - **1.3.1 Scaffold DDD/Hexagonal** 🔵 — estrutura de contextos, `shared_kernel`, ports.
-- **1.3.2 CI/CD e Ferramentas** 🔵 (deploy/CD em **S6**) — ruff, mypy, pytest, pre-commit, GitHub Actions.
+- **1.3.2 CI/CD e Ferramentas** 🔵 (S1 / S6) — ruff, mypy, pytest, pre-commit, GitHub Actions; `pip-audit` gate ✅ S6.
 - **1.3.3 Dados Sintéticos** 🔵 — gerador de petições rotuladas (synthetic-first).
 - **1.3.4 Eval Harness** 🔵 — métricas (firewall, extração) e gate de CI.
-- **1.3.5 Segurança & Observabilidade** 🔵 segurança de upload/`/health`+`/ready`; **S6** logging
-  estruturado + correlation IDs, LGPD pleno (NER), *error tracking*.
+- **1.3.5 Segurança & Observabilidade** 🔵 (S1 / S6) — segurança de upload; `structlog` + correlation IDs; `MappedRegexAnonymizer` + `PresidioAnonymizer` (NER, extra `ner`); Sentry; `Dockerfile` multi-stage.
 
 ### 1.4 Documentação
 - **1.4.1 Produto** — PRD.
