@@ -37,6 +37,12 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 | [agile-process.md](agile-process.md) | Papéis (8 integrantes), Design Sprint, Kanban (GitHub Projects), cerimônias e retrospectivas. |
 | [demo-sprint-review.md](demo-sprint-review.md) | Runbook da demo do MVP na Sprint Review (passos, tempos, plano B). |
 
+## Domínio jurídico
+
+| Documento | Conteúdo |
+|---|---|
+| [glossario-juridico.md](glossario-juridico.md) | Primer dos conceitos jurídicos do escopo (art. 319, CLT 840, admissibilidade…) para validar com especialista. |
+
 ## Arquitetura e técnica
 
 | Documento | Conteúdo |

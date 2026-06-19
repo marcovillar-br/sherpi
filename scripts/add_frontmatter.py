@@ -109,6 +109,13 @@ META: dict[str, dict[str, object]] = {
         "status": "approved",
         "tags": ["eap", "wbs", "gerenciamento-de-projeto", "escopo"],
     },
+    "glossario-juridico.md": {
+        "title": "Glossário Jurídico — Conceitos do Escopo",
+        "description": "Primer dos principais conceitos jurídicos do SHERPI, em linguagem acessível, para validação com especialista.",
+        "doc_type": "reference",
+        "status": "draft",
+        "tags": ["juridico", "glossario", "cpc", "clt", "conceitos", "validacao"],
+    },
     "demo-sprint-review.md": {
         "title": "Roteiro de Demo — Sprint Review",
         "description": "Runbook passo a passo para apresentar o MVP do SHERPI ao professor na Sprint Review.",
