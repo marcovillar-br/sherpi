@@ -64,7 +64,7 @@ def test_ready(client: TestClient) -> None:
 
 
 def test_analyze_clean_pdf(client: TestClient) -> None:
-    resp = client.post("/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")})
+    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")})
     assert resp.status_code == 200
     body = resp.json()
     assert body["id"]
@@ -75,7 +75,7 @@ def test_analyze_clean_pdf(client: TestClient) -> None:
 
 def test_analyze_injection_blocks(client: TestClient) -> None:
     resp = client.post(
-        "/analyze", files={"file": ("p.pdf", build_white_on_white(), "application/pdf")}
+        "/v1/analyze", files={"file": ("p.pdf", build_white_on_white(), "application/pdf")}
     )
     assert resp.status_code == 200
     body = resp.json()
@@ -84,15 +84,15 @@ def test_analyze_injection_blocks(client: TestClient) -> None:
 
 
 def test_analyze_non_pdf_returns_415(client: TestClient) -> None:
-    resp = client.post("/analyze", files={"file": ("x.txt", b"not a pdf", "text/plain")})
+    resp = client.post("/v1/analyze", files={"file": ("x.txt", b"not a pdf", "text/plain")})
     assert resp.status_code == 415
 
 
 def test_analyze_persists_and_get_roundtrip(client: TestClient) -> None:
     created = client.post(
-        "/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")}
+        "/v1/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")}
     ).json()
-    fetched = client.get(f"/analyses/{created['id']}")
+    fetched = client.get(f"/v1/analyses/{created['id']}")
     assert fetched.status_code == 200
     body = fetched.json()
     assert body["id"] == created["id"]
@@ -100,7 +100,7 @@ def test_analyze_persists_and_get_roundtrip(client: TestClient) -> None:
 
 
 def test_get_unknown_analysis_returns_404(client: TestClient) -> None:
-    assert client.get("/analyses/inexistente").status_code == 404
+    assert client.get("/v1/analyses/inexistente").status_code == 404
 
 
 def test_ready_ok_with_reachable_db(client: TestClient) -> None:

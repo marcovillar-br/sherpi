@@ -10,7 +10,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -37,6 +37,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Probes operacionais ficam sem versão (padrão de orquestradores).
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
@@ -51,7 +52,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         response.status_code = 503
         return {"status": "unavailable"}
 
-    @app.post("/analyze", response_model=AnalyzeResponse)
+    # Endpoints de domínio sob /v1 (permite evoluir o contrato sem quebrar clientes).
+    v1 = APIRouter(prefix="/v1")
+
+    @v1.post("/analyze", response_model=AnalyzeResponse)
     async def analyze(
         orchestrator: Annotated[AnalyzePetition, Depends(get_orchestrator)],
         repository: Annotated[AnalysisRepository, Depends(get_repository)],
@@ -77,7 +81,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         repository.save(record)
         return AnalyzeResponse(id=record.id, result=result)
 
-    @app.get("/analyses/{analysis_id}", response_model=AnalyzeResponse)
+    @v1.get("/analyses/{analysis_id}", response_model=AnalyzeResponse)
     def get_analysis(
         analysis_id: str,
         repository: Annotated[AnalysisRepository, Depends(get_repository)],
@@ -87,6 +91,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Análise não encontrada.")
         return AnalyzeResponse(id=record.id, result=record.result)
 
+    app.include_router(v1)
     return app
 
 
