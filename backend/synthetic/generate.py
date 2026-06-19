@@ -34,6 +34,7 @@ def main() -> None:
             "is_malicious": petition.is_malicious,
             "expected_verdict": petition.expected_verdict,
             "vector": petition.vector,
+            "rito": petition.rito,
             "expect_liminar": petition.expect_liminar,
             "expect_semaforo": petition.expect_semaforo,
             "expect_requer_emenda": petition.expect_requer_emenda,
