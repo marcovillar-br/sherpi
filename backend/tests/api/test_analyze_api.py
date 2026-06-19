@@ -76,6 +76,34 @@ def test_analyze_clean_pdf(client: TestClient) -> None:
     assert body["result"]["admissibility"]["semaforo"] == "VERDE"
 
 
+def test_analyze_default_rito_is_civel(client: TestClient) -> None:
+    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")})
+    assert resp.status_code == 200
+    assert resp.json()["result"]["rito"] == "CIVEL"
+
+
+def test_analyze_rito_trabalhista_exige_pedido_liquido(client: TestClient) -> None:
+    # O FakeProvider devolve um pedido SEM valor → ilíquido no rito trabalhista.
+    resp = client.post(
+        "/v1/analyze",
+        files={"file": ("p.pdf", build_clean(), "application/pdf")},
+        data={"rito": "TRABALHISTA"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["result"]["rito"] == "TRABALHISTA"
+    assert body["result"]["admissibility"]["semaforo"] == "VERMELHO"
+
+
+def test_analyze_rito_invalido_retorna_422(client: TestClient) -> None:
+    resp = client.post(
+        "/v1/analyze",
+        files={"file": ("p.pdf", build_clean(), "application/pdf")},
+        data={"rito": "CRIMINAL"},
+    )
+    assert resp.status_code == 422
+
+
 def test_analyze_injection_blocks(client: TestClient) -> None:
     resp = client.post(
         "/v1/analyze", files={"file": ("p.pdf", build_white_on_white(), "application/pdf")}

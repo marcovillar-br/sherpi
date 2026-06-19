@@ -24,6 +24,7 @@ from sherpi.contexts.petition_analysis.domain.admissibility import (
 )
 from sherpi.contexts.petition_analysis.domain.summary import PetitionSummary
 from sherpi.shared_kernel.ports import Anonymizer
+from sherpi.shared_kernel.value_objects import Rito
 
 
 class AnalysisResult(BaseModel):
@@ -35,6 +36,7 @@ class AnalysisResult(BaseModel):
 
     model_config = {"frozen": True}
 
+    rito: Rito = Rito.CIVEL
     forensics: ForensicsReport
     summary: PetitionSummary | None = None
     admissibility: AdmissibilityReport | None = None
@@ -60,12 +62,14 @@ class AnalyzePetition:
         self._admissibility = admissibility or CheckAdmissibility()
         self._anonymizer = anonymizer
 
-    async def run(self, content: bytes, *, max_pages: int) -> AnalysisResult:
+    async def run(
+        self, content: bytes, *, max_pages: int, rito: Rito = Rito.CIVEL
+    ) -> AnalysisResult:
         guard_upload(content)
         document = self._parser.parse(content, max_pages=max_pages)
         forensics = self._detector.run(document)
         if forensics.blocked:
-            return AnalysisResult(forensics=forensics)  # early-exit: sem LLM
+            return AnalysisResult(rito=rito, forensics=forensics)  # early-exit: sem LLM
 
         original_text = document.visible_text()
         # Texto que vai ao LLM é anonimizado (LGPD); a admissibilidade usa o original.
@@ -75,5 +79,7 @@ class AnalyzePetition:
             else original_text
         )
         summary = await self._extractor.run(llm_text)
-        admissibility = self._admissibility.run(summary, raw_text=original_text)
-        return AnalysisResult(forensics=forensics, summary=summary, admissibility=admissibility)
+        admissibility = self._admissibility.run(summary, rito, raw_text=original_text)
+        return AnalysisResult(
+            rito=rito, forensics=forensics, summary=summary, admissibility=admissibility
+        )

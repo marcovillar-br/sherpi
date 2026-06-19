@@ -10,7 +10,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, Depends, FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -19,6 +19,7 @@ from sherpi.application.persistence import AnalysisRecord, AnalysisRepository
 from sherpi.config import Settings, get_settings
 from sherpi.interfaces.api.dependencies import get_orchestrator, get_repository
 from sherpi.shared_kernel.errors import LLMProviderError, UntrustedDocumentError
+from sherpi.shared_kernel.value_objects import Rito
 
 
 class AnalyzeResponse(BaseModel):
@@ -60,13 +61,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         orchestrator: Annotated[AnalyzePetition, Depends(get_orchestrator)],
         repository: Annotated[AnalysisRepository, Depends(get_repository)],
         file: Annotated[UploadFile, File(description="PDF da petição inicial")],
+        rito: Annotated[Rito, Form(description="Rito processual (default cível)")] = Rito.CIVEL,
     ) -> AnalyzeResponse:
         content = await file.read()
         max_bytes = cfg.max_upload_mb * 1024 * 1024
         if len(content) > max_bytes:
             raise HTTPException(status_code=413, detail=f"Arquivo excede {cfg.max_upload_mb} MB.")
         try:
-            result = await orchestrator.run(content, max_pages=cfg.max_pdf_pages)
+            result = await orchestrator.run(content, max_pages=cfg.max_pdf_pages, rito=rito)
         except UntrustedDocumentError as exc:
             raise HTTPException(status_code=415, detail=str(exc)) from exc
         except LLMProviderError as exc:
