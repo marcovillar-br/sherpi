@@ -28,7 +28,7 @@ jobs:
       - name: Eval gate
         run: uv run python -m evals.run --ci
       - name: Supply-chain audit
-        run: uv run pip-audit || true  # não bloqueia o MVP; falha vira gate na Fase 4
+        run: uv run pip-audit
 
   frontend:
     runs-on: ubuntu-latest

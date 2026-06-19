@@ -163,14 +163,15 @@ concluídas (MVP + multi-domínio); Sprints 4–7 (Fase 4) planejadas.
 
 ### Sprint 6 — Produção (observabilidade, LGPD pleno, deploy)
 
-| Épico | Task | SP |
-|---|---|---|
-| EP9 | Logging estruturado (`structlog`) + correlation IDs (middleware) | 3 |
-| EP9 | *Error tracking* (Sentry) + métricas básicas | 3 |
-| EP9 | LGPD: NER de nomes (Presidio/spaCy) + anonimização reversível | 5 |
-| EP9 | Retenção/eliminação de PDFs/análises (direito ao esquecimento) | 3 |
-| EP9 | Containerização completa (app+db) + CI/CD com deploy + secrets manager + TLS | 5 |
-| **Total Sprint 6** | | **19** |
+| Épico | Task | SP | Status |
+|---|---|---|---|
+| EP9 | Logging estruturado (`structlog`) + correlation IDs (middleware) | 3 | ✅ |
+| EP9 | *Error tracking* (Sentry, soft dep) + `sentry_dsn` config | 3 | ✅ |
+| EP9 | LGPD: `MappedRegexAnonymizer` (reversível) + `PresidioAnonymizer` (extra `ner`) | 5 | ✅ |
+| EP9 | Retenção/eliminação (`DELETE /v1/analyses/{id}` + bulk) | 3 | ✅ |
+| EP9 | `Dockerfile` multi-stage + `docker-compose.prod.yml` + `.env.example` | 5 | ✅ |
+| EP9 | `pip-audit` como gate real no CI | — | ✅ |
+| **Total Sprint 6** | | **19** | ✅ |
 
 ### Sprint 7 — Integração PJe/E-Proc
 
