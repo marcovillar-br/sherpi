@@ -25,7 +25,7 @@ def _build_orchestrator() -> AnalyzePetition:
     llm = build_llm_provider(settings)
     return AnalyzePetition(
         PyMuPDFParser(),
-        ExtractPetition(llm),
+        ExtractPetition(llm, temperature=settings.llm_temperature),
         anonymizer=build_anonymizer(settings),
     )
 

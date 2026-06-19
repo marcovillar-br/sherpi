@@ -35,9 +35,16 @@ DEFAULT_MAX_INPUT_CHARS = 600_000
 class ExtractPetition:
     """Extrai um `PetitionSummary` do texto da petição."""
 
-    def __init__(self, llm: LLMProvider, *, max_input_chars: int = DEFAULT_MAX_INPUT_CHARS) -> None:
+    def __init__(
+        self,
+        llm: LLMProvider,
+        *,
+        max_input_chars: int = DEFAULT_MAX_INPUT_CHARS,
+        temperature: float = 0.0,
+    ) -> None:
         self._llm = llm
         self._max_input_chars = max_input_chars
+        self._temperature = temperature
 
     async def run(self, text: str) -> PetitionSummary:
         prepared = self._prepare(text)
@@ -45,7 +52,9 @@ class ExtractPetition:
             ChatMessage(role="system", content=EXTRACTION_SYSTEM_PROMPT),
             ChatMessage(role="user", content=f"<peticao>\n{prepared}\n</peticao>"),
         ]
-        return await self._llm.complete(messages, PetitionSummary, temperature=0.0)
+        return await self._llm.complete(
+            messages, PetitionSummary, temperature=self._temperature
+        )
 
     def _prepare(self, text: str) -> str:
         """Trunca textos muito longos (petições de 100+ páginas) ao orçamento.

@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     llm_max_retries: int = 3
     # Guarda de custo: corta requisições acima deste nº estimado de tokens de entrada.
     llm_max_input_tokens: int = 200_000
+    # Temperatura da geração; 0.0 = determinístico (recomendado p/ extração jurídica).
+    llm_temperature: float = 0.0
 
     # --- Anonimização (LGPD) ---
     anonymize_before_llm: bool = True
