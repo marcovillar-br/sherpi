@@ -4,7 +4,7 @@ description: "Runbook passo a passo para apresentar o SHERPI (MVP + rito trabalh
 doc_type: runbook
 project: SHERPI
 status: approved
-version: 1.1
+version: 1.2
 updated: 2026-06-19
 language: pt-BR
 tags: [demo, sprint-review, runbook, apresentacao]
@@ -12,7 +12,7 @@ tags: [demo, sprint-review, runbook, apresentacao]
 
 # Roteiro de Demo — Sprint Review (SHERPI)
 
-Runbook para apresentar o **SHERPI completo (Sprints 1–7)** ao professor.
+Runbook para apresentar o **SHERPI completo (Sprints 1–9)** ao professor.
 Duração-alvo: **~15 minutos** (12 de demo + 3 de Q&A).
 Mensagem central: *"triagem assistida com firewall, admissibilidade multi-rito, controle humano
 auditável e ingestão automatizada — do PDF à sugestão de TPU, com LGPD e observabilidade prontas
@@ -20,35 +20,24 @@ para produção"*.
 
 ## 0. Antes de apresentar (checklist — rodar 15 min antes)
 
+> **Importante:** nunca exporte o `backend/.env` no shell (`export $(cat .env...)`);
+> o `uv run` lê o arquivo automaticamente. Exportar variáveis manualmente corrompe
+> valores JSON (ex: `SHERPI_CORS_ORIGINS`) e quebra o startup.
+
 ```bash
-# 1) Banco
-docker compose up -d db
-cd backend
-export SHERPI_DATABASE_URL="postgresql+psycopg://sherpi:sherpi@localhost:5432/sherpi"
-# fallback sem Docker: export SHERPI_DATABASE_URL="sqlite:///./sherpi.db"
-
-# 2) Migrations + corpus + índice TPU
-uv run alembic upgrade head
-uv run python -m synthetic.generate          # gera data/synthetic/*.pdf
-uv run python -c "
-from synthetic.tpu_seed import load_seed
-from sherpi.contexts.taxonomy.application.build_index import BuildTpuIndex
-from sherpi.contexts.taxonomy.infrastructure.embedding import FakeEmbeddingModel
-from sherpi.contexts.taxonomy.infrastructure.sql_index import SqlTpuIndex
-from sherpi.infrastructure.persistence.engine import make_engine
-engine = make_engine('postgresql+psycopg://sherpi:sherpi@localhost:5432/sherpi')
-BuildTpuIndex(FakeEmbeddingModel(), SqlTpuIndex(engine)).run(load_seed())
-print('Índice TPU populado.')
-"
-
-# 3) Variáveis de ambiente mínimas no backend/.env
+# 1) Variáveis de ambiente — editar backend/.env uma única vez
 #    SHERPI_LLM_API_KEY=<chave Gemini>
-#    SHERPI_JWT_SECRET=<segredo>
+#    SHERPI_JWT_SECRET=<segredo forte>
 #    SHERPI_SEED_USER_PASSWORD=<senha>   → cria gabinete@sherpi.local no startup
 
-# 4) Suba os serviços (dois terminais)
-uv run uvicorn sherpi.interfaces.api.main:app --port 8000
-cd ../frontend && npm run dev                # UI em http://localhost:3000
+# 2) Setup inicial (banco + migrations + índice TPU + corpus sintético)
+make setup
+# fallback sem Docker: editar SHERPI_DATABASE_URL=sqlite:///./sherpi.db no .env
+#                      e rodar: cd backend && uv run alembic upgrade head && make seed-tpu synthetic
+
+# 3) Suba os serviços em terminais separados
+make dev-backend    # backend em http://localhost:8000
+make dev-frontend   # frontend em http://localhost:3000
 ```
 
 **Verificação rápida:**
@@ -197,7 +186,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 
 ## 10. Processo ágil (30s — abrir os docs)
 
-- **8 sprints entregues** — backend completo (S1–S7) + frontend completo (S8).
+- **9 sprints entregues** — backend completo (S1–S7) + frontend completo (S8) + refactor de qualidade (S9/EP12).
 - Mostrar rapidamente: [`pmp.md`](pmp.md) (M1–M8 ✅), [`wbs.md`](wbs.md),
   [`backlog.md`](backlog.md), [`agile-process.md`](agile-process.md).
 
@@ -205,7 +194,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 
 ## 11. Encerramento (30s)
 
-*"Em 8 sprints entregamos o SHERPI completo — backend e frontend: firewall anti prompt-injection
+*"Em 9 sprints entregamos o SHERPI completo — backend e frontend: firewall anti prompt-injection
 (inédito no mercado), admissibilidade multi-rito (cível + trabalhista), controle humano
 auditável (CNJ 615/2025), classificação TPU, LGPD pronto para produção, ingestão
 automatizada de sistemas processuais e UI funcional ponta a ponta. Arquitetura DDD + hexagonal,
@@ -218,7 +207,7 @@ automatizada de sistemas processuais e UI funcional ponta a ponta. Arquitetura D
 | Problema | Contorno |
 |---|---|
 | Sem internet / Gemini fora | Demo do **firewall** (§3) é 100 % offline. Trabalhista (§4) e revisão (§5) mostrar pelos testes: `uv run pytest -k "trabalhista or review" -v`. |
-| Docker indisponível | Fallback SQLite: `SHERPI_DATABASE_URL=sqlite:///./sherpi.db`. |
+| Docker indisponível | Editar `SHERPI_DATABASE_URL=sqlite:///./sherpi.db` no `backend/.env`; rodar `cd backend && uv run alembic upgrade head && make seed-tpu`. |
 | Frontend não sobe | Demonstrar tudo pelo Swagger em `http://localhost:8000/docs`. |
 | Índice TPU vazio | `tpu_suggestions: null` na resposta — explicar que é o estado sem seed populado; mostrar `eval_tpu()` no terminal. |
 | Login falha | Verificar `SHERPI_SEED_USER_PASSWORD` no `.env`; ou mostrar o 401 como feature: "sem token, sem acesso". |
