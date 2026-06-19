@@ -4,8 +4,8 @@ description: "Arquitetura multi-domínio (rito-aware) — contexto, decisão e c
 doc_type: adr
 project: SHERPI
 status: accepted
-version: 1.0
-updated: 2026-06-18
+version: 1.1
+updated: 2026-06-19
 language: pt-BR
 tags: [adr, arquitetura, decisao]
 ---
@@ -35,9 +35,10 @@ domínios **incrementalmente**, sem reescrever o que já existe.
 Adotar uma arquitetura **rito-aware** baseada em **estratégias por domínio** (padrão Strategy +
 registro), aderente ao DDD/hexagonal já existente:
 
-1. **`Rito`** (enum): `CIVEL`, `TRABALHISTA`, `PREVIDENCIARIO`, `FISCAL`, … (cresce por demanda).
-2. **`AdmissibilityStrategy`** (port): cada domínio implementa seu conjunto de regras; um **registro**
-   mapeia `Rito → estratégia`. `CheckAdmissibility` apenas **despacha** para a estratégia do rito.
+1. **`Rito`** (enum): hoje `CIVEL` e `TRABALHISTA`; `PREVIDENCIARIO`, `FISCAL`, … previstos (cresce por demanda).
+2. **`AdmissibilityStrategy`** (Protocol/Strategy de domínio, em `petition_analysis/domain/strategies.py`):
+   cada domínio implementa seu conjunto de regras; o registro **`DEFAULT_STRATEGIES`** mapeia
+   `Rito → estratégia`. `CheckAdmissibility` apenas **despacha** para a estratégia do rito.
    O cível atual vira `CivelStrategy`; o **trabalhista** (`TrabalhistaStrategy`, CLT 840 + pedido
    líquido) é a primeira nova estratégia.
 3. **Extração compartilhada**: `PetitionSummary` permanece comum, com **campos opcionais** por domínio
@@ -59,3 +60,15 @@ registro), aderente ao DDD/hexagonal já existente:
 - Exige **roteamento de rito** (informado ou, no futuro, detectado) — risco de classificação errada.
 - Cada domínio demanda **dados rotulados próprios** (cenários sintéticos, seed de TPU).
 - Mais superfície de regras a manter — mitigado por estratégias **isoladas e testadas** por domínio.
+
+## Errata (2026-06-19)
+
+Esclarecimentos de redação após a implementação na Sprint 3 (**não alteram a decisão**):
+
+- `AdmissibilityStrategy` é um **`Protocol` de domínio** (`@runtime_checkable`) em
+  `petition_analysis/domain/strategies.py` — **não** um *port* hexagonal (não há adapter de
+  infraestrutura). O termo "port" no item 2 da Decisão era impreciso.
+- O registro `Rito → estratégia` é a constante **`DEFAULT_STRATEGIES`** no mesmo módulo.
+- O enum `Rito` implementado contém apenas `CIVEL` e `TRABALHISTA`; os demais ritos são previstos.
+- A checagem de pedido líquido foi materializada no requisito `Requisito.PEDIDO_LIQUIDO`
+  (determinístico, art. 840 §1º).
