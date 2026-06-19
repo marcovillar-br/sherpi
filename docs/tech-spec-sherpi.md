@@ -101,7 +101,7 @@ flowchart LR
 
 Regra inegociável: **se o firewall retornar `BLOCK`, o fluxo encerra sem nenhuma chamada de LLM** (economia de tokens + não alimentar o modelo com conteúdo manipulado).
 
-> **Arquitetura completa (Sprints 1–7).** O MVP (Sprints 1–2) entregou o caminho **firewall → extração → admissibilidade**; a Fase 4 (Sprints 3–7) adicionou rito-aware (S3), `identity`/`review` (S4), `taxonomy` TPU (S5), observabilidade/LGPD/deploy (S6) e `integration` PJe/E-Proc (S7). UI frontend das sprints 4–7 permanece pendente.
+> **Arquitetura completa (Sprints 1–8).** O MVP (Sprints 1–2) entregou o caminho **firewall → extração → admissibilidade**; a Fase 4 (Sprints 3–8) adicionou rito-aware (S3), `identity`/`review` (S4), `taxonomy` TPU (S5), observabilidade/LGPD/deploy (S6), `integration` PJe/E-Proc (S7) e UI completa — login, rito, TPU, revisão (S8).
 
 ---
 

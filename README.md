@@ -50,7 +50,7 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 
 ```
 backend/     # API e domínio (DDD) — ver backend/README.md
-frontend/    # UI Next.js (Sprint 2 — UI mínima)
+frontend/    # UI Next.js completa (login, análise, TPU, revisão)
 docs/        # PRD, spec técnica, roadmap, mapa DDD, ADRs, modelo de ameaças
 docker-compose.yml   # Postgres + pgvector
 ```
@@ -89,10 +89,11 @@ Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/READM
 - **Sprint 1** ✅ — Fundações DDD + firewall + dados sintéticos + extração estruturada (LLM agnóstico)
 - **Sprint 2** ✅ — Admissibilidade + orquestrador + persistência + UI mínima + eval → **MVP concluído**
 - **Sprint 3** ✅ — **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo)
-- **Sprint 4** ✅ — Confiança & Conformidade: autenticação JWT + revisão/auditoria append-only *(UI pendente)*
-- **Sprint 5** ✅ — Classificação TPU por ramo (JurisBERT + k-NN/numpy) *(UI pendente)*
+- **Sprint 4** ✅ — Confiança & Conformidade: autenticação JWT + revisão/auditoria append-only
+- **Sprint 5** ✅ — Classificação TPU por ramo (JurisBERT + k-NN/numpy)
 - **Sprint 6** ✅ — Produção: structlog + correlation ID, LGPD pleno (NER), Dockerfile, pip-audit gate
 - **Sprint 7** ✅ — Integração PJe/E-Proc: ingestão assíncrona (asyncio.Queue + SandboxSourceAdapter)
+- **Sprint 8** ✅ — UI das Sprints 4–7: login, seletor de rito, TPU top-3, revisão humana (Next.js 16)
 - **Domínios adicionais** (pós rito-aware) — previdenciário/INSS, execução fiscal, família/JEC
 
 Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pmp.md`](docs/pmp.md), [`docs/wbs.md`](docs/wbs.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).

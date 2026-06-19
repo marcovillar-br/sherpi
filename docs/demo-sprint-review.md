@@ -112,26 +112,27 @@ curl localhost:8000/ready    # → {"status":"ok"}
 
 ---
 
-## 5. Sprint 4: confiança & conformidade — revisão humana (1,5 min)
+## 5. Sprint 4 + 8: confiança & conformidade — revisão humana (1,5 min)
 
 *"Nenhum tribunal adota IA sem controle humano auditável (Res. CNJ 615/2025)."*
 
-1. Na análise exibida, clicar **Registrar revisão** → escolher **ACEITAR** ou **CORRIGIR**.
-2. Pela API (Swagger), mostrar:
-   - `POST /v1/analyses/{id}/review` — grava `AuditEvent` vinculado ao usuário.
-   - `GET /v1/analyses/{id}/reviews` — lista a trilha append-only.
+1. Na análise exibida, clicar **ACEITAR**, **CORRIGIR** ou **REJEITAR** no `ReviewPanel`;
+   adicionar comentário opcional → **Registrar revisão**.
+2. A trilha aparece imediatamente abaixo: decisão + comentário + horário.
 3. *Falar:* "a trilha é imutável — append-only — e vinculada ao usuário autenticado.
    Cada ação fica registrada para fins de compliance."
-4. *Segurança:* `POST /v1/analyze` sem token → 401; lockout após 5 tentativas incorretas.
+4. *Alternativa (Swagger)*: `POST /v1/analyses/{id}/review` + `GET /v1/analyses/{id}/reviews`.
+5. *Segurança:* `POST /v1/analyze` sem token → 401 → redirect automático para `/login`;
+   lockout após 5 tentativas incorretas.
 
 ---
 
-## 6. Sprint 5: classificação TPU (1 min)
+## 6. Sprint 5 + 8: classificação TPU (1 min)
 
 *"3ª capacidade núcleo: sugerir a classe/assunto do CNJ, atacando o gargalo da autuação."*
 
-1. Na resposta da análise, mostrar o campo **`tpu_suggestions`** (JSON ou UI):
-   top-3 sugestões com código TPU, descrição, confiança e trecho-âncora.
+1. Na análise, rolar até o **`TpuPanel`**: top-3 sugestões com código, descrição, barra de
+   confiança e trecho-âncora. *"O assessor vê em qual trecho da petição o sistema se baseou."*
 2. Mostrar no terminal:
    ```bash
    uv run python -m evals.run
@@ -186,6 +187,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
   ```bash
   uv run python -m evals.run   # firewall precision/recall=1.0; extração campo=1.0; TPU top-3=1.0
   uv run pytest -q             # 134 testes verdes
+  npm run build && npm run lint # frontend: zero erros TS/ESLint
   ```
 - **Rigor:** ruff + mypy strict + pip-audit no CI (gate real). Arquitetura **DDD + hexagonal**.
 - **LGPD end-to-end:** anonimização antes do LLM; retenção configurável; extra `ner` para NER
@@ -195,18 +197,19 @@ curl localhost:8000/ready    # → {"status":"ok"}
 
 ## 10. Processo ágil (30s — abrir os docs)
 
-- **7 sprints entregues** no backend (UI frontend das S4–S7 pendente).
-- Mostrar rapidamente: [`pmp.md`](pmp.md) (M1–M7 ✅), [`wbs.md`](wbs.md),
+- **8 sprints entregues** — backend completo (S1–S7) + frontend completo (S8).
+- Mostrar rapidamente: [`pmp.md`](pmp.md) (M1–M8 ✅), [`wbs.md`](wbs.md),
   [`backlog.md`](backlog.md), [`agile-process.md`](agile-process.md).
 
 ---
 
 ## 11. Encerramento (30s)
 
-*"Em 7 sprints entregamos o SHERPI completo no backend: firewall anti prompt-injection
+*"Em 8 sprints entregamos o SHERPI completo — backend e frontend: firewall anti prompt-injection
 (inédito no mercado), admissibilidade multi-rito (cível + trabalhista), controle humano
-auditável (CNJ 615/2025), classificação TPU, LGPD pronto para produção e ingestão
-automatizada de sistemas processuais. Arquitetura DDD + hexagonal, 134 testes, CI rigoroso."*
+auditável (CNJ 615/2025), classificação TPU, LGPD pronto para produção, ingestão
+automatizada de sistemas processuais e UI funcional ponta a ponta. Arquitetura DDD + hexagonal,
+134 testes, CI rigoroso, Next.js 16 + React 19."*
 
 ---
 

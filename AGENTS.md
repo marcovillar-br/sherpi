@@ -28,7 +28,7 @@ Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/IND
 5. **Métrica medida, nunca prometida.** Acurácia (ex.: TPU, extração) é reportada pelo eval, não afirmada.
 6. **Segredos fora do git.** Apenas `.env.example` é versionado; `.env` é local e ignorado.
 
-## Escopo atual (Sprints 1–7 entregues — backend completo)
+## Escopo atual (Sprints 1–8 entregues — backend + frontend completo)
 
 Entregue:
 - `document_integrity` — firewall anti prompt-injection (PyMuPDF, 7 vetores)
@@ -40,13 +40,13 @@ Entregue:
 - Observabilidade: structlog + CorrelationIdMiddleware + Sentry (soft-dep)
 - LGPD: MappedRegexAnonymizer (reversível) + PresidioAnonymizer (extra `ner`)
 - Dockerfile multi-stage, docker-compose.prod.yml, pip-audit gate real
+- **UI (Sprint 8)**: página `/login`, seletor de rito, `TpuPanel` (top-3 + confiança + âncora), `ReviewPanel` (ACEITAR/CORRIGIR/REJEITAR + trilha append-only); Next.js 16 + React 19
 
-**UI frontend (sprints 4–7)** permanece pendente. Não implemente itens de UI sem pedido explícito.
 Ver [`docs/roadmap.md`](docs/roadmap.md) e [`docs/backlog.md`](docs/backlog.md).
 
 ## Arquitetura e estrutura
 
-Monólito modular DDD + hexagonal. Backend é o projeto Python (uv); frontend será Next.js separado.
+Monólito modular DDD + hexagonal. Backend é o projeto Python (uv); frontend em Next.js 16 + React 19 (Sprint 8 completa).
 
 ```
 backend/src/sherpi/

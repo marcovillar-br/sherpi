@@ -72,17 +72,18 @@ Guia. A EAP está em [`wbs.md`](wbs.md). Resumo abaixo.
 
 ### 3.1 Metas das Sprints
 
-Sprints 1–7 entregues (backend completo; UI das sprints 4–7 pendente — frontend). Tasks em [`backlog.md`](backlog.md).
+Sprints 1–8 entregues (backend + frontend completo). Tasks em [`backlog.md`](backlog.md).
 
 | Sprint | Meta | Épicos | Status |
 |---|---|---|---|
 | **1** | Fundações + firewall + extração estruturada | EP1, EP3, EP2 | ✅ |
 | **2** | Admissibilidade + orquestração + persistência + UI mínima | EP2, EP3, EP4 | ✅ |
 | **3** | **Domínio Trabalhista (CLT 840) + rito-aware** (foco do grupo) | EP10 | ✅ |
-| **4** | Confiança & Conformidade: identidade (JWT) + revisão/auditoria | EP6, EP7 | ✅ (backend) |
-| **5** | Classificação TPU por ramo (JurisBERT + k-NN/pgvector) | EP5 | ✅ (backend) |
+| **4** | Confiança & Conformidade: identidade (JWT) + revisão/auditoria | EP6, EP7 | ✅ |
+| **5** | Classificação TPU por ramo (JurisBERT + k-NN/numpy) | EP5 | ✅ |
 | **6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | EP9 | ✅ |
 | **7** | Integração PJe/E-Proc (ingestão assíncrona) | EP8 | ✅ |
+| **8** | UI das Sprints 4–7: login, rito, TPU top-3, revisão humana | EP6, EP7, EP5 | ✅ |
 
 > Priorização: **risco-primeiro** no MVP (firewall/extração antes); na Fase 4, **valor/conformidade
 > primeiro** (controle humano auditável destrava adoção), depois a capacidade que falta (TPU),
