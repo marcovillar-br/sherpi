@@ -14,8 +14,9 @@ tags: [juridico, glossario, cpc, clt, conceitos, validacao]
 
 > **Para que serve:** dar ao time **não-jurista** uma base acessível dos conceitos que o produto
 > manipula, para **confirmar com um(a) advogado(a)/especialista**. **Não é parecer jurídico** — foi
-> redigido com apoio de IA; os itens marcados **⚠️ confirmar** merecem validação humana. Base: CPC/2015
-> (Lei 13.105), CLT, e leis específicas citadas.
+> redigido com apoio de IA; os itens marcados **⚠️ confirmar** merecem validação humana. Base:
+> **CPC**/2015 (Código de Processo Civil — Lei 13.105), **CLT** (Consolidação das Leis do Trabalho),
+> e leis específicas citadas.
 
 ## 1. A petição inicial e seus requisitos (art. 319 do CPC)
 
@@ -71,17 +72,19 @@ tem **regras de admissibilidade próprias**:
 |---|---|---|---|
 | **Cível** | CPC art. 319 | requisitos gerais | escopo das varas cíveis |
 | **Trabalhista** | CLT **art. 840 §1º** | **pedido líquido** (com valor); cumulação massiva | exigência exata de liquidez pós-reforma trabalhista |
-| **Previdenciário** (INSS) | CPC + Lei 8.213 | exige **prévio requerimento administrativo** | Tema 350 do STF (RE 631.240) e exceções |
-| **Execução fiscal** | Lei 6.830 (LEF) | baseia-se na **CDA** (certidão de dívida ativa); não há "fatos" clássicos | requisitos da petição de execução fiscal |
-| **Família** | CPC + Código Civil/ECA | alimentos, guarda; **segredo de justiça** | particularidades de rito |
+| **Previdenciário** (INSS — Instituto Nacional do Seguro Social) | CPC + Lei 8.213 | exige **prévio requerimento administrativo** | Tema 350 do STF (RE 631.240) e exceções |
+| **Execução fiscal** | Lei 6.830 (**LEF** — Lei de Execuções Fiscais) | baseia-se na **CDA** (certidão de dívida ativa); não há "fatos" clássicos | requisitos da petição de execução fiscal |
+| **Família** | CPC + Código Civil/**ECA** (Estatuto da Criança e do Adolescente) | alimentos, guarda; **segredo de justiça** | particularidades de rito |
 
 ## 6. Fenômenos que o produto combate
 
-- **Prolixidade:** petições longas e repetitivas (citação excessiva de jurisprudência) que dificultam
-  a leitura. O SHERPI resume.
+- **Prolixidade:** petições longas e repetitivas que dificultam a leitura — ex.: uma peça de
+  80 páginas onde 60 são transcrições de jurisprudência copiadas, com apenas 4 páginas de fatos
+  e pedidos. O SHERPI resume o conteúdo relevante para o assessor sem exigir a leitura integral.
 - **Litigância predatória (*sham litigation*):** ajuizamento massivo e abusivo de ações sem lastro
-  fático (petições padronizadas, fragmentação de demandas). ⚠️ *confirmar critérios de caracterização
-  (ex.: Recomendação CNJ 159/2024).*
+  fático — ex.: mesma petição-padrão protocolada centenas de vezes com variações mínimas,
+  ou fragmentação de uma única controvérsia em múltiplas ações para multiplicar honorários.
+  ⚠️ *confirmar critérios de caracterização (ex.: Recomendação CNJ 159/2024).*
 - **Prompt injection em PDF:** **conceito técnico** — comandos ocultos no PDF (texto branco no branco,
   fonte minúscula, metadados) que tentam enganar a IA que lê a peça. Juridicamente, pode configurar
   **litigância de má-fé** (arts. 5º, 77, 80 do CPC). ⚠️ *confirmar enquadramento e o caso de Parauapebas.*
