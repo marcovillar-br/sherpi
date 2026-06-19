@@ -4,7 +4,7 @@ description: "Backlog do Produto (épicos e histórias, visão de futuro) e Spri
 doc_type: backlog
 project: SHERPI
 status: approved
-version: 1.2
+version: 1.3
 updated: 2026-06-19
 language: pt-BR
 tags: [backlog, epicos, historias-de-usuario, sprint, estimativas]
@@ -66,7 +66,8 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 | EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ (JurisBERT + k-NN), por ramo. | S | 5/8 | ✅ |
 | EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD pleno (NER), deploy/CI-CD. | S | 6 | ✅ |
 | EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 7 | ✅ |
-| EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-7 | — |
+| EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-8 | — |
+| EP12 — Refactor de nomenclatura (en-US compliance) | Renomear identificadores Python pt-BR para en-US nos contextos `petition_analysis` e `review`. Débito técnico; não afeta funcionalidade. | C | pós-8 | — |
 
 ---
 
@@ -202,3 +203,37 @@ concluídas (MVP + multi-domínio + Fase 4 backend + UI frontend S4–S7).
 
 > As estimativas serão recalibradas em cada *Sprint Planning* conforme a capacidade real da equipe e
 > o framework de Design Sprint.
+
+---
+
+### EP12 — Refactor de nomenclatura (en-US compliance) ⚪ *débito técnico*
+
+**Contexto:** A regra estabelecida no `CONTRIBUTING.md` determina que identificadores Python devem ser
+en-US. Uma auditoria pós-S8 identificou violações sistemáticas nos contextos `petition_analysis` e
+`review`, herdadas do scaffold inicial (anterior à formalização da regra).
+
+**Escopo das violações:**
+
+| Arquivo | Exemplos de identificadores a renomear |
+|---|---|
+| `petition_analysis/domain/summary.py` | `Parte.nome/documento/polo/endereco`, `Pedido.descricao/tipo/valor`, `TipoPedido.PRINCIPAL/LIMINAR/SUBSIDIARIO`, `PetitionSummary.juizo/partes/fato_gerador/fundamentacao/pedidos/tem_liminar/valor_causa/requer_provas/opcao_audiencia/documentos_mencionados` |
+| `petition_analysis/domain/admissibility.py` | `class Semaforo` → `AdmissibilityStatus`; valores `VERDE/AMARELO/VERMELHO`; `class MetodoCheck` + `DETERMINISTICO/SEMANTICO`; `class Requisito` + todos os valores; campos `ChecklistItem` e `AdmissibilityReport` |
+| `petition_analysis/domain/strategies.py` | `_check_juizo`, `_check_partes`, `_check_pedidos`, `_check_valor_causa`, `_check_provas`, `_check_audiencia`, `_check_documentos`, `_check_pedido_liquido`, `_DOCS_ESSENCIAIS` |
+| `review/domain/events.py` | `ReviewDecision.ACEITAR/REJEITAR/CORRIGIR` → `ACCEPT/REJECT/AMEND` |
+
+**Blast radius:** alto — mudança de campo Pydantic altera o contrato JSON de `POST /v1/analyze`,
+o schema enviado ao LLM no prompt, e praticamente todos os testes. Requer Sprint dedicada com
+migration de API versionada ou flag de compatibilidade.
+
+**Impacto no usuário:** nenhum (débito interno). **Impacto em CI:** nenhum (todos os testes passam
+com os nomes atuais; a Sprint só será desbloqueadora de novos contribuidores que leiam o código).
+
+| Task | SP |
+|---|---|
+| Renomear `summary.py` (campos Pydantic + enum `TipoPedido`) + atualizar prompt LLM | 5 |
+| Renomear `admissibility.py` (classes, enums, campos) | 5 |
+| Renomear métodos privados de `strategies.py` | 3 |
+| Renomear `ReviewDecision` + migration Alembic (coluna no banco) | 3 |
+| Atualizar todos os testes e evals | 5 |
+| Atualizar contrato de API (response schema + frontend `types.ts`) | 3 |
+| **Total estimado EP12** | **24** |
