@@ -4,8 +4,8 @@ description: "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilida
 doc_type: tech-spec
 project: SHERPI
 status: approved
-version: 1.1
-updated: 2026-06-18
+version: 1.2
+updated: 2026-06-19
 language: pt-BR
 tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 ---
@@ -15,9 +15,9 @@ tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 | Campo | Valor |
 |---|---|
 | Documento | Especificação Técnica |
-| Versão | 1.1 |
+| Versão | 1.2 |
 | Status | Aprovado para MVP |
-| Última atualização | 2026-06-18 |
+| Última atualização | 2026-06-19 |
 
 ---
 
@@ -61,7 +61,7 @@ flowchart TB
     end
 
     subgraph SK["shared_kernel (VOs e ports transversais)"]
-        VO[CPF, CNPJ, ValorCausa, RiskVerdict, Documento]
+        VO[CPF, CNPJ, ValorCausa, RiskVerdict, Documento, Rito]
         PORTS[LLMProvider, BlobStorage, Anonymizer]
     end
 
@@ -125,21 +125,26 @@ Determinístico, via **PyMuPDF**, fortemente unit-testado. É o **núcleo do pro
 |---|---|
 | `PetitionSummary` | `partes: list[Parte]`, `fato_gerador: str`, `fundamentacao: str`, `pedidos: list[Pedido]`, `tem_liminar: bool`, `valor_causa: ValorCausa` |
 | `Parte` | `nome`, `documento: CPF \| CNPJ`, `polo` (ativo/passivo), `endereco?` |
-| `Pedido` | `descricao`, `tipo` (principal/liminar/subsidiário) |
+| `Pedido` | `descricao`, `tipo` (principal/liminar/subsidiário), `valor?` (texto, ex.: `"R$ 5.000,00"` — base do pedido líquido trabalhista) |
 
 Chamada com `temperature=0`; **saída validada por schema com retry**; *chunking* para petições com mais de ~100 páginas.
 
-### 2.3 Petition Analysis — `CheckAdmissibility` (híbrida)
+### 2.3 Petition Analysis — `CheckAdmissibility` (híbrida, rito-aware)
 
-- **Entrada**: `PetitionSummary` + texto.
+- **Entrada**: `PetitionSummary` + texto + `rito` (default `CIVEL`).
 - **Saída**: `AdmissibilityReport`.
 
 | VO | Campos |
 |---|---|
 | `AdmissibilityReport` | `checklist: list[ChecklistItem]`, `semaforo` (verde/amarelo/vermelho), `requer_emenda: bool` |
-| `ChecklistItem` | `requisito` (art. 319), `presente: bool`, `metodo` (determinístico/semântico) |
+| `ChecklistItem` | `requisito` (ex.: art. 319; `pedido_liquido` no trabalhista), `presente: bool`, `metodo` (determinístico/semântico) |
 
-- **Validadores determinísticos**: checksum de CPF/CNPJ (`validate-docbr`), presença de valor da causa, presença de pedidos.
+`CheckAdmissibility` é um **dispatcher**: seleciona pelo `Rito` uma `AdmissibilityStrategy` (Protocol de domínio em `petition_analysis/domain/strategies.py`; registro `DEFAULT_STRATEGIES`) — ver [ADR-0008](adr/0008-multi-domain-architecture.md). Estratégias atuais:
+
+- **`CivelStrategy`** — arts. 319/321 do CPC (comportamento do MVP, inalterado).
+- **`TrabalhistaStrategy`** — reaproveita o checklist do art. 319 e acrescenta o requisito **`PEDIDO_LIQUIDO`** (CLT art. 840 §1º): todo `Pedido` precisa de `valor` parseável; pedido ilíquido → emenda (vermelho).
+
+- **Validadores determinísticos**: checksum de CPF/CNPJ (`validate-docbr`), presença de valor da causa, presença de pedidos, pedido líquido (trabalhista).
 - **Extração semântica**: menções a documentos (ex.: comprovante de residência), que **não** são detectáveis por regex — separadas explicitamente dos validadores estruturados.
 
 ### 2.4 Taxonomy — `SuggestTpu`
@@ -263,7 +268,7 @@ operacionais (`/health`, `/ready`) ficam **sem versão** (padrão de orquestrado
 
 ### 8.1 `POST /v1/analyze`
 
-- **Request**: `multipart/form-data` — campo `file` (PDF).
+- **Request**: `multipart/form-data` — campo `file` (PDF) e campo `rito` (`CIVEL` | `TRABALHISTA`; default `CIVEL`; valor inválido → **422**).
 - **200**: `{ id, result: { forensics, summary?, admissibility? } }`. Quando `forensics.verdict = BLOCK`, `summary` e `admissibility` vêm `null` (encerrou antes do LLM).
 - **413**: arquivo grande demais. **415**: não é PDF. **422**: payload inválido. **502**: falha do LLM.
 
@@ -337,7 +342,7 @@ sequenceDiagram
 
 | Camada | Tecnologia |
 |---|---|
-| Backend | Python ≥3.10, FastAPI, uv |
+| Backend | Python ≥3.12, FastAPI, uv |
 | Firewall | PyMuPDF |
 | LLM | google-genai (default) + openai (Maritaca/compat); FakeProvider |
 | Embeddings TPU | sentence-transformers/transformers (JurisBERT) |
