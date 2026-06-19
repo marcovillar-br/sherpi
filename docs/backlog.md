@@ -4,7 +4,7 @@ description: "Backlog do Produto (épicos e histórias, visão de futuro) e Spri
 doc_type: backlog
 project: SHERPI
 status: approved
-version: 1.3
+version: 1.4
 updated: 2026-06-19
 language: pt-BR
 tags: [backlog, epicos, historias-de-usuario, sprint, estimativas]
@@ -67,7 +67,7 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 | EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD pleno (NER), deploy/CI-CD. | S | 6 | ✅ |
 | EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 7 | ✅ |
 | EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-8 | — |
-| EP12 — Refactor de nomenclatura (en-US compliance) | Renomear identificadores Python pt-BR para en-US nos contextos `petition_analysis` e `review`. Débito técnico; não afeta funcionalidade. | C | pós-8 | — |
+| EP12 — Refactor de nomenclatura (en-US compliance) | Renomear identificadores Python pt-BR para en-US nos contextos `petition_analysis` e `review`. Débito técnico; não afeta funcionalidade. | C | 9 | ✅ |
 
 ---
 
@@ -206,7 +206,28 @@ concluídas (MVP + multi-domínio + Fase 4 backend + UI frontend S4–S7).
 
 ---
 
-### EP12 — Refactor de nomenclatura (en-US compliance) ⚪ *débito técnico*
+### Sprint 9 — Refactor de nomenclatura en-US (EP12) ✅
+
+| Task | SP | Status |
+|---|---|---|
+| Renomear `summary.py` (campos Pydantic + enum `ClaimType`) + atualizar prompt LLM | 5 | ✅ |
+| Renomear `admissibility.py` (classes, enums, campos) + `ClaimAmount` (ex-`ValorCausa`) | 5 | ✅ |
+| Renomear métodos privados de `strategies.py` + refs de campos | 3 | ✅ |
+| Renomear `ReviewDecision` (ACCEPT/REJECT/AMEND) | 3 | ✅ |
+| Atualizar todos os testes e evals | 5 | ✅ |
+| Atualizar contrato de API (response schema + frontend `types.ts` + componentes) | 3 | ✅ |
+| **Total Sprint 9** | **24** | ✅ |
+
+**Definition of Done (Sprint 9)**
+
+- [x] `uv run pytest -q` → 134 passed, 0 failed.
+- [x] `ruff check --fix . && ruff format . && mypy src/ evals/` → limpos.
+- [x] `npm run build && npm run lint` → limpos.
+- [x] Nenhum identificador pt-BR violando a regra de duas camadas (exceção `trabalhista` documentada).
+
+---
+
+### EP12 — Refactor de nomenclatura (en-US compliance) ✅ *concluído na Sprint 9*
 
 **Contexto:** A regra estabelecida no `CONTRIBUTING.md` determina que identificadores Python devem ser
 en-US. Uma auditoria pós-S8 identificou violações sistemáticas nos contextos `petition_analysis` e

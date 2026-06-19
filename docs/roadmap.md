@@ -15,7 +15,7 @@ tags: [roadmap, sprints, planejamento, mvp]
 | Campo | Valor |
 |---|---|
 | Documento | Roadmap |
-| Versão | 1.2 |
+| Versão | 1.3 |
 | Status | Aprovado |
 | Última atualização | 2026-06-19 |
 
@@ -168,6 +168,24 @@ Sprints 4–7 acessíveis ao usuário final sem exigir o Swagger.
 - [x] Login → análise → revisão funcionando ponta a ponta no navegador.
 - [x] 401 em `/` redireciona para `/login` automaticamente.
 
+### Sprint 9 — Refactor de nomenclatura en-US (EP12)
+
+**Objetivo**: eliminar o débito técnico de identificadores pt-BR no domínio Python, garantindo conformidade com a regra de duas camadas documentada no `CONTRIBUTING.md`.
+
+**Entregáveis**
+- Campos Pydantic de `PetitionSummary`, `Parte`, `Pedido`, `ChecklistItem`, `AdmissibilityReport` em en-US.
+- Enums: `Polo`, `ClaimType`, `Requirement`, `CheckMethod`, `AdmissibilityStatus`, `ReviewDecision`, `ClaimAmount` renomeados.
+- Métodos privados de `CivelStrategy` e `TrabalhistaStrategy` renomeados.
+- Prompt `EXTRACTION_SYSTEM_PROMPT` com referências a campos en-US.
+- `frontend/src/lib/types.ts` e componentes React atualizados.
+
+**Definition of Done**
+- [x] `uv run pytest -q` → 134 passed, 0 failed.
+- [x] `ruff` + `mypy` limpos; `npm run build && npm run lint` limpos.
+- [x] Zero identificadores pt-BR violando a regra (exceção `trabalhista` documentada).
+
+---
+
 ### Domínios adicionais (épicos incrementais, pós rito-aware)
 
 Com a arquitetura rito-aware pronta (Sprint 3), cada novo domínio é um **encaixe** (estratégia +
@@ -188,3 +206,4 @@ cenários + ramo de TPU), por ordem de volume: **Previdenciário/INSS** → **Ex
 | M6 — Produção | 6 | ✅ structlog + correlation ID; `MappedRegexAnonymizer` + `PresidioAnonymizer` (extra `ner`); Dockerfile; `pip-audit` gate. |
 | M7 — Integração processual | 7 | ✅ `SandboxSourceAdapter` + `IngestPetitions` + `IngestQueue` (asyncio); `POST /v1/ingestion/jobs` (202). |
 | M8 — UI completa (S4–S7) | 8 | ✅ Login + seletor de rito + `TpuPanel` + `ReviewPanel`; frontend ponta a ponta. |
+| M9 — en-US compliance | 9 | ✅ Todos os identificadores Python em en-US; contratos API, testes e frontend sincronizados. |
