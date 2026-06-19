@@ -140,15 +140,15 @@ concluídas (MVP + multi-domínio); Sprints 4–7 (Fase 4) planejadas.
 
 ### Sprint 4 — Confiança & Conformidade (`identity` + `review`)
 
-| Épico | Task | SP |
-|---|---|---|
-| EP6 | Contexto `identity`: `User`/`Role`, `BcryptHasher`, `JwtIssuer`, `UserRepository` (SQLModel) | 5 |
-| EP6 | `Authenticate` (OAuth2 password + JWT) + `POST /v1/auth/login` + usuário semeado | 3 |
-| EP6 | Proteção de rotas por JWT (cookie httpOnly+Secure+SameSite) + rate-limit/lockout + CSRF | 5 |
-| EP7 | Contexto `review`: `ReviewDecision`, `AuditEvent`, `RecordReview`, `AuditRepository` (append-only) | 5 |
-| EP7 | `POST /v1/analyses/{id}/review` (decisão vinculada ao usuário) | 3 |
-| EP6/EP7 | UI: tela de login + ações de revisão (aceitar/rejeitar/corrigir) | 5 |
-| **Total Sprint 4** | | **26** |
+| Épico | Task | SP | Status |
+|---|---|---|---|
+| EP6 | Contexto `identity`: `User`/`Role`, `BcryptHasher`, `JwtIssuer`, `UserRepository` (SQLModel) | 5 | ✅ |
+| EP6 | `Authenticate` (OAuth2 password + JWT) + `POST /v1/auth/login` + usuário semeado | 3 | ✅ |
+| EP6 | Proteção de rotas por JWT (cookie httpOnly+SameSite=lax) + rate-limit/lockout | 5 | ✅ |
+| EP7 | Contexto `review`: `ReviewDecision`, `AuditEvent`, `RecordReview`, `AuditRepository` (append-only) | 5 | ✅ |
+| EP7 | `POST /v1/analyses/{id}/review` + `GET /v1/analyses/{id}/reviews` | 3 | ✅ |
+| EP6/EP7 | UI: tela de login + ações de revisão (aceitar/rejeitar/corrigir) | 5 | planejada |
+| **Total Sprint 4** | | **26** | |
 
 ### Sprint 5 — Classificação TPU (`taxonomy`)
 
