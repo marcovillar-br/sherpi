@@ -4,8 +4,8 @@ description: "Bounded contexts, relações upstream/downstream e glossário da l
 doc_type: context-map
 project: SHERPI
 status: approved
-version: 1.0
-updated: 2026-06-18
+version: 1.1
+updated: 2026-06-19
 language: pt-BR
 tags: [ddd, bounded-context, linguagem-ubiqua]
 ---
@@ -15,9 +15,9 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | Campo | Valor |
 |---|---|
 | Documento | Context Map + Glossário |
-| Versão | 1.0 |
+| Versão | 1.1 |
 | Status | Aprovado |
-| Última atualização | 2026-06-18 |
+| Última atualização | 2026-06-19 |
 
 ---
 
@@ -26,11 +26,11 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | Contexto | Tipo | Responsabilidade |
 |---|---|---|
 | **document_integrity** | Supporting (diferencial do produto) | Firewall anti prompt-injection. Inspeciona o PDF (PyMuPDF, sem LLM) e emite `ForensicsReport` com verdito `BLOCK/WARN/PASS`. |
-| **petition_analysis** | **Core domain** | Extração estruturada (`PetitionSummary`) e checagem de admissibilidade (`AdmissibilityReport`, art. 319/321). Razão de existir do sistema. |
+| **petition_analysis** | **Core domain** | Extração estruturada (`PetitionSummary`) e checagem de admissibilidade **rito-aware** (`AdmissibilityReport`): `CheckAdmissibility` despacha por `Rito` para uma `AdmissibilityStrategy` — `CivelStrategy` (CPC 319/321) ou `TrabalhistaStrategy` (CLT 840 §1º). Razão de existir do sistema. |
 | **taxonomy** | Supporting subdomain | Classificação TPU: embedding (JurisBERT) + k-NN sobre seed → top-3 `TpuSuggestion`. |
 | **review** | Supporting | Human-in-the-loop e auditoria append-only (Res. CNJ 615/2025): `ReviewDecision`, `AuditEvent`. |
 | **identity** | Supporting | Autenticação (perfil único, extensível a RBAC): `User`, `Credential`, OAuth2/JWT. |
-| **shared_kernel** | Kernel compartilhado | VOs e ports usados por mais de um contexto (CPF, CNPJ, ValorCausa, RiskVerdict, Documento; LLMProvider, BlobStorage, Anonymizer). |
+| **shared_kernel** | Kernel compartilhado | VOs e ports usados por mais de um contexto (CPF, CNPJ, ValorCausa, RiskVerdict, Documento, Rito; LLMProvider, BlobStorage, Anonymizer). |
 
 > O `document_integrity` é o **diferencial** do produto, mas tecnicamente é supporting: o **core** é `petition_analysis`, pois é onde mora o juízo de admissibilidade e o resumo estruturado — a razão de ser do SHERPI.
 
@@ -93,6 +93,9 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **Art. 319 do CPC** | Requisitos da petição inicial (partes, fatos, fundamentos, pedido, valor da causa). |
 | **Art. 321 do CPC** | Determinação de emenda da inicial quando há defeito sanável. |
 | **Resolução CNJ 615/2025** | Norma que exige supervisão humana criteriosa sobre resultados de IA no Judiciário. |
+| **Rito processual** | Procedimento que rege o processo conforme a matéria (cível, trabalhista, …); no SHERPI, seleciona a estratégia de admissibilidade (`Rito` → `AdmissibilityStrategy`). |
+| **Pedido líquido** | Pedido com valor certo e determinado. No rito trabalhista (CLT art. 840 §1º), cada pedido deve ser líquido; pedido ilíquido enseja emenda. |
+| **Art. 840 §1º da CLT** | Exige que a reclamação trabalhista contenha pedido **certo, determinado e com indicação do valor** (pedido líquido). |
 
 ### Termos técnicos
 
@@ -104,11 +107,12 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **Verdict (RiskVerdict)** | Resultado gradual do firewall: `BLOCK` (encerra sem LLM), `WARN`, `PASS`. |
 | **PetitionSummary** | Resumo estruturado extraído pela IA (partes, fato gerador, fundamentação, pedidos, liminar, valor da causa). |
 | **AdmissibilityReport** | Checklist de admissibilidade com semáforo (verde/amarelo/vermelho). |
+| **AdmissibilityStrategy** | Estratégia de admissibilidade por rito (Protocol de domínio, `petition_analysis/domain/strategies.py`): `CivelStrategy`, `TrabalhistaStrategy`; registro `DEFAULT_STRATEGIES` (ADR-0008). |
 | **TpuSuggestion** | Sugestão de código TPU com grau de confiança (top-3). |
 | **Bounded context** | Fronteira de modelo no DDD; cada "skill" do SHERPI é uma capacidade de um contexto. |
 | **Port / Adapter** | Interface no domínio (port) e sua implementação na infraestrutura (adapter); base do design hexagonal e do LLM-agnóstico. |
 | **LLMProvider** | Port que abstrai o modelo de linguagem; default Gemini Flash, com adapters Maritaca/OpenAI/Ollama e FakeProvider. |
-| **Anonymizer** | Port que mascara PII (CPF/CNPJ/nomes/endereços) antes do envio ao LLM externo (LGPD). |
+| **Anonymizer** | Port que mascara identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) antes do envio ao LLM externo (LGPD). Anonimização de **nomes** (NER) é Fase 4. |
 | **Synthetic-first** | Estratégia de usar petições sintéticas para evitar PII real e prover ground truth. |
 | **Human-in-the-loop** | Princípio inegociável: a IA sugere, o humano decide; nunca decisão automática. |
 | **JurisBERT** | Modelo de embeddings jurídicos em português usado na classificação TPU. |
