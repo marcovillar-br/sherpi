@@ -73,14 +73,22 @@ disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["pymupdf.*", "fitz", "validate_docbr.*", "pgvector.*", "sentence_transformers.*"]
+module = [
+    "pymupdf.*",
+    "fitz",
+    "validate_docbr.*",
+    "pgvector.*",
+    "sentence_transformers.*",
+    "google.*",
+]
 ignore_missing_imports = true
 
-# PyMuPDF é uma lib sem tipos. Adapters/ferramentas que a envelopam relaxam
-# apenas a proibição de chamadas não-tipadas; o domínio puro permanece strict.
+# Libs sem tipos (PyMuPDF, google-genai). Adapters/ferramentas que as envelopam
+# relaxam apenas a proibição de chamadas não-tipadas; o domínio puro permanece strict.
 [[tool.mypy.overrides]]
 module = [
     "sherpi.contexts.document_integrity.infrastructure.pymupdf_parser",
+    "sherpi.infrastructure.llm.gemini",
     "synthetic.*",
 ]
 disallow_untyped_calls = false

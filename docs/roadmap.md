@@ -44,7 +44,7 @@ do MVP está registrado como **visão de futuro** (ver [`backlog.md`](backlog.md
 - [x] `uv run pytest` verde no domínio puro e no firewall (um teste por vetor de injeção).
 - [x] CI executa lint (ruff), type (mypy) e testes em cada push.
 - [x] Dataset sintético com rótulos disponível via `synthetic.generate`.
-- [ ] `LLMProvider` trocável por config; `ExtractPetition` retorna `PetitionSummary` validado (com `FakeProvider`).
+- [x] `LLMProvider` trocável por config; `ExtractPetition` retorna `PetitionSummary` validado (com `FakeProvider`).
 - [ ] **Sprint Review (sábado)**: demo do firewall bloqueando PDF malicioso + extração de uma petição limpa.
 
 ---
