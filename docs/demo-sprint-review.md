@@ -4,7 +4,7 @@ description: "Runbook passo a passo para apresentar o SHERPI (MVP + rito trabalh
 doc_type: runbook
 project: SHERPI
 status: approved
-version: 1.2
+version: 1.3
 updated: 2026-06-19
 language: pt-BR
 tags: [demo, sprint-review, runbook, apresentacao]
@@ -141,12 +141,17 @@ curl localhost:8000/ready    # → {"status":"ok"}
 
 1. **Logs** (terminal da API): cada request tem `correlation_id` único, `method`, `path` —
    sem PII.
-2. **LGPD**: mostrar no código que `MappedRegexAnonymizer` substitui CPF, CNPJ, e-mail,
+2. **Auditoria de chamadas ao LLM** (`LoggingLLMProvider`): cada chamada ao modelo emite
+   `analysis_id` + `correlation_id` + `call_type` + `duration_ms` no log estruturado.
+   Com `SHERPI_LOG_LEVEL=DEBUG`, loga o prompt completo e a resposta (texto já anonimizado
+   pelo LGPD layer — seguro). *"Sabe exatamente o que foi enviado ao modelo, quando e com
+   qual resultado — rastreabilidade exigida pela Res. CNJ 615/2025."*
+3. **LGPD**: mostrar no código que `MappedRegexAnonymizer` substitui CPF, CNPJ, e-mail,
    telefone e CEP antes de enviar ao Gemini. Para nomes: `PresidioAnonymizer` (extra `ner`).
-3. **Retenção**: `DELETE /v1/analyses?older_than_days=90` remove análises antigas
+4. **Retenção**: `DELETE /v1/analyses?older_than_days=90` remove análises antigas
    (direito ao esquecimento, LGPD art. 18).
-4. **Supply-chain**: `uv run pip-audit` — nenhuma vulnerabilidade conhecida.
-5. Mostrar **`backend/Dockerfile`** (multi-stage, usuário não-root) e
+5. **Supply-chain**: `uv run pip-audit` — nenhuma vulnerabilidade conhecida.
+6. Mostrar **`backend/Dockerfile`** (multi-stage, usuário não-root) e
    **`docker-compose.prod.yml`**.
 
 ---
@@ -177,13 +182,19 @@ curl localhost:8000/ready    # → {"status":"ok"}
   no código (port + adapter). Default Gemini Flash; Maritaca/OpenAI/Ollama plugáveis.
 - **Qualidade (medida, não prometida):**
   ```bash
-  uv run python -m evals.run   # firewall precision/recall=1.0; extração campo=1.0; TPU top-3=1.0
-  uv run pytest -q             # 134 testes verdes
+  uv run python -m evals.run   # firewall p/r=1.0; extração sanidade=1.0; corpus resumo; TPU top-3=1.0
+  uv run pytest -q             # 144 testes verdes
+  make e2e                     # 26 testes Playwright — firewall de todos os 25 PDFs (zero tokens)
+  make e2e-llm                 # 8 testes Playwright — semáforo + liminar com LLM real
   npm run build && npm run lint # frontend: zero erros TS/ESLint
   ```
+- **Corpus sintético:** 25 PDFs rotulados (↑ de 14) com variantes aleatórias (nomes, CPFs,
+  valores) e cenários de atributos estruturais (`hearing_option`, `requests_evidence`,
+  `cited_documents`, `SUBSIDIARY`). `eval_extraction_corpus()` valida todos os campos
+  extraídos com expectativa definida.
 - **Rigor:** ruff + mypy strict + pip-audit no CI (gate real). Arquitetura **DDD + hexagonal**.
 - **LGPD end-to-end:** anonimização antes do LLM; retenção configurável; extra `ner` para NER
-  de nomes (Presidio/spaCy).
+  de nomes (Presidio/spaCy). Log de auditoria das chamadas ao LLM (texto anonimizado, ver §7).
 
 ---
 
@@ -200,8 +211,9 @@ curl localhost:8000/ready    # → {"status":"ok"}
 *"Em 9 sprints entregamos o SHERPI completo — backend e frontend: firewall anti prompt-injection
 (inédito no mercado), admissibilidade multi-rito (cível + trabalhista), controle humano
 auditável (CNJ 615/2025), classificação TPU, LGPD pronto para produção, ingestão
-automatizada de sistemas processuais e UI funcional ponta a ponta. Arquitetura DDD + hexagonal,
-134 testes, CI rigoroso, Next.js 16 + React 19."*
+automatizada de sistemas processuais, UI funcional ponta a ponta, auditoria estruturada
+de cada chamada ao LLM e suíte E2E Playwright sobre 25 cenários sintéticos. Arquitetura
+DDD + hexagonal, 144 testes, CI rigoroso, Next.js 16 + React 19."*
 
 ---
 
@@ -219,10 +231,15 @@ automatizada de sistemas processuais e UI funcional ponta a ponta. Arquitetura D
 
 ## Arquivos de apoio
 
-- **PDFs** (gerados por `uv run python -m synthetic.generate` em `backend/data/synthetic/`):
-  `clean_acao_cobranca.pdf`, `injection_texto_branco.pdf`,
-  `trabalhista_pedido_liquido.pdf`, `trabalhista_pedido_iliquido.pdf`.
+- **PDFs sintéticos** — 25 cenários em `backend/data/synthetic/` (gerados por `make synthetic`):
+  - Demo principal: `clean_acao_cobranca.pdf`, `injection_texto_branco.pdf`,
+    `trabalhista_pedido_liquido.pdf`, `trabalhista_pedido_iliquido.pdf`
+  - Atributos estruturais: `clean_recusa_conciliacao.pdf`, `clean_documentos_citados.pdf`,
+    `clean_pedido_subsidiario.pdf`, `trabalhista_misto.pdf`
+  - Vícios de admissibilidade: `defect_sem_qualificacao_reu.pdf`, `defect_sem_fundamentacao.pdf`
+  - Variantes aleatórias: `clean_acao_cobranca_v1.pdf` … `v3.pdf` (nomes/CPFs/valores distintos)
 - **Métricas ao vivo:** `uv run python -m evals.run`
-- **Testes:** `uv run pytest -q` (134 testes)
+- **Testes unitários/integração:** `uv run pytest -q` (144 testes)
+- **Testes E2E:** `make e2e` (26 testes, zero tokens) · `make e2e-llm` (8 testes, LLM real)
 - **Contrato da API:** [`tech-spec-sherpi.md`](tech-spec-sherpi.md) §8
 - **Swagger local:** `http://localhost:8000/docs`
