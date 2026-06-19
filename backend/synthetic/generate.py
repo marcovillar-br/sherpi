@@ -4,7 +4,9 @@ Uso:
     uv run python -m synthetic.generate [--out DIR]
 
 Cada PDF vem acompanhado de um manifesto `labels.json` com o *ground truth*
-(malicioso? qual vetor?), consumido pelo eval harness.
+(malicioso? qual vetor? rito? semáforo esperado?), para inspeção humana e
+ferramentas externas. O eval harness NÃO lê este arquivo: ele reconstrói o
+corpus em memória via `build_corpus()`, que já carrega os mesmos rótulos.
 """
 
 from __future__ import annotations
