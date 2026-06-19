@@ -40,6 +40,10 @@ def main() -> None:
             "expect_liminar": petition.expect_liminar,
             "expect_semaforo": petition.expect_semaforo,
             "expect_requer_emenda": petition.expect_requer_emenda,
+            "expect_hearing_option": petition.expect_hearing_option,
+            "expect_requests_evidence": petition.expect_requests_evidence,
+            "expect_cited_docs": petition.expect_cited_docs,
+            "expect_subsidiary_claim": petition.expect_subsidiary_claim,
         }
 
     (out / "labels.json").write_text(json.dumps(labels, indent=2, ensure_ascii=False))

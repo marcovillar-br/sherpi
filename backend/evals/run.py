@@ -17,13 +17,14 @@ import sys
 from dataclasses import dataclass
 
 from sqlalchemy import StaticPool, create_engine
-from synthetic.builder import build_clean, build_corpus
+from synthetic.builder import SyntheticPetition, build_clean, build_corpus
 from synthetic.tpu_seed import load_seed
 
 from sherpi.config import get_settings
 from sherpi.contexts.document_integrity.application.analyze import AnalyzeDocumentIntegrity
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
+from sherpi.contexts.petition_analysis.domain.summary import ClaimType, PetitionSummary
 from sherpi.contexts.taxonomy.application.build_index import BuildTpuIndex
 from sherpi.contexts.taxonomy.application.suggest_tpu import SuggestTpu
 from sherpi.contexts.taxonomy.infrastructure.embedding import FakeEmbeddingModel
@@ -97,6 +98,59 @@ async def eval_extraction(provider: LLMProvider) -> float:
     return acertos / len(checks)
 
 
+def _summary_checks(p: SyntheticPetition, s: PetitionSummary) -> dict[str, bool]:
+    """Retorna {nome_do_check: passou} para todas as expectativas de resumo definidas."""
+    checks: dict[str, bool] = {}
+    if p.expect_liminar is not None:
+        checks["has_injunction"] = s.has_injunction == p.expect_liminar
+    if p.expect_hearing_option is not None:
+        checks["hearing_option"] = s.hearing_option == p.expect_hearing_option
+    if p.expect_requests_evidence is not None:
+        checks["requests_evidence"] = s.requests_evidence == p.expect_requests_evidence
+    if p.expect_cited_docs is not None:
+        checks["cited_documents"] = (len(s.cited_documents) > 0) == p.expect_cited_docs
+    if p.expect_subsidiary_claim is not None:
+        has_sub = any(c.type == ClaimType.SUBSIDIARY for c in s.claims)
+        checks["subsidiary_claim"] = has_sub == p.expect_subsidiary_claim
+    return checks
+
+
+async def eval_extraction_corpus(provider: LLMProvider) -> float:
+    """Acurácia de campo do resumo estruturado sobre todos os cenários com expectativa definida.
+
+    Cobre os campos: has_injunction, hearing_option, requests_evidence,
+    cited_documents (não-vazio), subsidiary_claim. Cada cenário faz 1 chamada
+    ao LLM — sem retry, sem loop. O total de chamadas é impresso antes de iniciar.
+    """
+    parser = PyMuPDFParser()
+    candidates = [
+        p
+        for p in build_corpus()
+        if not p.is_malicious
+        and any(
+            [
+                p.expect_liminar is not None,
+                p.expect_hearing_option is not None,
+                p.expect_requests_evidence is not None,
+                p.expect_cited_docs is not None,
+                p.expect_subsidiary_claim is not None,
+            ]
+        )
+    ]
+    print(f"  ({len(candidates)} cenarios x 1 chamada LLM cada)")
+    total = passed = 0
+    for petition in candidates:
+        doc = parser.parse(petition.content, max_pages=300)
+        summary = await ExtractPetition(provider).run(doc.visible_text())
+        checks = _summary_checks(petition, summary)
+        for check, ok in checks.items():
+            total += 1
+            if ok:
+                passed += 1
+            print(f"    {'✓' if ok else '✗'} [{petition.name}] {check}")
+    return passed / total if total else 1.0
+
+
 def eval_tpu() -> tuple[float, float]:
     """Acurácia top-1 e top-3 do índice TPU sobre o próprio seed.
 
@@ -143,7 +197,7 @@ def main() -> int:
 
     # Extração: requer LLM real (rede). Sem chave/backend externo, é pulada — por
     # isso NÃO faz parte do gate de CI (que valida só o firewall determinístico).
-    print("\n== Extração (petition_analysis) ==")
+    print("\n== Extração — sanidade (1 cenário) ==")
     try:
         provider = build_llm_provider(get_settings())
     except LLMProviderError as exc:
@@ -151,6 +205,10 @@ def main() -> int:
     else:
         acc = asyncio.run(eval_extraction(provider))
         print(f"  acurácia de campo = {acc:.3f}")
+
+        print("\n== Extração — corpus completo (resumo estruturado) ==")
+        acc_corpus = asyncio.run(eval_extraction_corpus(provider))
+        print(f"  acurácia de campo = {acc_corpus:.3f}")
 
     top1, top3 = eval_tpu()
     print("\n== TPU (taxonomy) ==")

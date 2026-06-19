@@ -31,9 +31,15 @@ _BOTTOM_LIMIT = 780.0
 # --- Geração de dados aleatórios (fictícios, sem PII real) -----------------------
 
 _NOMES = [
-    "Ana Paula Ferreira", "Bruno Costa Lima", "Carlos Eduardo Souza",
-    "Daniela Martins Rocha", "Eduardo Alves Pinto", "Fernanda Gomes Silva",
-    "Gustavo Pereira Nunes", "Helena Rodrigues Carvalho", "Igor Santos Mendes",
+    "Ana Paula Ferreira",
+    "Bruno Costa Lima",
+    "Carlos Eduardo Souza",
+    "Daniela Martins Rocha",
+    "Eduardo Alves Pinto",
+    "Fernanda Gomes Silva",
+    "Gustavo Pereira Nunes",
+    "Helena Rodrigues Carvalho",
+    "Igor Santos Mendes",
     "Juliana Oliveira Borges",
 ]
 _EMPRESAS = [
@@ -76,7 +82,9 @@ class _RandCtx:
         self.cidade = self.rng.choice(_CIDADES)
         self.vara = self.rng.choice(_VARAS)
         self.valor = self.rng.choice([5_000, 8_000, 12_000, 15_000, 20_000, 30_000, 50_000])
-        self.valor_str = f"R$ {self.valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        self.valor_str = (
+            f"R$ {self.valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        )
         self.data = f"{self.rng.randint(1, 28):02d}/{self.rng.randint(1, 6):02d}/2026"
 
 
@@ -88,9 +96,7 @@ _DEFAULT_CTX = _RandCtx(rng=random.Random(42))
 _ENDERECAMENTO = "EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO DA VARA CÍVEL"
 
 
-def _qualificacao(
-    autor_cpf: str = "529.982.247-25", ctx: _RandCtx | None = None
-) -> list[str]:
+def _qualificacao(autor_cpf: str = "529.982.247-25", ctx: _RandCtx | None = None) -> list[str]:
     if ctx:
         return [
             f"{ctx.nome}, brasileiro(a), solteiro(a), autônomo(a), inscrito(a) no CPF sob o nº {ctx.cpf},",
@@ -605,6 +611,13 @@ class SyntheticPetition:
     expect_liminar: bool | None = None  # expectativa cognitiva (eval com LLM real)
     expect_semaforo: str | None = None  # VERDE | AMARELO | VERMELHO
     expect_requer_emenda: bool | None = None
+    # campos do resumo estruturado (eval_extraction_corpus)
+    expect_hearing_option: bool | None = (
+        None  # True/False se a peça declara interesse em conciliação
+    )
+    expect_requests_evidence: bool | None = None  # True/False se requer produção de provas
+    expect_cited_docs: bool | None = None  # True se cited_documents deve ser não-vazio
+    expect_subsidiary_claim: bool | None = None  # True se algum pedido é ClaimType.SUBSIDIARY
 
 
 @dataclass(frozen=True)
@@ -620,6 +633,10 @@ class _Spec:
     expect_liminar: bool | None = None
     expect_semaforo: str | None = None
     expect_requer_emenda: bool | None = None
+    expect_hearing_option: bool | None = None
+    expect_requests_evidence: bool | None = None
+    expect_cited_docs: bool | None = None
+    expect_subsidiary_claim: bool | None = None
 
 
 _RAND_SEEDS = [101, 202, 303]  # 3 variantes aleatórias por cenário selecionado
@@ -770,6 +787,7 @@ _CATALOG: dict[str, _Spec] = {
         "PASS",
         expect_liminar=False,
         expect_requer_emenda=False,
+        expect_hearing_option=False,
     ),
     "clean_sem_interesse_provas": _Spec(
         "clean",
@@ -780,6 +798,7 @@ _CATALOG: dict[str, _Spec] = {
         "PASS",
         expect_liminar=False,
         expect_requer_emenda=False,
+        expect_requests_evidence=False,
     ),
     "clean_documentos_citados": _Spec(
         "clean",
@@ -790,6 +809,7 @@ _CATALOG: dict[str, _Spec] = {
         "PASS",
         expect_liminar=False,
         expect_requer_emenda=False,
+        expect_cited_docs=True,
     ),
     "clean_pedido_subsidiario": _Spec(
         "clean",
@@ -800,6 +820,7 @@ _CATALOG: dict[str, _Spec] = {
         "PASS",
         expect_liminar=False,
         expect_requer_emenda=False,
+        expect_subsidiary_claim=True,
     ),
     "defect_sem_qualificacao_reu": _Spec(
         "defect",
@@ -890,6 +911,10 @@ def build_corpus() -> list[SyntheticPetition]:
                 expect_liminar=spec.expect_liminar,
                 expect_semaforo=spec.expect_semaforo,
                 expect_requer_emenda=spec.expect_requer_emenda,
+                expect_hearing_option=spec.expect_hearing_option,
+                expect_requests_evidence=spec.expect_requests_evidence,
+                expect_cited_docs=spec.expect_cited_docs,
+                expect_subsidiary_claim=spec.expect_subsidiary_claim,
             )
         )
     return corpus
