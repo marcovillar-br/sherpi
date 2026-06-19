@@ -4,14 +4,46 @@ Convenções do projeto — **versionadas no repositório**, válidas para qualq
 ferramenta/agente de IA** (são agnósticas a LLM, como o próprio produto). O [`AGENTS.md`](AGENTS.md)
 referencia este documento.
 
-## Idioma e nomenclatura de arquivos
+## Idioma — regra geral
 
-- **Conteúdo** dos documentos e código: **pt-BR** (comentários, docstrings, textos).
-- **Nomes de arquivo em `docs/` (e `docs/adr/`)**: **en-US**, em kebab-case ASCII.
-  - ✅ `tech-spec-sherpi.md`, `legal-glossary.md`, `0008-multi-domain-architecture.md`
-  - ❌ `spec-tecnica.md`, `glossario-juridico.md`, `0008-multi-dominio-...`
-- **Siglas**: padrão internacional quando houver — **PMP** (não PGP), **WBS** (não EAP), PRD, DDD, ADR.
-  O título/conteúdo pode manter o termo pt-BR entre parênteses (ex.: "PGP / PMP", "EAP / WBS").
+Duas camadas, regra clara:
+
+| Camada | Idioma | Justificativa |
+|---|---|---|
+| Código Python — identificadores, constantes internas, chaves de dicionário, nomes de arquivo referenciados no código | **en-US** | PEP 8; interoperabilidade com libs e ferramentas anglófonas |
+| Saída para o usuário — UI, mensagens de erro, labels de API, logs legíveis por humanos | **pt-BR** | língua do público-alvo (gabinete judicial brasileiro) |
+| Conteúdo de `docs/` e comentários Python | **pt-BR** | documentação interna do time |
+| Nomes de arquivo em `docs/` (e `docs/adr/`) | **en-US**, kebab-case ASCII | descoberta por ferramentas; convenção do projeto |
+| Siglas | padrão internacional — **PMP** (não PGP), **WBS** (não EAP) | — |
+
+**`trabalhista`** é exceção documentada: termo jurídico brasileiro sem equivalente en-US limpo;
+aceito em ambas as camadas (código e dados).
+
+### O que NÃO fazer
+
+```python
+# ❌ identificador em pt-BR — viola PEP 8 e confunde ferramentas
+def build_integra() -> bytes: ...
+category = "injecao"
+
+# ✅ identificador en-US; saída para o usuário em pt-BR
+def build_clean() -> bytes: ...
+category = "clean"
+raise ValueError("Documento bloqueado pelo firewall.")  # mensagem pt-BR: ok
+```
+
+### Corpus sintético (`backend/data/synthetic/`)
+
+Convenção de nome de arquivo: `<categoria>_<cenario>.pdf`
+
+- Categorias en-US: `clean_*`, `defect_*`, `injection_*`
+- Categoria exceção: `trabalhista_*` (termo jurídico)
+- Cenários em pt-BR (descrevem a situação jurídica): `clean_acao_cobranca.pdf`, `injection_texto_branco.pdf`
+
+### Nomes de arquivo em `docs/`
+
+- ✅ `tech-spec-sherpi.md`, `legal-glossary.md`, `0008-multi-domain-architecture.md`
+- ❌ `spec-tecnica.md`, `glossario-juridico.md`, `0008-multi-dominio-...`
 
 ## Fluxo de Git
 
