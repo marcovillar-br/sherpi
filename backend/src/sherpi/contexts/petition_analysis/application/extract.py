@@ -24,7 +24,9 @@ deixe o campo nulo/vazio — NÃO invente (sem alucinação).
 3. Sintetize o fato gerador em um único parágrafo objetivo. Na fundamentação, \
 registre o embasamento jurídico invocado, sem copiar ementas de jurisprudência.
 4. Marque tem_liminar=true se houver qualquer pedido de tutela de urgência/liminar.
-5. Responda exclusivamente no formato estruturado solicitado."""
+5. Em documentos_mencionados, liste os documentos citados ou anexados (ex.: \
+"procuração", "comprovante de residência", "contrato"), em minúsculas.
+6. Responda exclusivamente no formato estruturado solicitado."""
 
 # Orçamento de caracteres de entrada (chunking-lite / guarda de custo).
 DEFAULT_MAX_INPUT_CHARS = 600_000

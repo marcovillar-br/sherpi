@@ -55,3 +55,7 @@ class PetitionSummary(BaseModel):
     valor_causa: str | None = Field(
         default=None, description="Valor da causa como texto (ex.: 'R$ 15.000,00')"
     )
+    documentos_mencionados: list[str] = Field(
+        default_factory=list,
+        description="Documentos citados/anexados (ex.: 'procuração', 'comprovante de residência')",
+    )
