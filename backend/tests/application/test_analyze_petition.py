@@ -18,16 +18,16 @@ from sherpi.infrastructure.llm.fake import FakeProvider
 from sherpi.shared_kernel.value_objects import RiskVerdict
 
 _SUMMARY = PetitionSummary(
-    partes=[
-        Parte(nome="Fulano", documento="529.982.247-25", polo=Polo.ATIVO),
-        Parte(nome="Empresa", documento="11.222.333/0001-81", polo=Polo.PASSIVO),
+    parties=[
+        Parte(name="Fulano", document="529.982.247-25", pole=Polo.ACTIVE),
+        Parte(name="Empresa", document="11.222.333/0001-81", pole=Polo.PASSIVE),
     ],
-    fato_gerador="Contrato inadimplido.",
-    fundamentacao="CPC.",
-    pedidos=[Pedido(descricao="Pagamento")],
-    tem_liminar=False,
-    valor_causa="R$ 15.000,00",
-    documentos_mencionados=["procuração"],
+    facts="Contrato inadimplido.",
+    legal_basis="CPC.",
+    claims=[Pedido(description="Pagamento")],
+    has_injunction=False,
+    claim_amount="R$ 15.000,00",
+    cited_documents=["procuração"],
 )
 
 
@@ -74,7 +74,7 @@ async def test_anonymizer_masks_pii_before_llm_but_admissibility_uses_original()
     assert "[CPF]" in user_msg
 
     # Ainda assim a admissibilidade valida o CPF a partir do texto ORIGINAL.
-    qualificacao = next(
-        i for i in result.admissibility.itens if i.requisito.value == "qualificacao"
+    qualification = next(
+        i for i in result.admissibility.items if i.requirement.value == "qualification"
     )
-    assert qualificacao.presente is True
+    assert qualification.present is True

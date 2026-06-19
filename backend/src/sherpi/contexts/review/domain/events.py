@@ -7,9 +7,9 @@ from pydantic import BaseModel
 
 
 class ReviewDecision(StrEnum):
-    ACEITAR = "ACEITAR"
-    REJEITAR = "REJEITAR"
-    CORRIGIR = "CORRIGIR"
+    ACCEPT = "ACCEPT"
+    REJECT = "REJECT"
+    AMEND = "AMEND"
 
 
 class AuditEvent(BaseModel):

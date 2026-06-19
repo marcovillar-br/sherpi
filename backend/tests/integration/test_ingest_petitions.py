@@ -23,16 +23,16 @@ from sherpi.infrastructure.persistence.engine import create_all
 from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
 
 _SUMMARY = PetitionSummary(
-    juizo="Vara Cível de SP",
-    partes=[Parte(nome="Fulano", documento="529.982.247-25", polo=Polo.ATIVO)],
-    fato_gerador="Contrato.",
-    fundamentacao="CPC.",
-    pedidos=[Pedido(descricao="Pagamento", valor="R$ 1.000,00")],
-    tem_liminar=False,
-    valor_causa="R$ 1.000,00",
-    requer_provas=False,
-    opcao_audiencia=False,
-    documentos_mencionados=[],
+    court="Vara Cível de SP",
+    parties=[Parte(name="Fulano", document="529.982.247-25", pole=Polo.ACTIVE)],
+    facts="Contrato.",
+    legal_basis="CPC.",
+    claims=[Pedido(description="Pagamento", amount="R$ 1.000,00")],
+    has_injunction=False,
+    claim_amount="R$ 1.000,00",
+    requests_evidence=False,
+    hearing_option=False,
+    cited_documents=[],
 )
 
 

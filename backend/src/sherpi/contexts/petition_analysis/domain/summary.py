@@ -16,31 +16,31 @@ from pydantic import BaseModel, Field
 
 
 class Polo(StrEnum):
-    ATIVO = "ATIVO"
-    PASSIVO = "PASSIVO"
+    ACTIVE = "ACTIVE"
+    PASSIVE = "PASSIVE"
 
 
-class TipoPedido(StrEnum):
-    PRINCIPAL = "PRINCIPAL"
-    LIMINAR = "LIMINAR"
-    SUBSIDIARIO = "SUBSIDIARIO"
+class ClaimType(StrEnum):
+    MAIN = "MAIN"
+    INJUNCTION = "INJUNCTION"
+    SUBSIDIARY = "SUBSIDIARY"
 
 
 class Parte(BaseModel):
     """Uma parte do processo (polo ativo ou passivo)."""
 
-    nome: str
-    documento: str | None = Field(default=None, description="CPF ou CNPJ como aparece no texto")
-    polo: Polo
-    endereco: str | None = None
+    name: str
+    document: str | None = Field(default=None, description="CPF ou CNPJ como aparece no texto")
+    pole: Polo
+    address: str | None = None
 
 
 class Pedido(BaseModel):
     """Um pedido formulado na petição."""
 
-    descricao: str
-    tipo: TipoPedido = TipoPedido.PRINCIPAL
-    valor: str | None = Field(
+    description: str
+    type: ClaimType = ClaimType.MAIN
+    amount: str | None = Field(
         default=None,
         description=(
             "Valor do pedido como texto (ex.: 'R$ 5.000,00'), quando informado. "
@@ -52,29 +52,27 @@ class Pedido(BaseModel):
 class PetitionSummary(BaseModel):
     """Sumário executivo estruturado da petição inicial (art. 319 do CPC)."""
 
-    juizo: str | None = Field(
+    court: str | None = Field(
         default=None, description="Juízo a que é dirigida / endereçamento (art. 319, I)"
     )
-    partes: list[Parte] = Field(default_factory=list)
-    fato_gerador: str = Field(
-        description="Síntese objetiva dos fatos em um parágrafo (art. 319, III)"
-    )
-    fundamentacao: str = Field(
+    parties: list[Parte] = Field(default_factory=list)
+    facts: str = Field(description="Síntese objetiva dos fatos em um parágrafo (art. 319, III)")
+    legal_basis: str = Field(
         description="Fundamentação jurídica invocada, sem cópia de jurisprudência (art. 319, III)"
     )
-    pedidos: list[Pedido] = Field(default_factory=list)
-    tem_liminar: bool = Field(description="Há pedido de tutela de urgência/liminar?")
-    valor_causa: str | None = Field(
+    claims: list[Pedido] = Field(default_factory=list)
+    has_injunction: bool = Field(description="Há pedido de tutela de urgência/liminar?")
+    claim_amount: str | None = Field(
         default=None, description="Valor da causa como texto (ex.: 'R$ 15.000,00') (art. 319, V)"
     )
-    requer_provas: bool = Field(
+    requests_evidence: bool = Field(
         default=False, description="O autor indica/protesta provar os fatos? (art. 319, VI)"
     )
-    opcao_audiencia: bool | None = Field(
+    hearing_option: bool | None = Field(
         default=None,
         description="Manifestou opção por audiência de conciliação/mediação? (art. 319, VII)",
     )
-    documentos_mencionados: list[str] = Field(
+    cited_documents: list[str] = Field(
         default_factory=list,
         description="Documentos citados/anexados (ex.: 'procuração', 'comprovante de residência')",
     )

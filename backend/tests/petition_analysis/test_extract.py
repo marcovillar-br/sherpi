@@ -6,21 +6,21 @@ import pytest
 
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
 from sherpi.contexts.petition_analysis.domain.summary import (
+    ClaimType,
     Parte,
     Pedido,
     PetitionSummary,
     Polo,
-    TipoPedido,
 )
 from sherpi.infrastructure.llm.fake import FakeProvider
 
 _SUMMARY = PetitionSummary(
-    partes=[Parte(nome="Fulano de Tal", documento="529.982.247-25", polo=Polo.ATIVO)],
-    fato_gerador="As partes celebraram contrato de prestação de serviços.",
-    fundamentacao="Arts. 319 e 320 do CPC.",
-    pedidos=[Pedido(descricao="Condenação ao pagamento", tipo=TipoPedido.PRINCIPAL)],
-    tem_liminar=False,
-    valor_causa="R$ 15.000,00",
+    parties=[Parte(name="Fulano de Tal", document="529.982.247-25", pole=Polo.ACTIVE)],
+    facts="As partes celebraram contrato de prestação de serviços.",
+    legal_basis="Arts. 319 e 320 do CPC.",
+    claims=[Pedido(description="Condenação ao pagamento", type=ClaimType.MAIN)],
+    has_injunction=False,
+    claim_amount="R$ 15.000,00",
 )
 
 
@@ -28,8 +28,8 @@ async def test_extract_returns_validated_summary() -> None:
     fake = FakeProvider(_SUMMARY)
     result = await ExtractPetition(fake).run("EXMO. SR. JUIZ... petição...")
     assert isinstance(result, PetitionSummary)
-    assert result.partes[0].nome == "Fulano de Tal"
-    assert result.tem_liminar is False
+    assert result.parties[0].name == "Fulano de Tal"
+    assert result.has_injunction is False
 
 
 async def test_extract_uses_defensive_prompt_and_wraps_document() -> None:

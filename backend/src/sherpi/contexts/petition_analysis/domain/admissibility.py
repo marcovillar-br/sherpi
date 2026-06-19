@@ -20,46 +20,46 @@ from typing import TYPE_CHECKING
 from pydantic import BaseModel
 
 from sherpi.contexts.petition_analysis.domain.summary import PetitionSummary
-from sherpi.shared_kernel.value_objects import CNPJ, CPF, Rito, ValorCausa
+from sherpi.shared_kernel.value_objects import CNPJ, CPF, ClaimAmount, Rito
 
 if TYPE_CHECKING:
     from sherpi.contexts.petition_analysis.domain.strategies import AdmissibilityStrategy
 
 
-class Semaforo(StrEnum):
-    VERDE = "VERDE"  # apto a prosseguir
-    AMARELO = "AMARELO"  # vícios sanáveis menores
-    VERMELHO = "VERMELHO"  # requer emenda (art. 321)
+class AdmissibilityStatus(StrEnum):
+    GREEN = "GREEN"  # apto a prosseguir
+    YELLOW = "YELLOW"  # vícios sanáveis menores
+    RED = "RED"  # requer emenda (art. 321)
 
 
-class MetodoCheck(StrEnum):
-    DETERMINISTICO = "DETERMINISTICO"
-    SEMANTICO = "SEMANTICO"
+class CheckMethod(StrEnum):
+    DETERMINISTIC = "DETERMINISTIC"
+    SEMANTIC = "SEMANTIC"
 
 
-class Requisito(StrEnum):
-    JUIZO = "juizo"  # art. 319, I
-    PARTES = "partes"  # art. 319, II
-    QUALIFICACAO = "qualificacao"  # art. 319, II
-    FATOS = "fatos"  # art. 319, III
-    FUNDAMENTACAO = "fundamentacao"  # art. 319, III
-    PEDIDOS = "pedidos"  # art. 319, IV
-    VALOR_CAUSA = "valor_causa"  # art. 319, V
-    PROVAS = "provas"  # art. 319, VI
-    AUDIENCIA = "audiencia"  # art. 319, VII
-    DOCUMENTOS = "documentos"  # art. 320 (procuração etc.)
-    PEDIDO_LIQUIDO = "pedido_liquido"  # CLT art. 840 §1º (rito trabalhista)
+class Requirement(StrEnum):
+    COURT = "court"  # art. 319, I
+    PARTIES = "parties"  # art. 319, II
+    QUALIFICATION = "qualification"  # art. 319, II
+    FACTS = "facts"  # art. 319, III
+    LEGAL_BASIS = "legal_basis"  # art. 319, III
+    CLAIMS = "claims"  # art. 319, IV
+    CLAIM_VALUE = "claim_value"  # art. 319, V
+    EVIDENCE = "evidence"  # art. 319, VI
+    HEARING = "hearing"  # art. 319, VII
+    DOCUMENTS = "documents"  # art. 320 (procuração etc.)
+    LIQUID_CLAIM = "liquid_claim"  # CLT art. 840 §1º (rito trabalhista)
 
 
-# Requisitos essenciais cuja ausência exige emenda (art. 321 / CLT 840) → VERMELHO.
-# PEDIDO_LIQUIDO só é emitido pela estratégia trabalhista; nos demais ritos o item
+# Requisitos essenciais cuja ausência exige emenda (art. 321 / CLT 840) → RED.
+# LIQUID_CLAIM só é emitido pela estratégia trabalhista; nos demais ritos o item
 # nunca aparece, então incluí-lo aqui é inócuo para o cível.
-_ESSENCIAIS = {
-    Requisito.PARTES,
-    Requisito.FATOS,
-    Requisito.PEDIDOS,
-    Requisito.VALOR_CAUSA,
-    Requisito.PEDIDO_LIQUIDO,
+_ESSENTIAL_REQS = {
+    Requirement.PARTIES,
+    Requirement.FACTS,
+    Requirement.CLAIMS,
+    Requirement.CLAIM_VALUE,
+    Requirement.LIQUID_CLAIM,
 }
 
 # Candidatos a CPF/CNPJ no texto bruto (validação por checksum vem depois).
@@ -70,35 +70,35 @@ _CPF_RE = re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")
 class ChecklistItem(BaseModel):
     model_config = {"frozen": True}
 
-    requisito: Requisito
-    presente: bool
-    metodo: MetodoCheck
-    evidencia: str | None = None
-    detalhe: str | None = None
+    requirement: Requirement
+    present: bool
+    method: CheckMethod
+    evidence: str | None = None
+    detail: str | None = None
 
 
 class AdmissibilityReport(BaseModel):
     model_config = {"frozen": True}
 
-    itens: list[ChecklistItem]
-    semaforo: Semaforo
-    requer_emenda: bool
+    items: list[ChecklistItem]
+    status: AdmissibilityStatus
+    requires_amendment: bool
 
     @classmethod
-    def from_items(cls, itens: list[ChecklistItem]) -> AdmissibilityReport:
-        ausentes = {i.requisito for i in itens if not i.presente}
-        requer_emenda = bool(ausentes & _ESSENCIAIS)
-        if requer_emenda:
-            semaforo = Semaforo.VERMELHO
-        elif ausentes:
-            semaforo = Semaforo.AMARELO
+    def from_items(cls, items: list[ChecklistItem]) -> AdmissibilityReport:
+        missing = {i.requirement for i in items if not i.present}
+        requires_amendment = bool(missing & _ESSENTIAL_REQS)
+        if requires_amendment:
+            status = AdmissibilityStatus.RED
+        elif missing:
+            status = AdmissibilityStatus.YELLOW
         else:
-            semaforo = Semaforo.VERDE
-        return cls(itens=itens, semaforo=semaforo, requer_emenda=requer_emenda)
+            status = AdmissibilityStatus.GREEN
+        return cls(items=items, status=status, requires_amendment=requires_amendment)
 
 
-def parse_valor_causa(texto: str | None) -> ValorCausa | None:
-    """Converte 'R$ 15.000,00' (ou variações) em `ValorCausa`. None se não parseável."""
+def parse_claim_amount(texto: str | None) -> ClaimAmount | None:
+    """Converte 'R$ 15.000,00' (ou variações) em `ClaimAmount`. None se não parseável."""
     if not texto:
         return None
     raw = re.sub(r"[^0-9,.]", "", texto)
@@ -112,12 +112,12 @@ def parse_valor_causa(texto: str | None) -> ValorCausa | None:
     except InvalidOperation:
         return None
     try:
-        return ValorCausa(amount=amount)
+        return ClaimAmount(amount=amount)
     except ValueError:
         return None
 
 
-def _valid_documento(value: str | None) -> str | None:
+def _valid_document(value: str | None) -> str | None:
     """Retorna o documento formatado se for CPF ou CNPJ válido; senão None."""
     if not value:
         return None
@@ -129,11 +129,11 @@ def _valid_documento(value: str | None) -> str | None:
     return None
 
 
-def _scan_valid_documento(text: str) -> str | None:
+def _scan_valid_document(text: str) -> str | None:
     """Procura no texto bruto o primeiro CPF/CNPJ com checksum válido."""
     for pattern in (_CNPJ_RE, _CPF_RE):
         for match in pattern.finditer(text):
-            doc = _valid_documento(match.group())
+            doc = _valid_document(match.group())
             if doc:
                 return doc
     return None

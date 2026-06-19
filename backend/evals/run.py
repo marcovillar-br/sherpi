@@ -86,10 +86,10 @@ async def eval_extraction(provider: LLMProvider) -> float:
     summary = await ExtractPetition(provider).run(doc.visible_text())
     # Gold da peça sintética limpa (ver synthetic/builder.py).
     checks = {
-        "partes>=2": len(summary.partes) >= 2,
-        "valor_causa~15.000": bool(summary.valor_causa and "15.000" in summary.valor_causa),
-        "sem_liminar": summary.tem_liminar is False,
-        "pedidos>=1": len(summary.pedidos) >= 1,
+        "parties>=2": len(summary.parties) >= 2,
+        "claim_amount~15.000": bool(summary.claim_amount and "15.000" in summary.claim_amount),
+        "no_injunction": summary.has_injunction is False,
+        "claims>=1": len(summary.claims) >= 1,
     }
     acertos = sum(1 for ok in checks.values() if ok)
     for nome, ok in checks.items():

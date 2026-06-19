@@ -28,16 +28,16 @@ from sherpi.interfaces.api.main import create_app
 _FAKE_USER = User(id="u-ret", email="ret@sherpi.local", hashed_password="x", role=Role.ADMIN)
 
 _SUMMARY = PetitionSummary(
-    juizo="Vara",
-    partes=[Parte(nome="A", documento="529.982.247-25", polo=Polo.ATIVO)],
-    fato_gerador="Fato.",
-    fundamentacao="Lei.",
-    pedidos=[Pedido(descricao="Pedido")],
-    tem_liminar=False,
-    valor_causa="R$ 1.000,00",
-    requer_provas=False,
-    opcao_audiencia=False,
-    documentos_mencionados=[],
+    court="Vara",
+    parties=[Parte(name="A", document="529.982.247-25", pole=Polo.ACTIVE)],
+    facts="Fato.",
+    legal_basis="Lei.",
+    claims=[Pedido(description="Pedido")],
+    has_injunction=False,
+    claim_amount="R$ 1.000,00",
+    requests_evidence=False,
+    hearing_option=False,
+    cited_documents=[],
 )
 
 

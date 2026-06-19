@@ -1,12 +1,12 @@
 // Tipos espelhando o contrato da API do SHERPI.
 
 export type RiskVerdict = "PASS" | "WARN" | "BLOCK";
-export type Semaforo = "VERDE" | "AMARELO" | "VERMELHO";
-export type Polo = "ATIVO" | "PASSIVO";
-export type TipoPedido = "PRINCIPAL" | "LIMINAR" | "SUBSIDIARIO";
-export type MetodoCheck = "DETERMINISTICO" | "SEMANTICO";
+export type AdmissibilityStatus = "GREEN" | "YELLOW" | "RED";
+export type Polo = "ACTIVE" | "PASSIVE";
+export type ClaimType = "MAIN" | "INJUNCTION" | "SUBSIDIARY";
+export type CheckMethod = "DETERMINISTIC" | "SEMANTIC";
 export type Rito = "CIVEL" | "TRABALHISTA";
-export type ReviewDecision = "ACEITAR" | "REJEITAR" | "CORRIGIR";
+export type ReviewDecision = "ACCEPT" | "REJECT" | "AMEND";
 
 export interface Anomaly {
   type: string;
@@ -23,40 +23,43 @@ export interface ForensicsReport {
 }
 
 export interface Parte {
-  nome: string;
-  documento: string | null;
-  polo: Polo;
-  endereco: string | null;
+  name: string;
+  document: string | null;
+  pole: Polo;
+  address: string | null;
 }
 
 export interface Pedido {
-  descricao: string;
-  tipo: TipoPedido;
-  valor: string | null;
+  description: string;
+  type: ClaimType;
+  amount: string | null;
 }
 
 export interface PetitionSummary {
-  partes: Parte[];
-  fato_gerador: string;
-  fundamentacao: string;
-  pedidos: Pedido[];
-  tem_liminar: boolean;
-  valor_causa: string | null;
-  documentos_mencionados: string[];
+  court: string | null;
+  parties: Parte[];
+  facts: string;
+  legal_basis: string;
+  claims: Pedido[];
+  has_injunction: boolean;
+  claim_amount: string | null;
+  requests_evidence: boolean;
+  hearing_option: boolean | null;
+  cited_documents: string[];
 }
 
 export interface ChecklistItem {
-  requisito: string;
-  presente: boolean;
-  metodo: MetodoCheck;
-  evidencia: string | null;
-  detalhe: string | null;
+  requirement: string;
+  present: boolean;
+  method: CheckMethod;
+  evidence: string | null;
+  detail: string | null;
 }
 
 export interface AdmissibilityReport {
-  itens: ChecklistItem[];
-  semaforo: Semaforo;
-  requer_emenda: boolean;
+  items: ChecklistItem[];
+  status: AdmissibilityStatus;
+  requires_amendment: boolean;
 }
 
 export interface TpuSuggestion {

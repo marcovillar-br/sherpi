@@ -5,7 +5,7 @@ export function SummaryPanel({ summary }: { summary: PetitionSummary }) {
     <section className="space-y-4 rounded-lg border border-gray-200 p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-gray-800">Resumo estruturado</h2>
-        {summary.tem_liminar && (
+        {summary.has_injunction && (
           <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
             ⚠ Pedido de liminar
           </span>
@@ -14,28 +14,28 @@ export function SummaryPanel({ summary }: { summary: PetitionSummary }) {
 
       <Field label="Partes">
         <ul className="space-y-1">
-          {summary.partes.map((p, i) => (
+          {summary.parties.map((p, i) => (
             <li key={i}>
-              <span className="font-medium">{p.nome}</span>{" "}
+              <span className="font-medium">{p.name}</span>{" "}
               <span className="text-xs text-gray-500">
-                ({p.polo.toLowerCase()}
-                {p.documento ? ` · ${p.documento}` : ""})
+                ({p.pole.toLowerCase()}
+                {p.document ? ` · ${p.document}` : ""})
               </span>
             </li>
           ))}
         </ul>
       </Field>
 
-      <Field label="Fato gerador">{summary.fato_gerador}</Field>
-      <Field label="Fundamentação">{summary.fundamentacao}</Field>
+      <Field label="Fatos">{summary.facts}</Field>
+      <Field label="Fundamentação">{summary.legal_basis}</Field>
 
       <Field label="Pedidos">
         <ul className="list-disc pl-5">
-          {summary.pedidos.map((p, i) => (
-            <li key={i} className={p.tipo === "LIMINAR" ? "font-semibold text-red-700" : ""}>
-              {p.descricao}
-              {p.tipo !== "PRINCIPAL" && (
-                <span className="ml-1 text-xs text-gray-500">[{p.tipo.toLowerCase()}]</span>
+          {summary.claims.map((p, i) => (
+            <li key={i} className={p.type === "INJUNCTION" ? "font-semibold text-red-700" : ""}>
+              {p.description}
+              {p.type !== "MAIN" && (
+                <span className="ml-1 text-xs text-gray-500">[{p.type.toLowerCase()}]</span>
               )}
             </li>
           ))}
@@ -43,9 +43,9 @@ export function SummaryPanel({ summary }: { summary: PetitionSummary }) {
       </Field>
 
       <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
-        <Field label="Valor da causa">{summary.valor_causa ?? "—"}</Field>
+        <Field label="Valor da causa">{summary.claim_amount ?? "—"}</Field>
         <Field label="Documentos mencionados">
-          {summary.documentos_mencionados.join(", ") || "—"}
+          {summary.cited_documents.join(", ") || "—"}
         </Field>
       </div>
     </section>

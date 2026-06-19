@@ -6,26 +6,26 @@ import type { AuditEvent, ReviewDecision } from "@/lib/types";
 
 const DECISIONS: { value: ReviewDecision; label: string; style: string }[] = [
   {
-    value: "ACEITAR",
+    value: "ACCEPT",
     label: "Aceitar",
     style: "border-green-300 bg-green-50 text-green-800 hover:bg-green-100",
   },
   {
-    value: "CORRIGIR",
+    value: "AMEND",
     label: "Corrigir",
     style: "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100",
   },
   {
-    value: "REJEITAR",
+    value: "REJECT",
     label: "Rejeitar",
     style: "border-red-300 bg-red-50 text-red-800 hover:bg-red-100",
   },
 ];
 
 const DECISION_LABELS: Record<ReviewDecision, string> = {
-  ACEITAR: "Aceito",
-  CORRIGIR: "Corrigir",
-  REJEITAR: "Rejeitado",
+  ACCEPT: "Aceito",
+  AMEND: "Corrigir",
+  REJECT: "Rejeitado",
 };
 
 function formatDate(iso: string) {

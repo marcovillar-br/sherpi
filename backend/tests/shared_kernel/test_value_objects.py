@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import pytest
 
-from sherpi.shared_kernel.value_objects import CNPJ, CPF, RiskVerdict, ValorCausa
+from sherpi.shared_kernel.value_objects import CNPJ, CPF, ClaimAmount, RiskVerdict
 
 
 def test_valid_cpf_normalizes_and_formats() -> None:
@@ -32,13 +32,13 @@ def test_invalid_cnpj_rejected() -> None:
         CNPJ(value="00.000.000/0000-00")
 
 
-def test_valor_causa_formats_brl() -> None:
-    assert ValorCausa(amount=Decimal("15000.50")).formatted == "R$ 15.000,50"
+def test_claim_amount_formats_brl() -> None:
+    assert ClaimAmount(amount=Decimal("15000.50")).formatted == "R$ 15.000,50"
 
 
-def test_valor_causa_rejects_negative() -> None:
+def test_claim_amount_rejects_negative() -> None:
     with pytest.raises(ValueError):
-        ValorCausa(amount=Decimal("-1"))
+        ClaimAmount(amount=Decimal("-1"))
 
 
 def test_risk_verdict_values() -> None:

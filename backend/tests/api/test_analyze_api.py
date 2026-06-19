@@ -28,19 +28,19 @@ from sherpi.interfaces.api.main import create_app
 _FAKE_USER = User(id="u-test", email="test@sherpi.local", hashed_password="x", role=Role.REVISOR)
 
 _SUMMARY = PetitionSummary(
-    juizo="Vara Cível de São Paulo",
-    partes=[
-        Parte(nome="Fulano", documento="529.982.247-25", polo=Polo.ATIVO),
-        Parte(nome="Empresa", documento="11.222.333/0001-81", polo=Polo.PASSIVO),
+    court="Vara Cível de São Paulo",
+    parties=[
+        Parte(name="Fulano", document="529.982.247-25", pole=Polo.ACTIVE),
+        Parte(name="Empresa", document="11.222.333/0001-81", pole=Polo.PASSIVE),
     ],
-    fato_gerador="Contrato inadimplido.",
-    fundamentacao="CPC.",
-    pedidos=[Pedido(descricao="Pagamento")],
-    tem_liminar=False,
-    valor_causa="R$ 15.000,00",
-    requer_provas=True,
-    opcao_audiencia=True,
-    documentos_mencionados=["procuração"],
+    facts="Contrato inadimplido.",
+    legal_basis="CPC.",
+    claims=[Pedido(description="Pagamento")],
+    has_injunction=False,
+    claim_amount="R$ 15.000,00",
+    requests_evidence=True,
+    hearing_option=True,
+    cited_documents=["procuração"],
 )
 
 
@@ -76,8 +76,8 @@ def test_analyze_clean_pdf(client: TestClient) -> None:
     body = resp.json()
     assert body["id"]
     assert body["result"]["forensics"]["verdict"] == "PASS"
-    assert body["result"]["summary"]["partes"][0]["nome"] == "Fulano"
-    assert body["result"]["admissibility"]["semaforo"] == "VERDE"
+    assert body["result"]["summary"]["parties"][0]["name"] == "Fulano"
+    assert body["result"]["admissibility"]["status"] == "GREEN"
 
 
 def test_analyze_default_rito_is_civel(client: TestClient) -> None:
@@ -96,7 +96,7 @@ def test_analyze_rito_trabalhista_exige_pedido_liquido(client: TestClient) -> No
     assert resp.status_code == 200
     body = resp.json()
     assert body["result"]["rito"] == "TRABALHISTA"
-    assert body["result"]["admissibility"]["semaforo"] == "VERMELHO"
+    assert body["result"]["admissibility"]["status"] == "RED"
 
 
 def test_analyze_rito_invalido_retorna_422(client: TestClient) -> None:
@@ -131,7 +131,7 @@ def test_analyze_persists_and_get_roundtrip(client: TestClient) -> None:
     assert fetched.status_code == 200
     body = fetched.json()
     assert body["id"] == created["id"]
-    assert body["result"]["summary"]["partes"][0]["nome"] == "Fulano"
+    assert body["result"]["summary"]["parties"][0]["name"] == "Fulano"
 
 
 def test_get_unknown_analysis_returns_404(client: TestClient) -> None:

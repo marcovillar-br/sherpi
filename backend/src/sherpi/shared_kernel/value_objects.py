@@ -93,7 +93,7 @@ class CNPJ(BaseModel):
         return f"{d[:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:]}"
 
 
-class ValorCausa(BaseModel):
+class ClaimAmount(BaseModel):
     """Valor da causa (art. 291 do CPC), em reais."""
 
     model_config = {"frozen": True}

@@ -24,23 +24,23 @@ def _make_repo() -> SqlAuditRepository:
 def test_event_is_persisted() -> None:
     repo = _make_repo()
     use_case = RecordReview(repo)
-    event = use_case.run("analysis-1", _USER, ReviewDecision.ACEITAR, comment="Ok")
+    event = use_case.run("analysis-1", _USER, ReviewDecision.ACCEPT, comment="Ok")
     assert event.analysis_id == "analysis-1"
     assert event.user_id == "u1"
-    assert event.decision == ReviewDecision.ACEITAR
+    assert event.decision == ReviewDecision.ACCEPT
     assert event.comment == "Ok"
 
 
 def test_list_by_analysis_returns_events() -> None:
     repo = _make_repo()
     use_case = RecordReview(repo)
-    use_case.run("a1", _USER, ReviewDecision.ACEITAR)
-    use_case.run("a1", _USER, ReviewDecision.CORRIGIR, comment="ver art. 319")
-    use_case.run("a2", _USER, ReviewDecision.REJEITAR)
+    use_case.run("a1", _USER, ReviewDecision.ACCEPT)
+    use_case.run("a1", _USER, ReviewDecision.AMEND, comment="ver art. 319")
+    use_case.run("a2", _USER, ReviewDecision.REJECT)
 
     events_a1 = repo.list_by_analysis("a1")
     assert len(events_a1) == 2
-    assert {e.decision for e in events_a1} == {ReviewDecision.ACEITAR, ReviewDecision.CORRIGIR}
+    assert {e.decision for e in events_a1} == {ReviewDecision.ACCEPT, ReviewDecision.AMEND}
 
     events_a2 = repo.list_by_analysis("a2")
     assert len(events_a2) == 1
@@ -50,6 +50,6 @@ def test_append_only_no_update() -> None:
     """Append-only: não existe método de update; dois appends criam dois registros."""
     repo = _make_repo()
     use_case = RecordReview(repo)
-    use_case.run("a1", _USER, ReviewDecision.ACEITAR)
-    use_case.run("a1", _USER, ReviewDecision.REJEITAR)
+    use_case.run("a1", _USER, ReviewDecision.ACCEPT)
+    use_case.run("a1", _USER, ReviewDecision.REJECT)
     assert len(repo.list_by_analysis("a1")) == 2

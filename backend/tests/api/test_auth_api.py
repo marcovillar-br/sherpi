@@ -42,16 +42,16 @@ _EMAIL = "admin@sherpi.local"
 _PASSWORD = "senha123"
 
 _SUMMARY = PetitionSummary(
-    juizo="Vara Cível",
-    partes=[Parte(nome="A", documento="529.982.247-25", polo=Polo.ATIVO)],
-    fato_gerador="Fato.",
-    fundamentacao="CPC.",
-    pedidos=[Pedido(descricao="Pagamento")],
-    tem_liminar=False,
-    valor_causa="R$ 1.000,00",
-    requer_provas=False,
-    opcao_audiencia=False,
-    documentos_mencionados=[],
+    court="Vara Cível",
+    parties=[Parte(name="A", document="529.982.247-25", pole=Polo.ACTIVE)],
+    facts="Fato.",
+    legal_basis="CPC.",
+    claims=[Pedido(description="Pagamento")],
+    has_injunction=False,
+    claim_amount="R$ 1.000,00",
+    requests_evidence=False,
+    hearing_option=False,
+    cited_documents=[],
 )
 
 
@@ -168,7 +168,7 @@ def test_review_requires_auth() -> None:
     """Endpoint de revisão protegido — sem auth → 401."""
     app = create_app()
     unauth_client = TestClient(app, raise_server_exceptions=False)
-    resp = unauth_client.post("/v1/analyses/x/review", json={"decision": "ACEITAR"})
+    resp = unauth_client.post("/v1/analyses/x/review", json={"decision": "ACCEPT"})
     assert resp.status_code == 401
 
 
@@ -181,24 +181,24 @@ def test_review_flow(client: TestClient) -> None:
 
     resp = client.post(
         f"/v1/analyses/{analysis_id}/review",
-        json={"decision": "ACEITAR", "comment": "Tudo ok"},
+        json={"decision": "ACCEPT", "comment": "Tudo ok"},
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["decision"] == "ACEITAR"
+    assert body["decision"] == "ACCEPT"
     assert body["analysis_id"] == analysis_id
 
     resp2 = client.get(f"/v1/analyses/{analysis_id}/reviews")
     assert resp2.status_code == 200
     events = resp2.json()
     assert len(events) == 1
-    assert events[0]["decision"] == "ACEITAR"
+    assert events[0]["decision"] == "ACCEPT"
 
 
 def test_review_unknown_analysis_returns_404(client: TestClient) -> None:
     resp = client.post(
         "/v1/analyses/inexistente/review",
-        json={"decision": "REJEITAR"},
+        json={"decision": "REJECT"},
     )
     assert resp.status_code == 404
 
