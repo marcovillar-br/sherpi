@@ -77,7 +77,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 > Demonstra firewall + extração + admissibilidade (MVP).
 
 1. **Login**: acessar `localhost:3000`, entrar com `gabinete@sherpi.local` / senha configurada.
-2. Enviar **`data/synthetic/clean_acao_cobranca.pdf`** → **Analisar**.
+2. Enviar **`data/synthetic/integra_acao_cobranca.pdf`** → **Analisar**.
 3. Mostrar lado a lado:
    - **Laudo de integridade**: verde "Documento íntegro".
    - **Resumo estruturado**: partes (CPF/CNPJ anonimizados no LLM), fato gerador, pedidos,
@@ -90,7 +90,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 
 ## 3. Sprint 1: o diferencial — bloqueio de prompt injection (2 min)
 
-1. Enviar **`data/synthetic/injection_texto_branco.pdf`** (comando oculto em texto branco).
+1. Enviar **`data/synthetic/injecao_texto_branco.pdf`** (comando oculto em texto branco).
 2. Mostrar a **tarja vermelha**: "Risco grave — bloqueado", anomalia, página, evidência.
 3. *Dois pontos fortes:*
    - **Determinístico e sem LLM** — encerra antes de qualquer chamada ao modelo (sem custo,
@@ -228,7 +228,7 @@ automatizada de sistemas processuais e UI funcional ponta a ponta. Arquitetura D
 ## Arquivos de apoio
 
 - **PDFs** (gerados por `uv run python -m synthetic.generate` em `backend/data/synthetic/`):
-  `clean_acao_cobranca.pdf`, `injection_texto_branco.pdf`,
+  `integra_acao_cobranca.pdf`, `injecao_texto_branco.pdf`,
   `trabalhista_pedido_liquido.pdf`, `trabalhista_pedido_iliquido.pdf`.
 - **Métricas ao vivo:** `uv run python -m evals.run`
 - **Testes:** `uv run pytest -q` (134 testes)

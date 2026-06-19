@@ -17,7 +17,7 @@ import sys
 from dataclasses import dataclass
 
 from sqlalchemy import StaticPool, create_engine
-from synthetic.builder import build_clean, build_corpus
+from synthetic.builder import build_corpus, build_integra
 from synthetic.tpu_seed import load_seed
 
 from sherpi.config import get_settings
@@ -82,7 +82,7 @@ async def eval_extraction(provider: LLMProvider) -> float:
     Não é F1 rigoroso (exige um conjunto anotado maior — Fase 4); é uma medida de
     campo honesta para acompanhar regressões com um LLM real.
     """
-    doc = PyMuPDFParser().parse(build_clean(), max_pages=300)
+    doc = PyMuPDFParser().parse(build_integra(), max_pages=300)
     summary = await ExtractPetition(provider).run(doc.visible_text())
     # Gold da peça sintética limpa (ver synthetic/builder.py).
     checks = {

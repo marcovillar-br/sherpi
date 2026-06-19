@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from synthetic.builder import build_clean, build_white_on_white
+from synthetic.builder import build_injecao, build_integra
 
 from sherpi.application.analyze_petition import AnalyzePetition
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
@@ -37,7 +37,7 @@ def _orchestrator(fake: FakeProvider) -> AnalyzePetition:
 
 async def test_clean_petition_runs_full_pipeline() -> None:
     fake = FakeProvider(_SUMMARY)
-    result = await _orchestrator(fake).run(build_clean(), max_pages=300)
+    result = await _orchestrator(fake).run(build_integra(), max_pages=300)
     assert result.forensics.verdict is RiskVerdict.PASS
     assert result.summary is not None
     assert result.admissibility is not None
@@ -46,7 +46,7 @@ async def test_clean_petition_runs_full_pipeline() -> None:
 
 async def test_injection_blocks_before_llm() -> None:
     fake = FakeProvider(_SUMMARY)
-    result = await _orchestrator(fake).run(build_white_on_white(), max_pages=300)
+    result = await _orchestrator(fake).run(build_injecao(), max_pages=300)
     assert result.blocked is True
     assert result.summary is None and result.admissibility is None
     assert fake.calls == []  # NENHUMA chamada de LLM no caminho bloqueado
@@ -66,7 +66,7 @@ async def test_anonymizer_masks_pii_before_llm_but_admissibility_uses_original()
     orchestrator = AnalyzePetition(
         PyMuPDFParser(), ExtractPetition(fake), anonymizer=RegexAnonymizer()
     )
-    result = await orchestrator.run(build_clean(), max_pages=300)
+    result = await orchestrator.run(build_integra(), max_pages=300)
 
     # O texto enviado ao LLM NÃO contém o CPF bruto (mascarado).
     user_msg = next(m.content for m in fake.calls[0] if m.role == "user")

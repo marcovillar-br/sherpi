@@ -1,13 +1,13 @@
 """Testes de integração do firewall, dirigidos pela massa de cenários.
 
-Cada cenário do catálogo sintético (clean/defect/injection) é exercitado e o
-veredito do firewall é comparado ao *ground truth* (`expected_verdict`).
+Cada cenário do catálogo sintético (integra/vicio/injecao/trabalhista) é exercitado
+e o veredito do firewall é comparado ao *ground truth* (`expected_verdict`).
 """
 
 from __future__ import annotations
 
 import pytest
-from synthetic.builder import SyntheticPetition, build_clean, build_corpus
+from synthetic.builder import SyntheticPetition, build_corpus, build_integra
 
 from sherpi.contexts.document_integrity.application.analyze import AnalyzeDocumentIntegrity
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
@@ -36,7 +36,7 @@ def test_firewall_verdict_matches_scenario(
 
 def test_corpus_cobre_categorias_variadas() -> None:
     categorias = {p.category for p in _CORPUS}
-    assert categorias == {"clean", "defect", "injection", "trabalhista"}
+    assert categorias == {"integra", "vicio", "injecao", "trabalhista"}
     assert sum(p.is_malicious for p in _CORPUS) >= 4  # ao menos os 4 vetores de injeção
 
 
@@ -52,4 +52,4 @@ def test_empty_upload_is_rejected(firewall: AnalyzeDocumentIntegrity) -> None:
 
 def test_page_limit_is_enforced(firewall: AnalyzeDocumentIntegrity) -> None:
     with pytest.raises(UntrustedDocumentError):
-        firewall.run(build_clean(), max_pages=0)
+        firewall.run(build_integra(), max_pages=0)
