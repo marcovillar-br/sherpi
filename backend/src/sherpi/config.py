@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     # --- LLM (port + adapter) ---
     llm_backend: LLMBackend = "gemini"
-    llm_model: str = "gemini-2.0-flash"
+    llm_model: str = "gemini-2.5-flash"
     llm_api_key: str | None = None
     llm_base_url: str | None = None  # usado por openai_compat (Maritaca/OpenAI/Ollama)
     llm_timeout_seconds: float = 30.0
