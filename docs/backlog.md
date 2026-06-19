@@ -4,8 +4,8 @@ description: "Backlog do Produto (épicos e histórias, visão de futuro) e Spri
 doc_type: backlog
 project: SHERPI
 status: approved
-version: 1.0
-updated: 2026-06-18
+version: 1.1
+updated: 2026-06-19
 language: pt-BR
 tags: [backlog, epicos, historias-de-usuario, sprint, estimativas]
 ---
@@ -159,7 +159,7 @@ concluídas; Sprints 3–6 (Fase 4) planejadas.
 | EP5 | `ClassifyTpu` + `SuggestTpu` (top-3 com confiança) + ligação no orquestrador | 5 |
 | EP5 | Eval: acurácia top-1/top-3 sobre o seed (honesta) | 3 |
 | EP5 | UI: top-3 sugestões com confiança e exemplos-âncora | 3 |
-| **Total Sprint 4** | | **21** |
+| **Total Sprint 5** | | **21** |
 
 ### Sprint 6 — Produção (observabilidade, LGPD pleno, deploy)
 
@@ -170,7 +170,7 @@ concluídas; Sprints 3–6 (Fase 4) planejadas.
 | EP9 | LGPD: NER de nomes (Presidio/spaCy) + anonimização reversível | 5 |
 | EP9 | Retenção/eliminação de PDFs/análises (direito ao esquecimento) | 3 |
 | EP9 | Containerização completa (app+db) + CI/CD com deploy + secrets manager + TLS | 5 |
-| **Total Sprint 5** | | **19** |
+| **Total Sprint 6** | | **19** |
 
 ### Sprint 7 — Integração PJe/E-Proc
 
@@ -178,7 +178,7 @@ concluídas; Sprints 3–6 (Fase 4) planejadas.
 |---|---|---|
 | EP8 | Bounded context de integração: adapter PJe/E-Proc (sandbox) | 8 |
 | EP8 | Ingestão em lote + execução assíncrona/fila | 5 |
-| **Total Sprint 6** | | **13** |
+| **Total Sprint 7** | | **13** |
 
 > As estimativas serão recalibradas em cada *Sprint Planning* conforme a capacidade real da equipe e
 > o framework de Design Sprint.

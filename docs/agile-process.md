@@ -4,8 +4,8 @@ description: "Papéis (8 integrantes), Design Sprint, Kanban, cerimônias e retr
 doc_type: process
 project: SHERPI
 status: approved
-version: 1.1
-updated: 2026-06-18
+version: 1.2
+updated: 2026-06-19
 language: pt-BR
 tags: [agil, scrum, kanban, design-sprint, papeis, processo]
 ---
@@ -72,13 +72,13 @@ Guia. A EAP está em [`wbs.md`](wbs.md). Resumo abaixo.
 
 ### 3.1 Metas das Sprints
 
-MVP (1–2) entregue; Fase 4 (3–6) planejada por importância/ganho. Tasks em [`backlog.md`](backlog.md).
+MVP (1–2) e Sprint 3 (rito-aware) entregues; Fase 4 restante (4–7) planejada por importância/ganho. Tasks em [`backlog.md`](backlog.md).
 
 | Sprint | Meta | Épicos | Status |
 |---|---|---|---|
 | **1** | Fundações + firewall + extração estruturada | EP1, EP3, EP2 | ✅ |
 | **2** | Admissibilidade + orquestração + persistência + UI mínima | EP2, EP3, EP4 | ✅ |
-| **3** | **Domínio Trabalhista (CLT 840) + rito-aware** (foco do grupo) | EP10 | planejada |
+| **3** | **Domínio Trabalhista (CLT 840) + rito-aware** (foco do grupo) | EP10 | ✅ |
 | **4** | Confiança & Conformidade: identidade (JWT) + revisão/auditoria | EP6, EP7 | planejada |
 | **5** | Classificação TPU por ramo (JurisBERT + k-NN/pgvector) | EP5 | planejada |
 | **6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | EP9 | planejada |
