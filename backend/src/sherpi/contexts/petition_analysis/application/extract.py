@@ -52,9 +52,7 @@ class ExtractPetition:
             ChatMessage(role="system", content=EXTRACTION_SYSTEM_PROMPT),
             ChatMessage(role="user", content=f"<peticao>\n{prepared}\n</peticao>"),
         ]
-        return await self._llm.complete(
-            messages, PetitionSummary, temperature=self._temperature
-        )
+        return await self._llm.complete(messages, PetitionSummary, temperature=self._temperature)
 
     def _prepare(self, text: str) -> str:
         """Trunca textos muito longos (petições de 100+ páginas) ao orçamento.
