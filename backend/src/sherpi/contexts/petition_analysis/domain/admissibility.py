@@ -34,13 +34,16 @@ class MetodoCheck(StrEnum):
 
 
 class Requisito(StrEnum):
-    PARTES = "partes"
-    QUALIFICACAO = "qualificacao"
-    FATOS = "fatos"
-    FUNDAMENTACAO = "fundamentacao"
-    PEDIDOS = "pedidos"
-    VALOR_CAUSA = "valor_causa"
-    DOCUMENTOS = "documentos"
+    JUIZO = "juizo"  # art. 319, I
+    PARTES = "partes"  # art. 319, II
+    QUALIFICACAO = "qualificacao"  # art. 319, II
+    FATOS = "fatos"  # art. 319, III
+    FUNDAMENTACAO = "fundamentacao"  # art. 319, III
+    PEDIDOS = "pedidos"  # art. 319, IV
+    VALOR_CAUSA = "valor_causa"  # art. 319, V
+    PROVAS = "provas"  # art. 319, VI
+    AUDIENCIA = "audiencia"  # art. 319, VII
+    DOCUMENTOS = "documentos"  # art. 320 (procuração etc.)
 
 
 # Requisitos essenciais cuja ausência exige emenda (art. 321) → VERMELHO.
@@ -138,12 +141,15 @@ class CheckAdmissibility:
         """
         return AdmissibilityReport.from_items(
             [
+                self._check_juizo(summary),
                 self._check_partes(summary),
                 self._check_qualificacao(summary, raw_text),
                 self._check_texto(Requisito.FATOS, summary.fato_gerador),
                 self._check_texto(Requisito.FUNDAMENTACAO, summary.fundamentacao),
                 self._check_pedidos(summary),
                 self._check_valor_causa(summary),
+                self._check_provas(summary),
+                self._check_audiencia(summary),
                 self._check_documentos(summary),
             ]
         )
@@ -209,6 +215,50 @@ class CheckAdmissibility:
             presente,
             evid=valor.formatted if valor else s.valor_causa,
             detalhe="Valor da causa válido." if presente else "Valor da causa ausente/ilegível.",
+        )
+
+    @staticmethod
+    def _sem(req: Requisito, presente: bool, evid: str | None, detalhe: str) -> ChecklistItem:
+        return ChecklistItem(
+            requisito=req,
+            presente=presente,
+            metodo=MetodoCheck.SEMANTICO,
+            evidencia=evid,
+            detalhe=detalhe,
+        )
+
+    def _check_juizo(self, s: PetitionSummary) -> ChecklistItem:
+        presente = bool(s.juizo and s.juizo.strip())
+        return self._sem(
+            Requisito.JUIZO,
+            presente,
+            evid=s.juizo,
+            detalhe="Endereçamento ao juízo presente."
+            if presente
+            else "Sem endereçamento (art. 319, I).",
+        )
+
+    def _check_provas(self, s: PetitionSummary) -> ChecklistItem:
+        return self._sem(
+            Requisito.PROVAS,
+            s.requer_provas,
+            evid=None,
+            detalhe="Indica provas a produzir."
+            if s.requer_provas
+            else "Não indica provas (art. 319, VI).",
+        )
+
+    def _check_audiencia(self, s: PetitionSummary) -> ChecklistItem:
+        presente = s.opcao_audiencia is not None
+        return self._sem(
+            Requisito.AUDIENCIA,
+            presente,
+            evid=("opta por audiência" if s.opcao_audiencia else "dispensa audiência")
+            if presente
+            else None,
+            detalhe="Manifestou opção sobre audiência."
+            if presente
+            else "Omisso quanto à audiência (art. 319, VII).",
         )
 
     def _check_documentos(self, s: PetitionSummary) -> ChecklistItem:

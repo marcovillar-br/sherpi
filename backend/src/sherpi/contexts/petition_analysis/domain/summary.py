@@ -43,17 +43,29 @@ class Pedido(BaseModel):
 
 
 class PetitionSummary(BaseModel):
-    """Sumário executivo estruturado da petição inicial."""
+    """Sumário executivo estruturado da petição inicial (art. 319 do CPC)."""
 
+    juizo: str | None = Field(
+        default=None, description="Juízo a que é dirigida / endereçamento (art. 319, I)"
+    )
     partes: list[Parte] = Field(default_factory=list)
-    fato_gerador: str = Field(description="Síntese objetiva dos fatos em um parágrafo")
+    fato_gerador: str = Field(
+        description="Síntese objetiva dos fatos em um parágrafo (art. 319, III)"
+    )
     fundamentacao: str = Field(
-        description="Fundamentação jurídica invocada, sem cópia de jurisprudência"
+        description="Fundamentação jurídica invocada, sem cópia de jurisprudência (art. 319, III)"
     )
     pedidos: list[Pedido] = Field(default_factory=list)
     tem_liminar: bool = Field(description="Há pedido de tutela de urgência/liminar?")
     valor_causa: str | None = Field(
-        default=None, description="Valor da causa como texto (ex.: 'R$ 15.000,00')"
+        default=None, description="Valor da causa como texto (ex.: 'R$ 15.000,00') (art. 319, V)"
+    )
+    requer_provas: bool = Field(
+        default=False, description="O autor indica/protesta provar os fatos? (art. 319, VI)"
+    )
+    opcao_audiencia: bool | None = Field(
+        default=None,
+        description="Manifestou opção por audiência de conciliação/mediação? (art. 319, VII)",
     )
     documentos_mencionados: list[str] = Field(
         default_factory=list,

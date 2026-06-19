@@ -25,6 +25,7 @@ from sherpi.interfaces.api.dependencies import get_orchestrator, get_repository
 from sherpi.interfaces.api.main import create_app
 
 _SUMMARY = PetitionSummary(
+    juizo="Vara Cível de São Paulo",
     partes=[
         Parte(nome="Fulano", documento="529.982.247-25", polo=Polo.ATIVO),
         Parte(nome="Empresa", documento="11.222.333/0001-81", polo=Polo.PASSIVO),
@@ -34,6 +35,8 @@ _SUMMARY = PetitionSummary(
     pedidos=[Pedido(descricao="Pagamento")],
     tem_liminar=False,
     valor_causa="R$ 15.000,00",
+    requer_provas=True,
+    opcao_audiencia=True,
     documentos_mencionados=["procuração"],
 )
 

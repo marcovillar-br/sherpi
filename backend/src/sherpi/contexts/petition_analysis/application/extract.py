@@ -26,7 +26,10 @@ registre o embasamento jurídico invocado, sem copiar ementas de jurisprudência
 4. Marque tem_liminar=true se houver qualquer pedido de tutela de urgência/liminar.
 5. Em documentos_mencionados, liste os documentos citados ou anexados (ex.: \
 "procuração", "comprovante de residência", "contrato"), em minúsculas.
-6. Responda exclusivamente no formato estruturado solicitado."""
+6. Extraia também (art. 319 do CPC): juizo (o endereçamento/juízo a que é dirigida, inc. I); \
+requer_provas=true se o autor indicar/protestar provar os fatos (inc. VI); opcao_audiencia=true/false \
+conforme manifeste opção por audiência de conciliação/mediação, ou nulo se omisso (inc. VII).
+7. Responda exclusivamente no formato estruturado solicitado."""
 
 # Orçamento de caracteres de entrada (chunking-lite / guarda de custo).
 DEFAULT_MAX_INPUT_CHARS = 600_000

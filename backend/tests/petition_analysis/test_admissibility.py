@@ -22,6 +22,7 @@ from sherpi.contexts.petition_analysis.domain.summary import (
 
 def _summary(**overrides: object) -> PetitionSummary:
     base = {
+        "juizo": "Vara Cível de São Paulo",
         "partes": [
             Parte(nome="Autor", documento="529.982.247-25", polo=Polo.ATIVO),
             Parte(nome="Ré Ltda", documento="11.222.333/0001-81", polo=Polo.PASSIVO),
@@ -31,6 +32,8 @@ def _summary(**overrides: object) -> PetitionSummary:
         "pedidos": [Pedido(descricao="Pagamento")],
         "tem_liminar": False,
         "valor_causa": "R$ 15.000,00",
+        "requer_provas": True,
+        "opcao_audiencia": True,
         "documentos_mencionados": ["procuração", "contrato"],
     }
     base.update(overrides)
@@ -56,6 +59,23 @@ def test_missing_nonessential_is_yellow() -> None:
     report = CheckAdmissibility().run(_summary(documentos_mencionados=["contrato"]))
     assert report.semaforo is Semaforo.AMARELO
     assert report.requer_emenda is False
+
+
+def test_juizo_provas_audiencia_sao_verificados() -> None:
+    report = CheckAdmissibility().run(_summary())
+    for req in (Requisito.JUIZO, Requisito.PROVAS, Requisito.AUDIENCIA):
+        item = next(i for i in report.itens if i.requisito is req)
+        assert item.presente is True
+
+
+def test_missing_juizo_provas_audiencia_e_amarelo_sem_emenda() -> None:
+    report = CheckAdmissibility().run(
+        _summary(juizo=None, requer_provas=False, opcao_audiencia=None)
+    )
+    assert report.semaforo is Semaforo.AMARELO
+    assert report.requer_emenda is False
+    ausentes = {i.requisito for i in report.itens if not i.presente}
+    assert {Requisito.JUIZO, Requisito.PROVAS, Requisito.AUDIENCIA} <= ausentes
 
 
 def test_invalid_cpf_fails_qualificacao() -> None:
