@@ -4,8 +4,8 @@ description: "Visão, problema, personas, histórias de usuário, escopo e métr
 doc_type: prd
 project: SHERPI
 status: approved
-version: 1.1
-updated: 2026-06-18
+version: 1.2
+updated: 2026-06-19
 language: pt-BR
 tags: [produto, requisitos, personas, metricas]
 ---
@@ -17,19 +17,19 @@ tags: [produto, requisitos, personas, metricas]
 | Campo | Valor |
 |---|---|
 | Documento | Documento de Requisitos de Produto (PRD) |
-| Versão | 1.1 |
+| Versão | 1.2 |
 | Status | Aprovado para MVP |
-| Natureza | MVP acadêmico (pós-graduação) — entrega em 2 sprints (2 semanas) + roadmap de produção |
-| Última atualização | 2026-06-18 |
+| Natureza | MVP acadêmico (pós-graduação) — entrega em 2 sprints (2 semanas) + Sprint 3 (multi-domínio) + roadmap de produção |
+| Última atualização | 2026-06-19 |
 
 ---
 
 ## 1. Visão e proposta de valor
 
-O SHERPI é um sistema de apoio à triagem de petições iniciais cíveis para gabinetes e secretarias do Judiciário brasileiro. Ele recebe o PDF de uma petição inicial e devolve, em segundos, três insumos para a decisão humana:
+O SHERPI é um sistema de apoio à triagem de petições iniciais para gabinetes e secretarias do Judiciário brasileiro. A arquitetura é **multi-domínio (rito-aware)**: hoje atende os ritos **cível** e **trabalhista**, com novos ritos (previdenciário, fiscal, família) entrando como encaixes incrementais (ver [ADR-0008](adr/0008-multi-domain-architecture.md)). Ele recebe o PDF de uma petição inicial e devolve, em segundos, três insumos para a decisão humana:
 
 1. Um **laudo de integridade do documento** que detecta tentativas de *prompt injection* (comandos ocultos no PDF dirigidos a sistemas de IA) **antes** de qualquer envio do texto a um modelo de linguagem.
-2. Um **resumo estruturado** da petição (partes, fato gerador, fundamentação, pedidos, pedido de liminar, valor da causa) acompanhado de um **checklist de admissibilidade** baseado nos arts. 319 e 321 do CPC.
+2. Um **resumo estruturado** da petição (partes, fato gerador, fundamentação, pedidos, pedido de liminar, valor da causa) acompanhado de um **checklist de admissibilidade** adaptado ao **rito**: arts. 319 e 321 do CPC no cível e, no trabalhista, a exigência de **pedido líquido** do art. 840 §1º da CLT.
 3. Uma **sugestão de classificação TPU** (Tabelas Processuais Unificadas do CNJ): as três classes/assuntos mais prováveis, com grau de confiança.
 
 A proposta de valor é **devolver tempo cognitivo** ao magistrado e à sua equipe: reduzir o tempo de leitura/triagem de peças prolixas, antecipar a necessidade de emenda à inicial e padronizar a autuação — sempre como **apoio**, nunca como decisão automática. O diferencial técnico do produto é o **firewall anti prompt-injection**: um controle determinístico que ataca uma ameaça concreta e recente, ainda sem solução de mercado consolidada.
@@ -85,7 +85,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 **Extração e admissibilidade**
 
 - Como **assessor**, quero um resumo estruturado da petição (partes, fato gerador, fundamentação, pedidos, valor da causa), para não precisar ler dezenas de páginas de citações já conhecidas.
-- Como **assessor**, quero um checklist de admissibilidade (art. 319/321 do CPC) com semáforo, para decidir rapidamente se é caso de emenda à inicial.
+- Como **assessor**, quero um checklist de admissibilidade conforme o **rito** (art. 319/321 do CPC no cível; art. 840 §1º da CLT no trabalhista) com semáforo, para decidir rapidamente se é caso de emenda à inicial.
 - Como **magistrado**, quero um alerta destacado quando houver pedido de tutela de urgência/liminar, para priorizar o feito e evitar perecimento de direito.
 
 **Classificação**
@@ -125,6 +125,8 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 - Execução assíncrona/fila para escala; containerização completa; deploy gerenciado.
 - Storage de blobs em S3/MinIO; criptografia em repouso; política de retenção/DPIA.
 
+> **Entregue na Sprint 3 (pós-MVP):** a arquitetura **rito-aware** ([ADR-0008](adr/0008-multi-domain-architecture.md)) e o **domínio trabalhista** (CLT art. 840 §1º — pedido líquido) estenderam a admissibilidade para além do cível, **sem alterar** firewall nem extração. O parâmetro `rito` em `POST /v1/analyze` seleciona a estratégia (default cível). Novos ritos entram como encaixes (ver [`roadmap.md`](roadmap.md)).
+
 ---
 
 ## 6. Não-objetivos
@@ -146,7 +148,7 @@ As métricas abaixo são **metas a medir** no eval harness sobre o dataset sint�
 | Firewall | Precision / Recall na detecção de injeções plantadas (por vetor) | Recall alto nos vetores cobertos; falsos positivos baixos |
 | Firewall | Tempo de análise por documento | Ordem de milissegundos a poucos segundos, sem chamada LLM |
 | Extração | F1 por campo (partes, pedidos, valor da causa, flag de liminar) | Reportado por campo; sem alucinação de campos ausentes |
-| Admissibilidade | Acurácia do checklist vs. ground truth (art. 319) | Validadores determinísticos: exatos; extração semântica: medida |
+| Admissibilidade | Acurácia do checklist vs. ground truth, por rito (CPC 319/321; CLT 840 §1º) | Validadores determinísticos: exatos; extração semântica: medida |
 | TPU | Acurácia top-1 e top-3 sobre o seed | Reportada honestamente, **sem prometer número** |
 | Produto | Tempo de triagem humano com vs. sem SHERPI (teste comparativo) | Redução mensurável do tempo de leitura/extração |
 
