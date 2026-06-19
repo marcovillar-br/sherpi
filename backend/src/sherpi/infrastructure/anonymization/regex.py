@@ -40,3 +40,29 @@ class NoOpAnonymizer:
 
     def anonymize(self, text: str) -> str:
         return text
+
+
+class MappedRegexAnonymizer:
+    """RegexAnonymizer com mapeamento reversível (LGPD — anonimização rastreável).
+
+    Numera cada ocorrência: [CPF_1], [CPF_2]... permitindo reverter a substituição
+    dentro da mesma sessão se necessário (ex.: para exibição ao magistrado autenticado).
+    """
+
+    def anonymize(self, text: str) -> str:
+        return self.anonymize_mapped(text)[0]
+
+    def anonymize_mapped(self, text: str) -> tuple[str, dict[str, str]]:
+        """Retorna (texto_anonimizado, mapeamento placeholder→valor_original)."""
+        mapping: dict[str, str] = {}
+        counters: dict[str, int] = {}
+        result = text
+        for placeholder_base, pattern in _PATTERNS:
+            base = placeholder_base.strip("[]")
+            # reversed para manter offsets válidos ao substituir da direita para a esquerda
+            for match in reversed(list(pattern.finditer(result))):
+                counters[base] = counters.get(base, 0) + 1
+                key = f"[{base}_{counters[base]}]"
+                mapping[key] = match.group()
+                result = result[: match.start()] + key + result[match.end() :]
+        return result, mapping

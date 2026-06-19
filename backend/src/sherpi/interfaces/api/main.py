@@ -14,10 +14,20 @@ from __future__ import annotations
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, FastAPI, File, Form, HTTPException, Response, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -31,6 +41,7 @@ from sherpi.contexts.identity.infrastructure.repository import SqlUserRepository
 from sherpi.contexts.review.application.record_review import RecordReview
 from sherpi.contexts.review.domain.events import AuditEvent, ReviewDecision
 from sherpi.contexts.review.domain.ports import AuditRepository
+from sherpi.infrastructure.logging import configure_logging, get_logger
 from sherpi.interfaces.api.dependencies import (
     get_audit_repository,
     get_authenticate,
@@ -39,6 +50,7 @@ from sherpi.interfaces.api.dependencies import (
     get_record_review,
     get_repository,
 )
+from sherpi.interfaces.api.middleware import CorrelationIdMiddleware
 from sherpi.shared_kernel.errors import (
     AuthenticationError,
     LLMProviderError,
@@ -83,6 +95,13 @@ def _seed_user(settings: Settings) -> None:
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     cfg = settings or get_settings()
+    configure_logging(log_level=cfg.log_level, json_logs=cfg.env == "prod")
+    logger = get_logger("sherpi.api")
+
+    if cfg.sentry_dsn:
+        import sentry_sdk
+
+        sentry_sdk.init(dsn=cfg.sentry_dsn, traces_sample_rate=0.1)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -90,6 +109,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         yield
 
     app = FastAPI(title="SHERPI API", version="0.1.0", lifespan=lifespan)
+    app.add_middleware(CorrelationIdMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cfg.cors_origins,
@@ -136,6 +156,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         file: Annotated[UploadFile, File(description="PDF da petição inicial")],
         rito: Annotated[Rito, Form(description="Rito processual (default cível)")] = Rito.CIVEL,
     ) -> AnalyzeResponse:
+        logger.info("analyze.start", filename=file.filename, rito=rito, user=current_user.email)
         content = await file.read()
         max_bytes = cfg.max_upload_mb * 1024 * 1024
         if len(content) > max_bytes:
@@ -154,6 +175,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             result=result,
         )
         repository.save(record)
+        logger.info("analyze.done", analysis_id=record.id, verdict=result.forensics.verdict)
         return AnalyzeResponse(id=record.id, result=result)
 
     @v1.get("/analyses/{analysis_id}", response_model=AnalyzeResponse)
@@ -186,6 +208,29 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         audit_repo: Annotated[AuditRepository, Depends(get_audit_repository)],
     ) -> list[AuditEvent]:
         return audit_repo.list_by_analysis(analysis_id)
+
+    @v1.delete("/analyses/{analysis_id}", status_code=204)
+    def delete_analysis(
+        analysis_id: str,
+        repository: Annotated[AnalysisRepository, Depends(get_repository)],
+        current_user: Annotated[User, Depends(get_current_user)],
+    ) -> None:
+        if not repository.delete(analysis_id):
+            raise HTTPException(status_code=404, detail="Análise não encontrada.")
+        logger.info("analysis.deleted", analysis_id=analysis_id, user=current_user.email)
+
+    @v1.delete("/analyses", response_model=dict[str, int])
+    def delete_old_analyses(
+        repository: Annotated[AnalysisRepository, Depends(get_repository)],
+        current_user: Annotated[User, Depends(get_current_user)],
+        older_than_days: Annotated[int, Query(ge=0)] = cfg.retention_days,
+    ) -> dict[str, int]:
+        cutoff = datetime.now(UTC) - timedelta(days=older_than_days)
+        ids = repository.list_older_than(cutoff)
+        for analysis_id in ids:
+            repository.delete(analysis_id)
+        logger.info("analyses.bulk_delete", count=len(ids), older_than_days=older_than_days)
+        return {"deleted": len(ids)}
 
     app.include_router(v1)
     return app

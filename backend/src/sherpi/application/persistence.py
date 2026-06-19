@@ -34,6 +34,14 @@ class AnalysisRepository(Protocol):
 
     def get(self, analysis_id: str) -> AnalysisRecord | None: ...
 
+    def delete(self, analysis_id: str) -> bool:
+        """Remove a análise. Retorna True se existia."""
+        ...
+
+    def list_older_than(self, cutoff: datetime) -> list[str]:
+        """IDs de análises criadas antes de `cutoff` (LGPD — retenção)."""
+        ...
+
     def ping(self) -> bool:
         """True se o armazenamento está acessível (usado por /ready)."""
         ...

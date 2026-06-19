@@ -66,6 +66,12 @@ class Settings(BaseSettings):
     seed_user_email: str = "gabinete@sherpi.local"
     seed_user_password: str | None = None
 
+    # --- Observabilidade ---
+    sentry_dsn: str | None = None  # None = Sentry desabilitado
+
+    # --- Retenção (LGPD — direito ao esquecimento) ---
+    retention_days: int = 90  # análises mais antigas são elegíveis para exclusão
+
     # --- CORS (frontend Next.js) ---
     cors_origins: list[str] = ["http://localhost:3000"]
 
