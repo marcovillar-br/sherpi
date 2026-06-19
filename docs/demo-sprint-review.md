@@ -4,8 +4,8 @@ description: "Runbook passo a passo para apresentar o MVP do SHERPI ao professor
 doc_type: runbook
 project: SHERPI
 status: approved
-version: 1.0
-updated: 2026-06-18
+version: 1.1
+updated: 2026-06-19
 language: pt-BR
 tags: [demo, sprint-review, runbook, apresentacao]
 ---
@@ -52,7 +52,7 @@ cd ../frontend && npm run dev                                   # UI em http://l
 
 ## 2. Caminho feliz — petição limpa (2 min)
 
-1. Na UI, enviar **`data/synthetic/limpa.pdf`** → clicar **Analisar**.
+1. Na UI, enviar **`data/synthetic/clean_acao_cobranca.pdf`** → clicar **Analisar**.
 2. Mostrar, lado a lado:
    - **Laudo de integridade**: verde "Documento íntegro".
    - **Resumo estruturado**: partes (com CPF/CNPJ), fato gerador sintetizado, fundamentação, pedidos,
@@ -66,7 +66,7 @@ cd ../frontend && npm run dev                                   # UI em http://l
 
 ## 3. O diferencial — bloqueio de prompt injection (2 min)
 
-1. Enviar **`data/synthetic/injecao_branco_no_branco.pdf`** (tem comando oculto em texto branco).
+1. Enviar **`data/synthetic/injection_texto_branco.pdf`** (tem comando oculto em texto branco).
 2. Mostrar a **tarja vermelha**: "Risco grave — bloqueado", com as anomalias (branco-no-branco +
    comando à IA), página e o trecho-evidência.
 3. *Falar os 2 pontos fortes:*
@@ -74,7 +74,24 @@ cd ../frontend && npm run dev                                   # UI em http://l
      gasta token e não alimenta a IA com conteúdo manipulado).
    - Subsidia o juiz para **multa por litigância de má-fé** (torna visível o que era invisível).
 
-## 4. Princípios de engenharia/IA (1,5 min — pode usar o Swagger e o terminal)
+## 4. Multi-domínio — rito trabalhista (1,5 min — Sprint 3)
+
+*Mensagem:* "a mesma base atende vários ramos; o que muda é a regra de admissibilidade
+por rito (arquitetura rito-aware, ADR-0008). O trabalhista é o primeiro encaixe."
+
+1. Enviar **`data/synthetic/trabalhista_pedido_iliquido.pdf`** selecionando o rito
+   **Trabalhista** → resultado **VERMELHO**: o checklist acusa **pedido ilíquido**
+   (CLT art. 840 §1º exige valor por pedido), listando os pedidos sem valor como evidência.
+2. Enviar **`data/synthetic/trabalhista_pedido_liquido.pdf`** (mesmo rito) → **VERDE**:
+   cada pedido vem com valor; requisito de pedido líquido atendido.
+3. *Falar o ponto arquitetural:* "a mesma petição enviada como **cível** não exigiria
+   pedido líquido — a regra é plugável por rito, sem reescrever firewall nem extração.
+   Previdenciário, fiscal e família entram como novos encaixes."
+
+> Pela API (Swagger), o rito é o campo `rito` do `POST /v1/analyze` (default cível;
+> valor inválido → 422).
+
+## 5. Princípios de engenharia/IA (1,5 min — pode usar o Swagger e o terminal)
 
 - **Agnóstico a LLM:** mostrar no `.env` que trocar `SHERPI_LLM_BACKEND`/`SHERPI_LLM_MODEL` troca o
   provedor sem tocar no código (port + adapter). Default Gemini Flash; Maritaca/OpenAI/Ollama plugáveis.
@@ -82,9 +99,9 @@ cd ../frontend && npm run dev                                   # UI em http://l
   validação de CPF/CNPJ roda no texto original (não degrada). Dados de teste são **sintéticos**.
 - **Qualidade (medida, não prometida):** no terminal, `uv run python -m evals.run` →
   firewall precision/recall=1.0 e acurácia de campo da extração.
-- **Rigor:** `uv run pytest` (57 testes) · CI verde (ruff/mypy/test/eval) · arquitetura **DDD + hexagonal**.
+- **Rigor:** `uv run pytest` (78 testes) · CI verde (ruff/mypy/test/eval) · arquitetura **DDD + hexagonal**.
 
-## 5. Processo ágil (1,5 min — abrir os docs)
+## 6. Processo ágil (1,5 min — abrir os docs)
 
 - **MVP em 2 sprints** entregue (firewall + extração + admissibilidade + UI + persistência).
 - Mostrar rapidamente: **PGP** ([`pmp.md`](pmp.md)), **EAP** ([`wbs.md`](wbs.md)), **Backlog**
@@ -93,7 +110,7 @@ cd ../frontend && npm run dev                                   # UI em http://l
 - **Visão de futuro (Fase 4):** TPU (classificação CNJ), autenticação, auditoria/human-in-the-loop
   completo, anonimização de nomes (NER), integração PJe.
 
-## 6. Encerramento (30s)
+## 7. Encerramento (30s)
 
 "Em 2 semanas entregamos um MVP funcional que ataca os três gargalos da triagem, com um diferencial
 sem similar no mercado — o firewall anti prompt-injection — e arquitetura pronta para produção."
@@ -104,12 +121,14 @@ sem similar no mercado — o firewall anti prompt-injection — e arquitetura pr
 
 | Problema | Contorno |
 |---|---|
-| Sem internet / Gemini fora | A **demo do firewall** (passo 3) é 100% offline e determinística — priorize-a. Para o resumo, usar `SHERPI_LLM_BACKEND=fake` não serve em produção; explique que a extração depende de rede. |
+| Sem internet / Gemini fora | A **demo do firewall** (passo 3) é 100% offline e determinística — priorize-a. O resumo (passo 2) e o **trabalhista** (passo 4) dependem da extração via LLM (rede); se cair, mostre o contraste líquido/ilíquido pelos testes (`uv run pytest -k trabalhista`). |
 | Docker indisponível | Usar o fallback **SQLite** (`SHERPI_DATABASE_URL=sqlite:///./sherpi.db`) — mesma camada de repositório. |
 | Frontend não sobe | Demonstrar pela API em `http://localhost:8000/docs` (Swagger): `POST /v1/analyze` com upload do PDF. |
 | Modelo Gemini indisponível | Listar modelos e ajustar `SHERPI_LLM_MODEL` (ex.: `gemini-2.5-flash`). |
 
 ## Arquivos de apoio
-- PDFs: `backend/data/synthetic/limpa.pdf` e `injecao_branco_no_branco.pdf` (gerados por `synthetic.generate`).
+- PDFs (gerados por `synthetic.generate` em `backend/data/synthetic/`):
+  `clean_acao_cobranca.pdf`, `injection_texto_branco.pdf`,
+  `trabalhista_pedido_liquido.pdf`, `trabalhista_pedido_iliquido.pdf`.
 - Métricas ao vivo: `uv run python -m evals.run`.
 - Contrato da API: [`tech-spec-sherpi.md`](tech-spec-sherpi.md) §8.
