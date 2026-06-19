@@ -14,8 +14,9 @@ Categorias de cenário (refletidas no nome do arquivo `<categoria>_<cenario>.pdf
 
 from __future__ import annotations
 
+import random
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import pymupdf
 
@@ -27,12 +28,77 @@ _MARGIN_X, _TOP, _LINE_H, _FONT = 56.0, 64.0, 15.0, 10.5
 _BOTTOM_LIMIT = 780.0
 
 
+# --- Geração de dados aleatórios (fictícios, sem PII real) -----------------------
+
+_NOMES = [
+    "Ana Paula Ferreira", "Bruno Costa Lima", "Carlos Eduardo Souza",
+    "Daniela Martins Rocha", "Eduardo Alves Pinto", "Fernanda Gomes Silva",
+    "Gustavo Pereira Nunes", "Helena Rodrigues Carvalho", "Igor Santos Mendes",
+    "Juliana Oliveira Borges",
+]
+_EMPRESAS = [
+    ("ALFA SERVIÇOS LTDA.", "22.333.444/0001-55"),
+    ("BETA COMÉRCIO S/A", "33.444.555/0001-66"),
+    ("GAMA TECNOLOGIA LTDA.", "44.555.666/0001-77"),
+    ("DELTA COMUNICAÇÕES S/A", "55.666.777/0001-88"),
+    ("EPSILON ENERGIA LTDA.", "66.777.888/0001-99"),
+]
+_CIDADES = ["São Paulo/SP", "Campinas/SP", "Belo Horizonte/MG", "Rio de Janeiro/RJ", "Curitiba/PR"]
+_VARAS = [
+    "1ª VARA CÍVEL DA COMARCA DE SÃO PAULO",
+    "3ª VARA CÍVEL DA COMARCA DE CAMPINAS",
+    "5ª VARA CÍVEL DA COMARCA DE BELO HORIZONTE",
+    "2ª VARA CÍVEL DA COMARCA DE CURITIBA",
+]
+
+
+def _cpf_valido(rng: random.Random) -> str:
+    digits = [rng.randint(0, 9) for _ in range(9)]
+    for j in range(2):
+        s = sum((10 + j - i) * digits[i] for i in range(9 + j))
+        d = (s * 10 % 11) % 10
+        digits.append(d)
+    return f"{digits[0]}{digits[1]}{digits[2]}.{digits[3]}{digits[4]}{digits[5]}.{digits[6]}{digits[7]}{digits[8]}-{digits[9]}{digits[10]}"
+
+
+@dataclass
+class _RandCtx:
+    """Contexto aleatório para um cenário — torna cada instância única."""
+
+    rng: random.Random = field(default_factory=random.Random)
+
+    def __post_init__(self) -> None:
+        self.nome = self.rng.choice(_NOMES)
+        self.cpf = _cpf_valido(self.rng)
+        empresa, cnpj = self.rng.choice(_EMPRESAS)
+        self.empresa = empresa
+        self.cnpj = cnpj
+        self.cidade = self.rng.choice(_CIDADES)
+        self.vara = self.rng.choice(_VARAS)
+        self.valor = self.rng.choice([5_000, 8_000, 12_000, 15_000, 20_000, 30_000, 50_000])
+        self.valor_str = f"R$ {self.valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        self.data = f"{self.rng.randint(1, 28):02d}/{self.rng.randint(1, 6):02d}/2026"
+
+
+_DEFAULT_CTX = _RandCtx(rng=random.Random(42))
+
+
 # --- Blocos reutilizáveis de petição (fictícios) ---------------------------------
 
 _ENDERECAMENTO = "EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO DA VARA CÍVEL"
 
 
-def _qualificacao(autor_cpf: str = "529.982.247-25") -> list[str]:
+def _qualificacao(
+    autor_cpf: str = "529.982.247-25", ctx: _RandCtx | None = None
+) -> list[str]:
+    if ctx:
+        return [
+            f"{ctx.nome}, brasileiro(a), solteiro(a), autônomo(a), inscrito(a) no CPF sob o nº {ctx.cpf},",
+            f"residente em {ctx.cidade}, e-mail contato@exemplo.com,",
+            "vem, por seu advogado (procuração anexa), propor a presente ação em face de",
+            f"{ctx.empresa}, pessoa jurídica inscrita no CNPJ sob o nº {ctx.cnpj},",
+            f"com sede em {ctx.cidade}, pelos fatos e fundamentos a seguir.",
+        ]
     return [
         f"FULANO DE TAL, brasileiro, solteiro, autônomo, inscrito no CPF sob o nº {autor_cpf},",
         "residente na Rua das Flores, nº 100, São Paulo/SP, CEP 01310-100, e-mail fulano@exemplo.com,",
@@ -50,20 +116,22 @@ def _conciliacao_provas() -> list[str]:
     ]
 
 
-def _body_cobranca() -> list[str]:
+def _body_cobranca(ctx: _RandCtx | None = None) -> list[str]:
+    v = ctx.valor_str if ctx else "R$ 15.000,00"
+    d = ctx.data if ctx else "10/01/2026"
     return [
         _ENDERECAMENTO,
         "",
         "AÇÃO DE COBRANÇA",
         "",
-        *_qualificacao(),
+        *_qualificacao(ctx=ctx),
         "",
-        "DOS FATOS: As partes celebraram contrato de prestação de serviços em 10/01/2026, no",
-        "valor de R$ 15.000,00. Prestados os serviços, a ré não efetuou o pagamento devido.",
+        f"DOS FATOS: As partes celebraram contrato de prestação de serviços em {d}, no",
+        f"valor de {v}. Prestados os serviços, a ré não efetuou o pagamento devido.",
         "DO DIREITO: Aplicam-se os arts. 319 e 320 do CPC e os arts. 389 e 397 do Código Civil.",
         "DOS PEDIDOS: a) a citação da ré; b) a procedência para condenar a ré ao pagamento de",
-        "R$ 15.000,00, acrescidos de juros e correção; c) a condenação em custas e honorários.",
-        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 15.000,00.",
+        f"{v}, acrescidos de juros e correção; c) a condenação em custas e honorários.",
+        f"DO VALOR DA CAUSA: Dá-se à causa o valor de {v}.",
         "",
         *_conciliacao_provas(),
     ]
@@ -245,6 +313,161 @@ def _body_trabalhista_pedido_iliquido() -> list[str]:
     ]
 
 
+def _body_recusa_conciliacao() -> list[str]:
+    # hearing_option=False: parte declara expressamente não ter interesse em conciliação.
+    return [
+        _ENDERECAMENTO,
+        "",
+        "AÇÃO DE COBRANÇA",
+        "",
+        *_qualificacao(),
+        "",
+        "DOS FATOS: As partes celebraram contrato de prestação de serviços em 15/02/2026, no",
+        "valor de R$ 8.000,00. Prestados os serviços integralmente, a ré recusou o pagamento.",
+        "DO DIREITO: Arts. 319 e 320 do CPC; arts. 389 e 397 do Código Civil.",
+        "DOS PEDIDOS: a) citação da ré; b) procedência para condenar a ré ao pagamento de",
+        "R$ 8.000,00, acrescidos de juros legais e correção monetária.",
+        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 8.000,00.",
+        "",
+        "Protesta provar o alegado por todos os meios em direito admitidos.",
+        "Declara NÃO ter interesse na realização de audiência de conciliação (art. 319, VII, do CPC),",
+        "ante a inequívoca resistência da ré ao cumprimento voluntário da obrigação.",
+        "Termos em que pede deferimento. São Paulo, 19 de junho de 2026. Advogado — OAB/SP 000.000.",
+    ]
+
+
+def _body_sem_interesse_provas() -> list[str]:
+    # requests_evidence=False: parte declara que não tem provas a produzir em audiência.
+    return [
+        _ENDERECAMENTO,
+        "",
+        "AÇÃO DECLARATÓRIA DE INEXIGIBILIDADE DE DÉBITO",
+        "",
+        *_qualificacao(),
+        "",
+        "DOS FATOS: A ré cobra indevidamente débito já prescrito (CC art. 206 §5º I), referente",
+        "a contrato encerrado em 2020. Não há controvérsia fática — toda a prova é documental.",
+        "DO DIREITO: Art. 206 §5º I do Código Civil; arts. 319 e 330 do CPC.",
+        "DOS PEDIDOS: a) citação da ré; b) procedência para declarar inexigível o débito cobrado.",
+        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 5.000,00.",
+        "",
+        "Declara que NÃO pretende produzir provas além das já acostadas, requerendo julgamento",
+        "antecipado da lide (art. 355, I, do CPC), pois a questão é exclusivamente de direito.",
+        "Manifesta interesse na realização de audiência de conciliação (art. 319, VII, do CPC).",
+        "Termos em que pede deferimento. São Paulo, 19 de junho de 2026. Advogado — OAB/SP 000.000.",
+    ]
+
+
+def _body_documentos_citados() -> list[str]:
+    # cited_documents populado: petição que menciona documentos específicos anexados.
+    return [
+        _ENDERECAMENTO,
+        "",
+        "AÇÃO DE RESCISÃO CONTRATUAL C/C RESTITUIÇÃO DE VALORES PAGOS",
+        "",
+        *_qualificacao(),
+        "",
+        "DOS FATOS: Conforme CONTRATO DE COMPRA E VENDA (doc. 1), firmado em 05/01/2026, a ré",
+        "deveria entregar o imóvel até 31/03/2026. Consoante NOTIFICAÇÃO EXTRAJUDICIAL (doc. 2)",
+        "enviada em 01/04/2026, o autor constituiu a ré em mora. As COMPROVANTES DE PAGAMENTO",
+        "(docs. 3 a 8) demonstram o total de R$ 50.000,00 já desembolsado. O LAUDO TÉCNICO (doc. 9)",
+        "atesta os vícios construtivos que motivam a rescisão.",
+        "DO DIREITO: Arts. 475 e 944 do Código Civil; arts. 319 e 320 do CPC.",
+        "DOS PEDIDOS: a) rescisão do contrato; b) devolução dos R$ 50.000,00 pagos;",
+        "c) indenização por danos morais de R$ 15.000,00.",
+        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 65.000,00.",
+        "",
+        *_conciliacao_provas(),
+    ]
+
+
+def _body_pedido_subsidiario() -> list[str]:
+    # ClaimType.SUBSIDIARY: pedido subsidiário (para o caso de não procedência do principal).
+    return [
+        _ENDERECAMENTO,
+        "",
+        "AÇÃO DE RESOLUÇÃO CONTRATUAL C/C INDENIZAÇÃO (COM PEDIDO SUBSIDIÁRIO)",
+        "",
+        *_qualificacao(),
+        "",
+        "DOS FATOS: A ré descumpriu o contrato de prestação de serviços firmado em 10/03/2026,",
+        "recusando-se a concluir os serviços contratados pelo valor de R$ 30.000,00.",
+        "DO DIREITO: Arts. 475, 389 e 927 do Código Civil; art. 319 do CPC.",
+        "DOS PEDIDOS PRINCIPAIS: a) resolução do contrato por inadimplemento da ré;",
+        "b) restituição integral dos R$ 30.000,00 pagos; c) indenização por danos materiais",
+        "complementares de R$ 5.000,00.",
+        "DOS PEDIDOS SUBSIDIÁRIOS (para o caso de não acolhimento dos pedidos principais):",
+        "a) condenação da ré ao cumprimento do contrato no prazo de 30 dias, sob pena de multa",
+        "diária de R$ 500,00; b) abatimento proporcional do preço (art. 442 do Código Civil).",
+        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 35.000,00.",
+        "",
+        *_conciliacao_provas(),
+    ]
+
+
+def _body_sem_qualificacao_reu() -> list[str]:
+    # Vício: réu sem qualificação completa — falta CNPJ e endereço.
+    return [
+        _ENDERECAMENTO,
+        "",
+        "AÇÃO DE COBRANÇA",
+        "",
+        "FULANO DE TAL, brasileiro, solteiro, autônomo, inscrito no CPF sob o nº 529.982.247-25,",
+        "residente na Rua das Flores, nº 100, São Paulo/SP, CEP 01310-100,",
+        "vem, por seu advogado, propor a presente ação em face de",
+        "EMPRESA ALFA (qualificação a ser completada em emenda).",
+        "",
+        "DOS FATOS: A ré deve ao autor a quantia de R$ 12.000,00 referente a serviços prestados.",
+        "DO DIREITO: Arts. 319 e 320 do CPC; arts. 389 e 397 do Código Civil.",
+        "DOS PEDIDOS: a) citação; b) condenação ao pagamento de R$ 12.000,00.",
+        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 12.000,00.",
+        "",
+        *_conciliacao_provas(),
+    ]
+
+
+def _body_sem_fundamentacao() -> list[str]:
+    # Vício: peça sem fundamento legal — falta a seção "DO DIREITO".
+    return [
+        _ENDERECAMENTO,
+        "",
+        "AÇÃO DE COBRANÇA",
+        "",
+        *_qualificacao(),
+        "",
+        "DOS FATOS: As partes celebraram contrato de prestação de serviços em 10/01/2026,",
+        "no valor de R$ 15.000,00. Prestados os serviços, a ré não efetuou o pagamento.",
+        "DOS PEDIDOS: a) a citação da ré; b) a procedência para condenar a ré ao pagamento de",
+        "R$ 15.000,00, acrescidos de juros e correção; c) a condenação em custas e honorários.",
+        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 15.000,00.",
+        "",
+        *_conciliacao_provas(),
+    ]
+
+
+def _body_trabalhista_misto() -> list[str]:
+    # Misto: alguns pedidos com valor, outros genéricos → parcialmente ilíquido → VERMELHO.
+    return [
+        _ENDERECAMENTO_TRABALHISTA,
+        "",
+        "RECLAMAÇÃO TRABALHISTA — RITO ORDINÁRIO",
+        "",
+        *_qualificacao_trabalhista(),
+        "",
+        "DOS FATOS: O reclamante foi dispensado sem justa causa após 2 anos de serviços, sem",
+        "receber as verbas rescisórias, tendo ainda prestado horas extras não remuneradas.",
+        "DO DIREITO: CLT, arts. 477, 487, 59 e 840 §1º.",
+        "DOS PEDIDOS:",
+        "a) aviso prévio indenizado, no valor de R$ 2.500,00;",
+        "b) 13º salário proporcional, no valor de R$ 833,00;",
+        "c) horas extras e reflexos — valores a apurar em liquidação;",
+        "d) multa do art. 477 da CLT — a calcular conforme apuração.",
+        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 20.000,00.",
+        "",
+        *_conciliacao_provas_trabalhista(),
+    ]
+
+
 def _body_trabalhista_cumulacao_massiva() -> list[str]:
     # Cumulação massiva de verbas, todas líquidas (típico do trabalhista).
     verbas = [
@@ -399,6 +622,15 @@ class _Spec:
     expect_requer_emenda: bool | None = None
 
 
+_RAND_SEEDS = [101, 202, 303]  # 3 variantes aleatórias por cenário selecionado
+
+
+def _rand_body(body_fn: Callable[[_RandCtx], list[str]], seed: int) -> Callable[[], list[str]]:
+    """Retorna uma body function que usa um contexto aleatório fixo por seed."""
+    ctx = _RandCtx(rng=random.Random(seed))
+    return lambda: body_fn(ctx)
+
+
 # Convenção de nome de arquivo: "<categoria>_<cenario>".
 _CATALOG: dict[str, _Spec] = {
     # --- válidas e íntegras ---
@@ -513,6 +745,93 @@ _CATALOG: dict[str, _Spec] = {
         _render_clean,
         False,
         "PASS",
+    ),
+    # --- variantes aleatórias de cobrança (mesmo cenário, dados distintos) ---
+    **{
+        f"clean_acao_cobranca_v{i + 1}": _Spec(
+            "clean",
+            f"Ação de cobrança simples — variante aleatória {i + 1} (dados randomizados).",
+            _rand_body(lambda ctx: _body_cobranca(ctx), seed),
+            _render_clean,
+            False,
+            "PASS",
+            expect_liminar=False,
+            expect_requer_emenda=False,
+        )
+        for i, seed in enumerate(_RAND_SEEDS)
+    },
+    # --- novos cenários de atributos ---
+    "clean_recusa_conciliacao": _Spec(
+        "clean",
+        "Parte declara não ter interesse em conciliação (hearing_option=False).",
+        _body_recusa_conciliacao,
+        _render_clean,
+        False,
+        "PASS",
+        expect_liminar=False,
+        expect_requer_emenda=False,
+    ),
+    "clean_sem_interesse_provas": _Spec(
+        "clean",
+        "Parte declara que não produzirá provas em audiência (requests_evidence=False).",
+        _body_sem_interesse_provas,
+        _render_clean,
+        False,
+        "PASS",
+        expect_liminar=False,
+        expect_requer_emenda=False,
+    ),
+    "clean_documentos_citados": _Spec(
+        "clean",
+        "Petição com documentos explicitamente mencionados (cited_documents populado).",
+        _body_documentos_citados,
+        _render_clean,
+        False,
+        "PASS",
+        expect_liminar=False,
+        expect_requer_emenda=False,
+    ),
+    "clean_pedido_subsidiario": _Spec(
+        "clean",
+        "Pedido subsidiário alternativo (ClaimType.SUBSIDIARY).",
+        _body_pedido_subsidiario,
+        _render_clean,
+        False,
+        "PASS",
+        expect_liminar=False,
+        expect_requer_emenda=False,
+    ),
+    "defect_sem_qualificacao_reu": _Spec(
+        "defect",
+        "Réu sem qualificação completa — falta CNPJ e endereço (art. 319, II).",
+        _body_sem_qualificacao_reu,
+        _render_clean,
+        False,
+        "PASS",
+        expect_semaforo="VERMELHO",
+        expect_requer_emenda=True,
+    ),
+    "defect_sem_fundamentacao": _Spec(
+        "defect",
+        "Falta a seção de fundamentos legais (art. 319, III).",
+        _body_sem_fundamentacao,
+        _render_clean,
+        False,
+        "PASS",
+        expect_semaforo="VERMELHO",
+        expect_requer_emenda=True,
+    ),
+    "trabalhista_misto": _Spec(
+        "trabalhista",
+        "Pedidos mistos: alguns líquidos, outros genéricos — parcialmente ilíquido.",
+        _body_trabalhista_misto,
+        _render_clean,
+        False,
+        "PASS",
+        rito="TRABALHISTA",
+        expect_liminar=False,
+        expect_semaforo="VERMELHO",
+        expect_requer_emenda=True,
     ),
     # --- prompt injection (firewall BLOCK) ---
     "injection_texto_branco": _Spec(
