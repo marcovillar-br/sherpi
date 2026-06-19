@@ -60,7 +60,11 @@ export default function Home() {
         <input
           type="file"
           accept="application/pdf"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => {
+            setFile(e.target.files?.[0] ?? null);
+            setResponse(null);
+            setError(null);
+          }}
           className="text-sm"
         />
 
