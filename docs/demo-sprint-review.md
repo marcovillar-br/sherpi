@@ -1,6 +1,6 @@
 ---
 title: "Roteiro de Demo — Sprint Review"
-description: "Runbook passo a passo para apresentar o MVP do SHERPI ao professor na Sprint Review."
+description: "Runbook passo a passo para apresentar o SHERPI (MVP + rito trabalhista) ao professor na Sprint Review."
 doc_type: runbook
 project: SHERPI
 status: approved

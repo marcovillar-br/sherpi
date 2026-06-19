@@ -17,7 +17,7 @@ tags: [agil, scrum, kanban, design-sprint, papeis, processo]
 | Documento | Processo Ágil de Desenvolvimento |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
 | Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; MVP em 2 sprints + Fase 4 (sprints 3–7+) |
-| Versão | 1.1 |
+| Versão | 1.2 |
 
 > Este documento registra **como** o SHERPI é desenvolvido — papéis, artefatos e cerimônias —
 > tornando explícita a metodologia ágil exigida pela ementa e pelo Guia de Diretrizes. Complementa o

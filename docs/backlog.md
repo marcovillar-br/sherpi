@@ -1,6 +1,6 @@
 ---
 title: "Backlog do Produto e Sprint Backlog"
-description: "Backlog do Produto (épicos e histórias, visão de futuro) e Sprint Backlog (tasks estimadas das 2 sprints)."
+description: "Backlog do Produto (épicos e histórias, visão de futuro) e Sprint Backlog (tasks estimadas por sprint)."
 doc_type: backlog
 project: SHERPI
 status: approved
@@ -14,7 +14,7 @@ tags: [backlog, epicos, historias-de-usuario, sprint, estimativas]
 
 Sob responsabilidade do **Product Owner (PO)**. Conforme o Guia de Diretrizes, o backlog é dividido
 em duas partes: o **Backlog do Produto** (visão completa de futuro) e o **Sprint Backlog** (recorte
-de execução das 2 Sprints, desdobrado em tasks estimadas).
+de execução das Sprints, desdobrado em tasks estimadas).
 
 Legenda — Prioridade (MoSCoW): **M**ust · **S**hould · **C**ould · **W**on't (agora).
 Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro.
@@ -72,8 +72,8 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 
 ## Parte 2 — Sprint Backlog (execução)
 
-Histórias selecionadas por sprint, desdobradas em **tasks técnicas estimadas**. Sprints 1–2 (MVP)
-concluídas; Sprints 3–6 (Fase 4) planejadas.
+Histórias selecionadas por sprint, desdobradas em **tasks técnicas estimadas**. Sprints 1–3
+concluídas (MVP + multi-domínio); Sprints 4–7 (Fase 4) planejadas.
 
 ### Sprint 1 — Fundações + Firewall + Extração *(grande parte concluída)*
 

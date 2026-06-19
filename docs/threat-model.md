@@ -15,9 +15,9 @@ tags: [seguranca, ameacas, stride, lgpd]
 | Campo | Valor |
 |---|---|
 | Documento | Threat Model |
-| Versão | 1.0 |
+| Versão | 1.1 |
 | Status | Aprovado |
-| Última atualização | 2026-06-18 |
+| Última atualização | 2026-06-19 |
 
 Modelo de ameaças do SHERPI, derivado da seção "Segurança & Confiabilidade" do plano. Acompanha `security.md` (controles concretos).
 

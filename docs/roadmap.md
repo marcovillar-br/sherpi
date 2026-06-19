@@ -1,11 +1,11 @@
 ---
-title: "Roadmap do MVP (2 sprints)"
-description: "Roadmap do MVP em 2 sprints (2 semanas), com Definition of Done, visão de futuro e marcos."
+title: "Roadmap (MVP + Fase 4)"
+description: "Roadmap das sprints (MVP em 2 semanas + Fase 4), com Definition of Done, visão de futuro e marcos."
 doc_type: roadmap
 project: SHERPI
 status: approved
-version: 1.1
-updated: 2026-06-18
+version: 1.2
+updated: 2026-06-19
 language: pt-BR
 tags: [roadmap, sprints, planejamento, mvp]
 ---
@@ -15,9 +15,9 @@ tags: [roadmap, sprints, planejamento, mvp]
 | Campo | Valor |
 |---|---|
 | Documento | Roadmap |
-| Versão | 1.1 |
+| Versão | 1.2 |
 | Status | Aprovado |
-| Última atualização | 2026-06-18 |
+| Última atualização | 2026-06-19 |
 
 O **MVP** é entregue em **2 Sprints (2 semanas)**, conforme o Guia de Diretrizes da disciplina, com
 ritmo de **Design Sprint semanal** e **Sprint Review aos sábados** (ver [`agile-process.md`](agile-process.md)).

@@ -10,7 +10,9 @@ from __future__ import annotations
 from pathlib import Path
 
 DOCS = Path(__file__).resolve().parent.parent / "docs"
+# Data padrão de regeneração; docs com mudança mais recente sobrescrevem via chave "updated".
 UPDATED = "2026-06-18"
+_REV = "2026-06-19"  # revisão de coerência multi-domínio (Sprint 3 / ADR-0008)
 
 # filename (relativo a docs/) -> metadados
 META: dict[str, dict[str, object]] = {
@@ -19,6 +21,8 @@ META: dict[str, dict[str, object]] = {
         "description": "Ponto de entrada da documentação do SHERPI, organizado por categoria.",
         "doc_type": "index",
         "status": "reference",
+        "version": "1.1",
+        "updated": _REV,
         "tags": ["index", "navegacao"],
     },
     "prd-sherpi.md": {
@@ -26,7 +30,8 @@ META: dict[str, dict[str, object]] = {
         "description": "Visão, problema, personas, histórias de usuário, escopo e métricas do SHERPI.",
         "doc_type": "prd",
         "status": "approved",
-        "version": "1.1",
+        "version": "1.2",
+        "updated": _REV,
         "tags": ["produto", "requisitos", "personas", "metricas"],
     },
     "tech-spec-sherpi.md": {
@@ -34,15 +39,17 @@ META: dict[str, dict[str, object]] = {
         "description": "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilidade, segurança e API.",
         "doc_type": "tech-spec",
         "status": "approved",
-        "version": "1.1",
+        "version": "1.2",
+        "updated": _REV,
         "tags": ["arquitetura", "ddd", "hexagonal", "api", "llm", "interpretabilidade"],
     },
     "roadmap.md": {
-        "title": "Roadmap do MVP (2 sprints)",
-        "description": "Roadmap do MVP em 2 sprints (2 semanas), com Definition of Done, visão de futuro e marcos.",
+        "title": "Roadmap (MVP + Fase 4)",
+        "description": "Roadmap das sprints (MVP em 2 semanas + Fase 4), com Definition of Done, visão de futuro e marcos.",
         "doc_type": "roadmap",
         "status": "approved",
-        "version": "1.1",
+        "version": "1.2",
+        "updated": _REV,
         "tags": ["roadmap", "sprints", "planejamento", "mvp"],
     },
     "agile-process.md": {
@@ -50,7 +57,8 @@ META: dict[str, dict[str, object]] = {
         "description": "Papéis (8 integrantes), Design Sprint, Kanban, cerimônias e retrospectivas.",
         "doc_type": "process",
         "status": "approved",
-        "version": "1.1",
+        "version": "1.2",
+        "updated": _REV,
         "tags": ["agil", "scrum", "kanban", "design-sprint", "papeis", "processo"],
     },
     "ddd-context-map.md": {
@@ -58,6 +66,8 @@ META: dict[str, dict[str, object]] = {
         "description": "Bounded contexts, relações upstream/downstream e glossário da linguagem ubíqua.",
         "doc_type": "context-map",
         "status": "approved",
+        "version": "1.1",
+        "updated": _REV,
         "tags": ["ddd", "bounded-context", "linguagem-ubiqua"],
     },
     "threat-model.md": {
@@ -65,6 +75,8 @@ META: dict[str, dict[str, object]] = {
         "description": "Ativos, atores e mitigações (STRIDE) do SHERPI.",
         "doc_type": "threat-model",
         "status": "approved",
+        "version": "1.1",
+        "updated": _REV,
         "tags": ["seguranca", "ameacas", "stride", "lgpd"],
     },
     "security.md": {
@@ -100,6 +112,8 @@ META: dict[str, dict[str, object]] = {
         "description": "Escopo, tempo, custos, riscos, equipe, comunicação e qualidade do projeto SHERPI.",
         "doc_type": "pmp",
         "status": "approved",
+        "version": "1.1",
+        "updated": _REV,
         "tags": ["gerenciamento-de-projeto", "pgp", "pmp", "escopo", "riscos", "cronograma"],
     },
     "wbs.md": {
@@ -107,6 +121,8 @@ META: dict[str, dict[str, object]] = {
         "description": "Decomposição hierárquica do trabalho do SHERPI, com Gerenciamento de Projeto e Gestão e Rituais Ágeis.",
         "doc_type": "wbs",
         "status": "approved",
+        "version": "1.1",
+        "updated": _REV,
         "tags": ["eap", "wbs", "gerenciamento-de-projeto", "escopo"],
     },
     "legal-glossary.md": {
@@ -114,20 +130,26 @@ META: dict[str, dict[str, object]] = {
         "description": "Primer dos principais conceitos jurídicos do SHERPI, em linguagem acessível, para validação com especialista.",
         "doc_type": "reference",
         "status": "draft",
+        "version": "1.1",
+        "updated": _REV,
         "tags": ["juridico", "glossario", "cpc", "clt", "conceitos", "validacao"],
     },
     "demo-sprint-review.md": {
         "title": "Roteiro de Demo — Sprint Review",
-        "description": "Runbook passo a passo para apresentar o MVP do SHERPI ao professor na Sprint Review.",
+        "description": "Runbook passo a passo para apresentar o SHERPI (MVP + rito trabalhista) ao professor na Sprint Review.",
         "doc_type": "runbook",
         "status": "approved",
+        "version": "1.1",
+        "updated": _REV,
         "tags": ["demo", "sprint-review", "runbook", "apresentacao"],
     },
     "backlog.md": {
         "title": "Backlog do Produto e Sprint Backlog",
-        "description": "Backlog do Produto (épicos e histórias, visão de futuro) e Sprint Backlog (tasks estimadas das 2 sprints).",
+        "description": "Backlog do Produto (épicos e histórias, visão de futuro) e Sprint Backlog (tasks estimadas por sprint).",
         "doc_type": "backlog",
         "status": "approved",
+        "version": "1.1",
+        "updated": _REV,
         "tags": ["backlog", "epicos", "historias-de-usuario", "sprint", "estimativas"],
     },
 }
@@ -152,6 +174,10 @@ for rel, title in _ADRS.items():
         "tags": ["adr", "arquitetura", "decisao"],
     }
 
+# ADR-0008 recebeu errata de esclarecimento na revisão de coerência (as-built).
+META["adr/0008-multi-domain-architecture.md"]["version"] = "1.1"
+META["adr/0008-multi-domain-architecture.md"]["updated"] = _REV
+
 
 def _yaml_list(items: list[str]) -> str:
     return "[" + ", ".join(items) + "]"
@@ -171,7 +197,7 @@ def build_frontmatter(meta: dict[str, object]) -> str:
     lines.append("project: SHERPI")
     lines.append(f"status: {meta['status']}")
     lines.append(f"version: {meta.get('version', '1.0')!s}")
-    lines.append(f"updated: {UPDATED}")
+    lines.append(f"updated: {meta.get('updated', UPDATED)!s}")
     lines.append("language: pt-BR")
     lines.append(f"tags: {_yaml_list(list(meta['tags']))}")  # type: ignore[arg-type]
     lines.append("---")
