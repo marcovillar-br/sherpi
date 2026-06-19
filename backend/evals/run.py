@@ -16,13 +16,20 @@ import asyncio
 import sys
 from dataclasses import dataclass
 
+from sqlalchemy import StaticPool, create_engine
 from synthetic.builder import build_clean, build_corpus
+from synthetic.tpu_seed import load_seed
 
 from sherpi.config import get_settings
 from sherpi.contexts.document_integrity.application.analyze import AnalyzeDocumentIntegrity
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
+from sherpi.contexts.taxonomy.application.build_index import BuildTpuIndex
+from sherpi.contexts.taxonomy.application.suggest_tpu import SuggestTpu
+from sherpi.contexts.taxonomy.infrastructure.embedding import FakeEmbeddingModel
+from sherpi.contexts.taxonomy.infrastructure.sql_index import SqlTpuIndex
 from sherpi.infrastructure.llm.factory import build_llm_provider
+from sherpi.infrastructure.persistence.engine import create_all
 from sherpi.shared_kernel.errors import LLMProviderError
 from sherpi.shared_kernel.ports import LLMProvider
 from sherpi.shared_kernel.value_objects import RiskVerdict
@@ -90,6 +97,36 @@ async def eval_extraction(provider: LLMProvider) -> float:
     return acertos / len(checks)
 
 
+def eval_tpu() -> tuple[float, float]:
+    """Acurácia top-1 e top-3 do índice TPU sobre o próprio seed.
+
+    AVISO: avaliação over seed — os dados de treino e teste são os mesmos.
+    O número serve de sanidade (k-NN reproduzível), não de performance real em
+    dados não vistos. Expansão com conjunto de teste próprio fica para a Fase 4.
+    """
+    entries = load_seed()
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    create_all(engine)
+    embedder = FakeEmbeddingModel()
+    index = SqlTpuIndex(engine)
+    BuildTpuIndex(embedder, index).run(entries)
+    suggest = SuggestTpu(embedder, index, top_k=3)
+
+    top1_hits = top3_hits = 0
+    for entry in entries:
+        suggestions = suggest.run(entry.text_excerpt)
+        codes = [s.tpu_code for s in suggestions]
+        if codes and codes[0] == entry.tpu_code:
+            top1_hits += 1
+        if entry.tpu_code in codes:
+            top3_hits += 1
+
+    n = len(entries)
+    return top1_hits / n, top3_hits / n
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Eval harness do SHERPI.")
     parser.add_argument("--ci", action="store_true", help="sai com código != 0 se abaixo do limiar")
@@ -114,6 +151,11 @@ def main() -> int:
     else:
         acc = asyncio.run(eval_extraction(provider))
         print(f"  acurácia de campo = {acc:.3f}")
+
+    top1, top3 = eval_tpu()
+    print("\n== TPU (taxonomy) ==")
+    print(f"  top-1 accuracy = {top1:.3f}  top-3 accuracy = {top3:.3f}")
+    print("  (avaliação over seed — sanidade, não performance em dados não vistos)")
 
     if args.ci and not fw.passed():
         print("\nEval gate: FALHOU — métrica abaixo do limiar.", file=sys.stderr)

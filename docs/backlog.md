@@ -152,14 +152,14 @@ concluídas (MVP + multi-domínio); Sprints 4–7 (Fase 4) planejadas.
 
 ### Sprint 5 — Classificação TPU (`taxonomy`)
 
-| Épico | Task | SP |
-|---|---|---|
-| EP5 | Deps de ML (`--extra ml`) + **seed rotulado** petição→código TPU | 5 |
-| EP5 | `EmbeddingModel` (JurisBERT/HuggingFace) + `TpuIndex` (k-NN em pgvector) | 5 |
-| EP5 | `ClassifyTpu` + `SuggestTpu` (top-3 com confiança) + ligação no orquestrador | 5 |
-| EP5 | Eval: acurácia top-1/top-3 sobre o seed (honesta) | 3 |
-| EP5 | UI: top-3 sugestões com confiança e exemplos-âncora | 3 |
-| **Total Sprint 5** | | **21** |
+| Épico | Task | SP | Status |
+|---|---|---|---|
+| EP5 | Deps de ML (`--extra ml`) + **seed rotulado** petição→código TPU (`synthetic/tpu_seed.py`, 30 entradas) | 5 | ✅ |
+| EP5 | `EmbeddingModel` (Protocol) + `FakeEmbeddingModel` + `JurisbertEmbeddingModel`; `TpuIndex` k-NN numpy/bytes (SQLite+Postgres) | 5 | ✅ |
+| EP5 | `BuildTpuIndex` + `SuggestTpu` (top-3 com confiança + âncora) + ligação no orquestrador (`AnalysisResult.tpu_suggestions`) | 5 | ✅ |
+| EP5 | Eval: `eval_tpu()` top-1/top-3 sobre seed (sanidade honesta) integrado ao `evals.run` | 3 | ✅ |
+| EP5 | UI: top-3 sugestões com confiança e exemplos-âncora | 3 | planejada (frontend) |
+| **Total Sprint 5** | | **21** | |
 
 ### Sprint 6 — Produção (observabilidade, LGPD pleno, deploy)
 
