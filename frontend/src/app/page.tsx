@@ -74,7 +74,7 @@ export default function Home() {
   const result = response?.result;
 
   return (
-    <main className="mx-auto max-w-5xl space-y-6 p-6">
+    <main className="mx-auto w-[80%] max-w-6xl space-y-6 p-6">
       <header className="flex items-baseline justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">SHERPI</h1>
@@ -196,7 +196,7 @@ export default function Home() {
       )}
 
       {result && (
-        <div data-testid="analysis-result" className="space-y-4">
+        <div data-testid="analysis-result" className="animate-result-in space-y-4">
           <ForensicsBanner report={result.forensics} />
 
           {result.summary && result.admissibility ? (
