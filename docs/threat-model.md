@@ -4,8 +4,8 @@ description: "Ativos, atores e mitigações (STRIDE) do SHERPI."
 doc_type: threat-model
 project: SHERPI
 status: approved
-version: 1.1
-updated: 2026-06-19
+version: 1.2
+updated: 2026-06-20
 language: pt-BR
 tags: [seguranca, ameacas, stride, lgpd]
 ---
@@ -15,9 +15,9 @@ tags: [seguranca, ameacas, stride, lgpd]
 | Campo | Valor |
 |---|---|
 | Documento | Threat Model |
-| Versão | 1.1 |
+| Versão | 1.2 |
 | Status | Aprovado |
-| Última atualização | 2026-06-19 |
+| Última atualização | 2026-06-20 |
 
 Modelo de ameaças do SHERPI, derivado da seção "Segurança & Confiabilidade" do plano. Acompanha `security.md` (controles concretos).
 
@@ -49,9 +49,9 @@ Modelo de ameaças do SHERPI, derivado da seção "Segurança & Confiabilidade" 
 
 | # | Ameaça (STRIDE) | Vetor | Ativo | Mitigação |
 |---|---|---|---|---|
-| **T1** | **Tampering** — prompt injection no PDF | Branco-no-branco, fonte <1pt, fora da CropBox, U+200B, OCG oculto, /ActualText, XMP suspeito | Análise de IA | **Firewall determinístico** (PyMuPDF) antes do LLM; verdito `BLOCK` encerra sem chamada ao modelo. Defesa em profundidade: *defensive prompting* (texto como dado, não instrução). Firewall é heurístico → eval por vetor. |
+| **T1** | **Tampering** — prompt injection no PDF | Branco-no-branco, fonte <1pt, fora da CropBox, U+200B, OCG oculto, /ActualText, XMP suspeito; **evasão por rasterização** (conteúdo em imagem) | Análise de IA | **Firewall determinístico** (PyMuPDF) antes do LLM; verdito `BLOCK` encerra sem chamada ao modelo. PDFs **sem camada de texto** (imagem/escaneado) são sinalizados e **não** seguem para o LLM (não há laudo "íntegro" falso). Defesa em profundidade: *defensive prompting* (texto como dado, não instrução). Firewall é heurístico → eval por vetor. |
 | **T2** | **Denial of Service / Elevation** — upload hostil | PDF malicioso explorando CVEs do parser; bomba de descompressão; PDF gigante | PDFs, disponibilidade | Validação de **assinatura** (magic bytes `%PDF-`) e **tamanho máximo**; **limite de páginas**; **timeout** (best-effort) no parsing; rejeitar não-PDF; tratar PDF como hostil. Fase 4: sandbox de parsing, antimalware, isolamento de processo/recursos. |
-| **T3** | **Information Disclosure** — vazamento de PII para LLM externo | Texto da petição (com CPF/nomes/endereços) enviado ao Gemini | PII (LGPD) | **Synthetic-first** no MVP; port **`Anonymizer`** mascara identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) antes do envio; **nomes** dependem do synthetic-first (NER é Fase 4); **sem PII em log**. Fase 4: NER de nomes, criptografia em repouso, retenção/eliminação, DPIA, LLM local. |
+| **T3** | **Information Disclosure** — vazamento de PII para LLM externo | Texto da petição (com CPF/nomes/endereços) enviado ao LLM externo (Gemini/Grok/Anthropic) | PII (LGPD) | **Synthetic-first** no MVP; port **`Anonymizer`** mascara identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) **e nomes das partes** (regex ancorado, best-effort — [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)) antes do envio; **sem PII em log**; o prompt persistido para auditoria já é o anonimizado. Fase 4: NER de nomes (cobertura completa), criptografia em repouso, retenção/eliminação, DPIA, LLM local. |
 | **T4** | **Spoofing** — abuso de autenticação | Brute-force/credential stuffing no `/auth/login` | Credenciais | **Rate-limit/lockout** no login; bcrypt com custo adequado; JWT com **expiração**; cookie **httpOnly+Secure+SameSite**; erros sem vazar detalhe. Fase 4: MFA, refresh tokens. |
 | **T5** | **Repudiation** — negação de ação / adulteração de auditoria | Edição/remoção de registros de revisão | Trilha de auditoria | **Auditoria append-only** vinculada a `User` autenticado; cada `/review` grava `AuditEvent` imutável. |
 | **T6** | **Information Disclosure** — vazamento de chave de API/segredos | Segredos no git; em logs | Chaves de LLM | Segredos fora do git (`.gitignore` + só `.env.example`); não logar segredos. Fase 4: secrets manager, secret scanning. |
@@ -64,6 +64,6 @@ Modelo de ameaças do SHERPI, derivado da seção "Segurança & Confiabilidade" 
 
 - O firewall é **heurístico** e não cobre todos os vetores possíveis — risco residual aceito, mitigado por defesa em profundidade e eval por vetor.
 - Sem RBAC/MFA no MVP — todo usuário autenticado tem o mesmo acesso (ver ADR 0007). Os papéis já estão modelados (`Role` ADMIN/REVISOR, embutidos no JWT), mas **sem enforcement** nas rotas; a autorização efetiva fica para a Fase 4.
-- LLM externo (Gemini) no MVP — risco de PII tratado por synthetic-first + Anonymizer; LLM local fica para a Fase 4.
+- LLM externo (Gemini default; Grok/Anthropic opcionais) no MVP — risco de PII tratado por synthetic-first + Anonymizer (estruturados + nomes); LLM local fica para a Fase 4.
 
 Controles detalhados e seu faseamento (MVP vs. Fase 4) em `security.md`.
