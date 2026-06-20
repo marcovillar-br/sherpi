@@ -16,7 +16,7 @@ tags: [adr, arquitetura, decisao]
 
 ## Contexto
 
-O relatório acoplava o sistema a modelos específicos (gpt-4o-mini, Gemini 1.5 Flash) hardcodados. Modelos datam rápido, e o projeto quer poder trocar entre Gemini, Maritaca Sabiá, OpenAI-compat e Ollama — inclusive um provider local para dados sensíveis (LGPD). Os testes não podem depender de rede.
+O relatório acoplava o sistema a modelos específicos (gpt-4o-mini, Gemini 1.5 Flash) hardcodados. Modelos datam rápido, e o projeto quer poder trocar entre provedores (hoje: Gemini, Grok/xAI, Claude/Anthropic) — inclusive um provider local para dados sensíveis (LGPD). Os testes não podem depender de rede.
 
 ## Decisão
 
