@@ -36,7 +36,7 @@ def test_firewall_verdict_matches_scenario(
 
 def test_corpus_cobre_categorias_variadas() -> None:
     categorias = {p.category for p in _CORPUS}
-    assert categorias == {"clean", "defect", "injection", "trabalhista"}
+    assert categorias == {"clean", "defect", "injection", "trabalhista", "scanned"}
     assert sum(p.is_malicious for p in _CORPUS) >= 4  # ao menos os 4 vetores de injeção
 
 

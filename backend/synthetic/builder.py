@@ -631,6 +631,47 @@ def _render_metadata(body: list[str]) -> bytes:
     return _finalize(doc)
 
 
+def _rasterize(src: pymupdf.Document) -> pymupdf.Document:
+    """Converte cada página de `src` numa imagem de página inteira (remove o texto)."""
+    out = pymupdf.open()
+    for i in range(src.page_count):
+        pix = src[i].get_pixmap(dpi=120)
+        opage = out.new_page(width=_A4_W, height=_A4_H)
+        opage.insert_image(opage.rect, pixmap=pix)
+    return out
+
+
+def _render_scanned(body: list[str]) -> bytes:
+    """Petição INTEIRA como imagem (escaneada, sem nenhuma camada de texto)."""
+    src = pymupdf.open()
+    _write_paginated(src, body)
+    out = _rasterize(src)
+    src.close()
+    return _finalize(out)
+
+
+# Conteúdo do "anexo escaneado" usado na página-imagem do cenário parcial.
+_ANEXO_ESCANEADO = [
+    "COMPROVANTE DE RESIDÊNCIA",
+    "",
+    "Concessionária de energia — fatura do mês corrente.",
+    "Titular: FULANO DE TAL · Endereço: Rua das Flores, nº 100, São Paulo/SP.",
+]
+
+
+def _render_scanned_partial(body: list[str]) -> bytes:
+    """Petição em TEXTO + uma página-IMAGEM anexada (anexo escaneado)."""
+    doc = pymupdf.open()
+    _write_paginated(doc, body)  # páginas de texto (extraíveis)
+    annex = pymupdf.open()
+    _write_paginated(annex, _ANEXO_ESCANEADO)
+    pix = annex[0].get_pixmap(dpi=120)
+    annex.close()
+    page = doc.new_page(width=_A4_W, height=_A4_H)
+    page.insert_image(page.rect, pixmap=pix)  # página sem camada de texto
+    return _finalize(doc)
+
+
 # --- Catálogo de cenários --------------------------------------------------------
 
 
@@ -709,6 +750,23 @@ _CATALOG: dict[str, _Spec] = {
         expect_liminar=False,
         expect_semaforo="VERDE",
         expect_requer_emenda=False,
+    ),
+    "scanned_acao_cobranca": _Spec(
+        "scanned",
+        "Petição 100% imagem (escaneada, sem camada de texto) — requer OCR.",
+        _body_cobranca,
+        _render_scanned,
+        False,
+        "PASS",  # imagem não é injeção; firewall não bloqueia, só sinaliza sem texto
+    ),
+    "scanned_parcial": _Spec(
+        "scanned",
+        "Petição em texto + página-imagem anexada (anexo escaneado).",
+        _body_cobranca,
+        _render_scanned_partial,
+        False,
+        "PASS",
+        expect_liminar=False,  # a página de texto continua extraível
     ),
     "clean_dano_moral_com_liminar": _Spec(
         "clean",
@@ -994,13 +1052,6 @@ def build_image_only() -> bytes:
     """PDF cujo conteúdo é uma IMAGEM rasterizada (sem camada de texto).
 
     Simula um documento escaneado: `get_text` retorna vazio e a página é coberta
-    por um bloco de imagem. Usado para testar a detecção de "documento sem texto".
+    por um bloco de imagem. Atalho do cenário `scanned_acao_cobranca` para testes.
     """
-    src = pymupdf.open()
-    _write_paginated(src, _body_cobranca())
-    pix = src[0].get_pixmap(dpi=120)
-    src.close()
-    out = pymupdf.open()
-    page = out.new_page(width=_A4_W, height=_A4_H)
-    page.insert_image(page.rect, pixmap=pix)
-    return _finalize(out)
+    return build_one("scanned_acao_cobranca")

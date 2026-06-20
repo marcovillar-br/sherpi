@@ -192,14 +192,15 @@ Melhorias entregues após o fechamento das sprints, na branch `development`:
   nomes das partes — inclusive listas (litisconsórcio) — antes do LLM externo; robustez estrutural
   via `visible_text` por bloco. Best-effort; NER (Presidio) segue como evolução ([ADR-0010](adr/0010-name-masking-regex-vs-ner.md)).
 - **Detecção de PDF sem camada de texto** (imagem/escaneado): sinaliza no laudo (`image_only_pages`)
-  e pula a extração — sem laudo "íntegro" falso. OCR fica como **EP13** ([`backlog.md`](backlog.md)).
+  e pula a extração — sem laudo "íntegro" falso. Cobertura no corpus: `scanned_acao_cobranca`
+  (100% imagem) e `scanned_parcial` (texto + página-imagem). OCR fica como **EP13** ([`backlog.md`](backlog.md)).
 - **Adapters de LLM Grok (xAI) e Claude Sonnet (Anthropic)** via httpx, trocáveis por config
   (com remoção da dep órfã `openai`).
 - **UI**: histórico de análises (lista + filtros + detalhe) e auditoria das chamadas ao LLM
   (prompt anonimizado + resposta).
 - **Cenário sintético de litisconsórcio** (multi-parte) + testes de integração ponta a ponta.
 
-Estado: **203 testes** verdes; ruff/mypy e `npm run build`/`lint` limpos.
+Estado: **207 testes** verdes; ruff/mypy e `npm run build`/`lint` limpos.
 
 ---
 
