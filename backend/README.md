@@ -9,14 +9,14 @@ Documentação de produto e arquitetura: [`../docs/`](../docs/)
 ## Pré-requisitos
 
 - Python ≥ 3.12 e [uv](https://docs.astral.sh/uv/)
-- Docker (apenas para o Postgres + pgvector — ver [ADR-0006](../docs/adr/0006-docker-db-only.md))
+- Docker (apenas para o PostgreSQL — ver [ADR-0006](../docs/adr/0006-docker-db-only.md))
 
 ## Setup
 
 ```bash
 uv sync                      # instala dependências
 cp .env.example .env         # configure SHERPI_LLM_API_KEY, SHERPI_JWT_SECRET, etc.
-docker compose up -d db      # sobe Postgres+pgvector (a partir da raiz do repo)
+docker compose up -d db      # sobe PostgreSQL 16 (a partir da raiz do repo)
 ```
 
 ## Estrutura (bounded contexts)

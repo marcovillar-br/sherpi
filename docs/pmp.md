@@ -78,7 +78,7 @@ Projeto acadêmico de **baixíssimo custo**, por decisão de arquitetura:
 | Item | Estratégia | Custo |
 |---|---|---|
 | LLM | Gemini Flash (free tier acadêmico) + `FakeProvider` nos testes | ~R$ 0 |
-| Infra | Docker local (Postgres+pgvector); sem nuvem no MVP | R$ 0 |
+| Infra | Docker local (PostgreSQL 16); sem nuvem no MVP | R$ 0 |
 | Modelos ML | TPU na Sprint 5: JurisBERT via HuggingFace, inferência em CPU | R$ 0 |
 | Mão de obra | 8 integrantes (esforço acadêmico) | — |
 

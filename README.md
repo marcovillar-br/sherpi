@@ -52,7 +52,7 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 backend/     # API e domínio (DDD) — ver backend/README.md
 frontend/    # UI Next.js completa (login, análise, TPU, revisão)
 docs/        # PRD, spec técnica, roadmap, mapa DDD, ADRs, modelo de ameaças
-docker-compose.yml       # Postgres + pgvector (dev: só o banco)
+docker-compose.yml       # PostgreSQL 16 (dev: só o banco)
 docker-compose.prod.yml  # Postgres + backend (produção)
 Makefile                 # orquestra setup, dev, testes (ver "Início rápido")
 ```

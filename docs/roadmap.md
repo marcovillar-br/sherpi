@@ -32,7 +32,7 @@ do MVP está registrado como **visão de futuro** (ver [`backlog.md`](backlog.md
 
 **Entregáveis**
 
-- Scaffolding `backend/` (uv); `docker-compose` com Postgres+pgvector; CI (lint + type + test).
+- Scaffolding `backend/` (uv); `docker-compose` com PostgreSQL 16; CI (lint + type + test).
 - `shared_kernel`: Value Objects (CPF, CNPJ, ValorCausa, RiskVerdict) e ports transversais (LLMProvider, BlobStorage, Anonymizer).
 - Bounded context **document_integrity** completo: `DetectInjection` + `PyMuPDFParser`, cobrindo os 7 vetores de injeção, fortemente unit-testado. ✅
 - **Gerador de petições sintéticas**: peças limpas + injeções plantadas de cada vetor (ground truth). ✅

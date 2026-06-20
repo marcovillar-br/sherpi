@@ -2,7 +2,7 @@
 # Backend (uv) e frontend (npm) rodam nativos em dev para hot reload.
 services:
   db:
-    image: pgvector/pgvector:pg16
+    image: postgres:16
     container_name: sherpi-db
     environment:
       POSTGRES_USER: sherpi

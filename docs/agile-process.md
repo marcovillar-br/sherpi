@@ -53,7 +53,7 @@ maior superfície do projeto e por API e frontend serem desacoplados.
 | 3 | **Arquiteto de Sistemas (Multiagentes)** | 1 | Desenho da arquitetura e dos contratos entre capacidades. | DDD hexagonal, *ports & adapters*, orquestrador que compõe as *skills* (firewall → extração → admissibilidade → TPU). |
 | 4 | **Engenheiro de IA Generativa e Agentes** | 1 | Camada de modelos, *prompting*, *eval* e interpretabilidade. | `LLMProvider`/adapters, `ExtractPetition`, *defensive prompting*, classificador TPU (embeddings/k-NN), *eval harness*. |
 | 5 | **Desenvolvedor Fullstack** | **2** | API e frontend desacoplados (um foco backend, um foco frontend). | **Backend**: FastAPI (rotas, contratos, integração dos use cases). **Frontend**: Next.js (PDF + extração + laudo), cliente tipado. |
-| 6 | **Engenheiro DevOps, Segurança e Observabilidade** | 1 | Infra, CI/CD, *hardening* e telemetria. | Docker/Postgres+pgvector, CI (lint/type/test/eval), segurança de upload/auth, logging estruturado, `/health`·`/ready`. |
+| 6 | **Engenheiro DevOps, Segurança e Observabilidade** | 1 | Infra, CI/CD, *hardening* e telemetria. | Docker/PostgreSQL, CI (lint/type/test/eval), segurança de upload/auth, logging estruturado, `/health`·`/ready`. |
 
 **Total: 8 integrantes** (1+1+1+1+1+2+1).
 

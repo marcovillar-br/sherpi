@@ -30,6 +30,7 @@ O [ADR-0004](0004-postgres-pgvector.md) previu a extensão **pgvector** para cob
 **Positivas**
 
 - Zero dependência da extensão pgvector (build e operação mais simples; sem `CREATE EXTENSION`).
+- A imagem Docker do banco passa a ser **`postgres:16`** puro (a variante `pgvector/pgvector` deixa de ser necessária); o volume de dados é compatível (mesmo PostgreSQL 16).
 - Portável: a mesma lógica roda em SQLite e PostgreSQL, o que mantém os testes sem rede/extensões.
 - Exato e suficiente para a escala do seed; o port `TpuIndex` isola a escolha do índice.
 

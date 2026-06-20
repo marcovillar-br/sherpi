@@ -77,7 +77,7 @@ uv run ruff check . && uv run ruff format --check .
 uv run mypy src/ evals/                # type check strict
 uv run python -m evals.run --ci        # eval gate (firewall)
 uv run python -m synthetic.generate    # gera data/synthetic/ (corpus rotulado)
-docker compose up -d db                # Postgres+pgvector (a partir da raiz)
+docker compose up -d db                # PostgreSQL 16 (a partir da raiz)
 ```
 
 ## Convenções
