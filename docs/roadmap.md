@@ -119,7 +119,7 @@ login obrigatório e o *human-in-the-loop* completo.
 
 **Entregáveis**
 - Deps de ML (`uv sync --extra ml`); **seed rotulado** petição→código TPU.
-- `EmbeddingModel` (JurisBERT via HuggingFace) + `TpuIndex` (k-NN em **pgvector**); `ClassifyTpu` +
+- `EmbeddingModel` (JurisBERT via HuggingFace) + `TpuIndex` (k-NN em **numpy/bytes**); `ClassifyTpu` +
   `SuggestTpu`; ligação no orquestrador (`… → tpu`).
 - UI: top-3 sugestões com confiança e exemplos-âncora (interpretabilidade).
 

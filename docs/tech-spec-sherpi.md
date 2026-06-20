@@ -162,7 +162,7 @@ Chamada com `temperature=0`; **saída validada por schema com retry**; *chunking
 |---|---|
 | `TpuSuggestion` | `code: TpuCode`, `descricao`, `confianca: float` |
 
-Embedding local (JurisBERT via HuggingFace) + **k-NN** sobre um conjunto-semente rotulado, indexado em pgvector. Acurácia **medida no eval, sem prometer número**.
+Embedding local (JurisBERT via HuggingFace) + **k-NN** sobre um conjunto-semente rotulado, guardado como bytes (numpy/float32) com busca em Python (ver [ADR-0009](adr/0009-knn-numpy-bytes.md)). Acurácia **medida no eval, sem prometer número**.
 
 ---
 
@@ -189,8 +189,8 @@ Trocar de LLM = trocar um adapter via `config.py`, **sem tocar no domínio**. Mo
 ## 4. Estratégia de dados
 
 - **Synthetic-first**: gerador de petições sintéticas (limpas + com injeções plantadas de cada vetor). Evita LGPD/segredo de justiça e fornece *ground truth* para o eval e para a calibração do firewall.
-- **Seed TPU**: conjunto-semente rotulado de textos → códigos TPU, embeddado e indexado em pgvector para o k-NN.
-- **Persistência**: PostgreSQL + pgvector (relacional + embeddings num só sistema), via SQLModel + Alembic. Blobs de PDF atrás do port `BlobStorage` (LocalFS no MVP → S3/MinIO na Fase 4). *Content hash* para idempotência/deduplicação.
+- **Seed TPU**: conjunto-semente rotulado de textos → códigos TPU, embeddado e guardado como bytes (numpy/float32) para o k-NN em Python.
+- **Persistência**: PostgreSQL (relacional), via SQLModel + Alembic; embeddings TPU como bytes + k-NN em Python (ver [ADR-0009](adr/0009-knn-numpy-bytes.md)). Blobs de PDF atrás do port `BlobStorage` (LocalFS no MVP → S3/MinIO na Fase 4). *Content hash* para idempotência/deduplicação.
 
 ---
 
@@ -309,7 +309,7 @@ sequenceDiagram
     participant LLM as LLMProvider (Gemini)
     participant ADM as CheckAdmissibility
     participant TPU as SuggestTpu
-    participant DB as Repository (PG+pgvector)
+    participant DB as Repository (PostgreSQL)
 
     U->>API: POST /analyze (PDF) + JWT
     API->>ORCH: analyze_petition(pdf)
