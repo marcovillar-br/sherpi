@@ -4,8 +4,8 @@ description: "Backlog do Produto (épicos e histórias, visão de futuro) e Spri
 doc_type: backlog
 project: SHERPI
 status: approved
-version: 1.4
-updated: 2026-06-19
+version: 1.5
+updated: 2026-06-20
 language: pt-BR
 tags: [backlog, epicos, historias-de-usuario, sprint, estimativas]
 ---
@@ -64,11 +64,15 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 | EP6 — Identidade & Acesso | Login obrigatório (JWT, perfil único); rotas protegidas. | M | 4/8 | ✅ |
 | EP7 — Revisão & Auditoria | Registrar decisão humana; trilha append-only (CNJ 615/2025). | M | 4/8 | ✅ |
 | EP5 — Classificação Taxonômica (TPU) | Sugerir top-3 classes/assuntos do CNJ (JurisBERT + k-NN), por ramo. | S | 5/8 | ✅ |
-| EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD pleno (NER), deploy/CI-CD. | S | 6 | ✅ |
+| EP9 — Hardening de Produção | Observabilidade (logs+correlation id), LGPD (anonimização + retenção), deploy/CI-CD. | S | 6 | ✅ |
 | EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 7 | ✅ |
 | EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-8 | — |
 | EP12 — Refactor de nomenclatura (en-US compliance) | Renomear identificadores Python pt-BR para en-US nos contextos `petition_analysis` e `review`. Débito técnico; não afeta funcionalidade. | C | 9 | ✅ |
 | EP13 — OCR de documentos digitalizados | Extrair texto de PDFs imagem/escaneados (total ou parcial) via OCR (Tesseract / OCR de nuvem / visão), alimentando o pipeline normal (firewall + anonimização + extração). Hoje o Nível 1 só **detecta e sinaliza** "sem camada de texto". Ver discussão em §LGPD/[ADR-0010](adr/0010-name-masking-regex-vs-ner.md). | — | — (não priorizado) | ⚪ |
+| EP14 — Anonimização de nomes (LGPD default) | Mascarar nomes das partes antes do LLM externo por regex ancorado (`RegexNameAnonymizer` + `CompositeAnonymizer`), inclusive listas (litisconsórcio); robustez via `visible_text` por bloco. Best-effort; NER (Presidio) segue como evolução ([ADR-0010](adr/0010-name-masking-regex-vs-ner.md)). | M | pós-9 | ✅ |
+| EP15 — Robustez de ingestão (PDF-imagem) | Detectar PDF sem camada de texto (imagem/escaneado) → sinaliza no laudo (`image_only_pages`) e pula a extração, sem laudo "íntegro" falso (Nível 1; OCR é EP13). | S | pós-9 | ✅ |
+| EP16 — Adapters de LLM Grok (xAI) e Sonnet (Anthropic) | Adapters httpx trocáveis por config sobre a base `HttpLLMProvider`; remoção da dep órfã `openai`. | C | pós-9 | ✅ |
+| EP17 — UI de histórico e auditoria de LLM | Lista de análises (filtros + detalhe) e consulta do prompt anonimizado + resposta de cada chamada ao LLM (`PersistingLLMProvider`). | C | pós-9 | ✅ |
 
 ### Limitações conhecidas (medidas, não mascaradas)
 
@@ -78,8 +82,9 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 
 ## Parte 2 — Sprint Backlog (execução)
 
-Histórias selecionadas por sprint, desdobradas em **tasks técnicas estimadas**. Sprints 1–8
-concluídas (MVP + multi-domínio + Fase 4 backend + UI frontend S4–S7).
+Histórias selecionadas por sprint, desdobradas em **tasks técnicas estimadas**. Sprints 1–9
+concluídas (MVP + multi-domínio + Fase 4 backend + UI frontend S4–S7 + en-US), além dos
+**refinamentos pós-9** (EP14–EP17, ver tabela acima).
 
 ### Sprint 1 — Fundações + Firewall + Extração *(grande parte concluída)*
 
