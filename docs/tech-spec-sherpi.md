@@ -116,7 +116,7 @@ Os contratos são expressos como Value Objects (Pydantic) nas camadas de domíni
 
 | VO | Campos | Descrição |
 |---|---|---|
-| `ForensicsReport` | `anomalies: list[Anomaly]`, `risk_score: float`, `verdict: RiskVerdict`, `image_only_pages: list[int]` | Laudo forense; `image_only_pages` marca páginas sem camada de texto (imagem/escaneado — extração não confiável, requer OCR). |
+| `ForensicsReport` | `anomalies: list[Anomaly]`, `risk_score: float`, `verdict: RiskVerdict`, `image_only_pages: list[int]`, `image_heavy_pages: list[int]` | Laudo forense; `image_only_pages` marca páginas sem texto (imagem/escaneado → extração pulada); `image_heavy_pages` marca páginas **mistas** (têm texto, mas imagem domina → pode haver conteúdo não extraído). Ambos requerem OCR (Fase 4). |
 | `Anomaly` | `vector: str`, `severity`, `location` (página/coordenadas), `evidence` | Uma ocorrência de vetor de injeção. |
 | `RiskVerdict` | `BLOCK \| WARN \| PASS` | Verdito gradual derivado do `risk_score`. |
 

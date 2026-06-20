@@ -65,7 +65,7 @@ Domínio com PII jurídica — controle crítico.
 - **Limite de páginas**.
 - **Timeout** no parsing (best-effort via SIGALRM; PyMuPDF tem CVEs — tratar PDF como hostil). *Isolamento pleno de recursos (subprocesso + `setrlimit`): Fase 4.*
 - Rejeitar não-PDF.
-- **Detecção de PDF sem camada de texto** (imagem/escaneado): sinaliza no laudo (`image_only_pages`) e **não prossegue** para o LLM — evita um laudo "íntegro" falso sobre conteúdo não-analisável (OCR é Fase 4).
+- **Detecção de conteúdo em imagem**: páginas sem texto (`image_only_pages`) → não prosseguem ao LLM (evita laudo "íntegro" falso); páginas **mistas** (`image_heavy_pages`: têm texto, mas imagem domina) → extraem o texto e avisam sobre conteúdo possivelmente não extraído. OCR é Fase 4.
 - **Content hash** para deduplicação/idempotência.
 
 **Fase 4**

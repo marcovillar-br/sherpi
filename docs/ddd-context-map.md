@@ -122,7 +122,7 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **RegexNameAnonymizer** | Mascara nomes das partes por âncora (qualificação / "em face de"), inclusive listas (litisconsórcio) → `[NOME]`. Best-effort, sem dependências (ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)). |
 | **MappedRegexAnonymizer** | Anonimizador reversível com placeholders numerados (`[CPF_1]`); retorna mapa texto→placeholder para reconstituição posterior. |
 | **PresidioAnonymizer** | Adapter opcional (extra `ner`; lazy import) para NER de nomes com Presidio + spaCy (cobertura completa — Fase 4). |
-| **image_only_pages** | Páginas sem camada de texto (imagem/escaneado) sinalizadas no `ForensicsReport`; a extração é pulada (não confiável; OCR é Fase 4). |
+| **image_only_pages / image_heavy_pages** | Sinais do `ForensicsReport`: `image_only_pages` = páginas sem camada de texto (imagem/escaneado → extração pulada); `image_heavy_pages` = páginas **mistas** (têm texto, mas imagem domina → extrai e avisa). Ambos requerem OCR (Fase 4). |
 | **Synthetic-first** | Estratégia de usar petições sintéticas para evitar PII real e prover ground truth. |
 | **Human-in-the-loop** | Princípio inegociável: a IA sugere, o humano decide; nunca decisão automática. |
 | **JurisBERT** | Modelo de embeddings jurídicos em português usado na classificação TPU (extra `ml`). |

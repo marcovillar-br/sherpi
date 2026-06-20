@@ -191,16 +191,17 @@ Melhorias entregues após o fechamento das sprints, na branch `development`:
 - **Anonimização de nomes por default** (`RegexNameAnonymizer` + `CompositeAnonymizer`): mascara os
   nomes das partes — inclusive listas (litisconsórcio) — antes do LLM externo; robustez estrutural
   via `visible_text` por bloco. Best-effort; NER (Presidio) segue como evolução ([ADR-0010](adr/0010-name-masking-regex-vs-ner.md)).
-- **Detecção de PDF sem camada de texto** (imagem/escaneado): sinaliza no laudo (`image_only_pages`)
-  e pula a extração — sem laudo "íntegro" falso. Cobertura no corpus: `scanned_acao_cobranca`
-  (100% imagem) e `scanned_parcial` (texto + página-imagem). OCR fica como **EP13** ([`backlog.md`](backlog.md)).
+- **Detecção de PDF imagem/escaneado**: páginas sem texto (`image_only_pages`) → pula a extração;
+  páginas **mistas** (`image_heavy_pages`: têm texto, mas imagem domina) → extrai o texto e avisa
+  sobre conteúdo possivelmente não extraído. Sem laudo "íntegro" falso. Corpus: `scanned_acao_cobranca`
+  (100% imagem), `scanned_parcial` (texto + página-imagem) e `scanned_mista` (página mista). OCR é **EP13**.
 - **Adapters de LLM Grok (xAI) e Claude Sonnet (Anthropic)** via httpx, trocáveis por config
   (com remoção da dep órfã `openai`).
 - **UI**: histórico de análises (lista + filtros + detalhe) e auditoria das chamadas ao LLM
   (prompt anonimizado + resposta).
 - **Cenário sintético de litisconsórcio** (multi-parte) + testes de integração ponta a ponta.
 
-Estado: **207 testes** verdes; ruff/mypy e `npm run build`/`lint` limpos.
+Estado: **210 testes** verdes; ruff/mypy e `npm run build`/`lint` limpos.
 
 ---
 
