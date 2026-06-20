@@ -48,6 +48,14 @@ def test_does_not_mask_heading() -> None:
     assert _NAMER.anonymize(text) == text
 
 
+def test_does_not_swallow_enderecamento_into_name() -> None:
+    # Regressão: o nome abutta o endereçamento (juntados por espaço no visible_text).
+    out = _NAMER.anonymize("JUIZ(A) DE DIREITO DA VARA CÍVEL FULANO DE TAL, brasileiro")
+    assert "VARA CÍVEL" in out  # endereçamento preservado
+    assert "[NOME], brasileiro" in out
+    assert "FULANO" not in out
+
+
 def test_composite_applies_structured_then_names() -> None:
     comp = CompositeAnonymizer([RegexAnonymizer(), RegexNameAnonymizer()])
     out = comp.anonymize("FULANO DE TAL, brasileiro, CPF 529.982.247-25, e-mail a@b.com")

@@ -28,11 +28,25 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 )
 
 # --- Mascaramento de nomes por ÂNCORA (LGPD, best-effort, sem NER/dependências) ---
-# Sequência de nome próprio: tokens iniciando em maiúscula + conectivos (da/de/dos/e).
-_NAME = (
-    r"[A-ZÀ-Ý][A-Za-zÀ-ÿ&.'-]*"
-    r"(?:\s+(?:d[aeo]s?|e|&|[A-ZÀ-Ý][A-Za-zÀ-ÿ&.'-]*)){0,6}"
+# Termos de endereçamento/cabeçalho que NÃO fazem parte de um nome: impedem que o
+# match guloso "atravesse" o endereçamento (ex.: "...VARA CÍVEL FULANO DE TAL").
+_STOPWORDS = (
+    # Endereçamento / juízo
+    r"EXCELENT[IÍ]SSIMO|SENHOR|SENHORA|DOUTOR|DOUTORA|JUIZ|JU[IÍ]ZA|DIREITO|VARA"
+    r"|C[IÍ]VEL|COMARCA|FORO|TRIBUNAL|JUSTI[CÇ]A|TRABALHO|EXMO"
+    # Termos de cabeçalho/ação (substantivos jurídicos — não são nomes próprios)
+    r"|A[CÇ][AÃ]O|RECLAMA[CÇ][AÃ]O|COBRAN[CÇ]A|INDENIZA[CÇ][AÃ]O|OBRIGA[CÇ][AÃ]O"
+    r"|DECLARAT[OÓ]RIA|REPETI[CÇ][AÃ]O|IND[EÉ]BITO|INEXIGIBILIDADE|D[EÉ]BITO"
+    r"|RESCIS[AÃ]O|RESOLU[CÇ][AÃ]O|CONTRATUAL|RESTITUI[CÇ][AÃ]O|VALORES|PAGOS"
+    r"|DANOS|MORAIS|URG[EÊ]NCIA|TUTELA|PEDIDO|FAZER|CONSUMO|RELA[CÇ][AÃ]O"
+    r"|RITO|ORDIN[AÁ]RIO|VERBAS|SUBSIDI[AÁ]RIO|CUMULA[CÇ][AÃ]O|REPARA[CÇ][AÃ]O"
+    r"|EXECU[CÇ][AÃ]O|MONIT[OÓ]RIA|DESPEJO"
 )
+# Token de nome: início de palavra (\b evita começar no meio, ex.: o "Í" de
+# "CÍVEL") + maiúscula inicial, exceto se for um stopword.
+_TOKEN = r"\b(?!(?:" + _STOPWORDS + r")\b)[A-ZÀ-Ý][A-Za-zÀ-ÿ&.'-]*"
+# Sequência de nome próprio: token + conectivos (da/de/dos/e) ou mais tokens.
+_NAME = _TOKEN + r"(?:\s+(?:d[aeo]s?|e|&|" + _TOKEN + r")){0,6}"
 # Nome ANTES de um marcador de qualificação (pessoa física/jurídica).
 _NAME_BEFORE_CUE = re.compile(
     _NAME + r"(?=\s*,?\s*(?:[Bb]rasileir|[Ee]strangeir|[Pp]ortugu|[Pp]ortador"
