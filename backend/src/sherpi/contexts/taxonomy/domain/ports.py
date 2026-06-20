@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import numpy as np
 
+from sherpi.shared_kernel.value_objects import Rito
+
 from .tpu import TpuEntry, TpuSuggestion
 
 if TYPE_CHECKING:
@@ -25,6 +27,8 @@ class TpuIndex(Protocol):
 
     def add(self, entry: TpuEntry, embedding: np.ndarray) -> None: ...
 
-    def search(self, query_embedding: np.ndarray, k: int) -> list[TpuSuggestion]: ...
+    def search(
+        self, query_embedding: np.ndarray, k: int, rito: Rito | None = None
+    ) -> list[TpuSuggestion]: ...
 
     def count(self) -> int: ...

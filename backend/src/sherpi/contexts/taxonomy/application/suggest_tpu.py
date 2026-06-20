@@ -15,4 +15,4 @@ class SuggestTpu:
         if self._index.count() == 0:
             return []
         embedding = self._embedder.embed([text])[0]
-        return self._index.search(embedding, self._top_k)
+        return self._index.search(embedding, self._top_k, rito)

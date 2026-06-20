@@ -6,6 +6,7 @@ from sqlmodel import Session, select
 
 from sherpi.contexts.taxonomy.domain.tpu import TpuEntry, TpuSuggestion
 from sherpi.infrastructure.persistence.models import TpuEntryRow
+from sherpi.shared_kernel.value_objects import Rito
 
 
 class SqlTpuIndex:
@@ -29,9 +30,13 @@ class SqlTpuIndex:
             s.add(row)
             s.commit()
 
-    def search(self, query_embedding: np.ndarray, k: int) -> list[TpuSuggestion]:
+    def search(
+        self, query_embedding: np.ndarray, k: int, rito: Rito | None = None
+    ) -> list[TpuSuggestion]:
         with Session(self._engine) as s:
             rows = list(s.exec(select(TpuEntryRow)).all())
+        if rito is not None:
+            rows = [r for r in rows if r.rito == str(rito)]
         if not rows:
             return []
         matrix = np.stack(
