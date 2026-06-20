@@ -80,11 +80,38 @@ def test_missing_court_evidence_hearing_is_yellow_no_amendment() -> None:
 
 
 def test_invalid_cpf_fails_qualification() -> None:
+    # Caminho sem raw_text: documento mascarado → fallback LLM parties.
     report = CheckAdmissibility().run(
         _summary(parties=[Parte(name="X", document="111.111.111-11", pole=Polo.ACTIVE)])
     )
     item = next(i for i in report.items if i.requirement is Requirement.QUALIFICATION)
     assert item.present is False
+
+
+def test_invalid_cpf_fails_qualification_with_raw_text() -> None:
+    # Caminho COM raw_text (caminho real da produção): CPF inválido do autor e CNPJ
+    # inválido da ré → _scan_valid_document não acha nada → QUALIFICATION falha.
+    # Regressão: versão anterior encontrava o CNPJ da ré (válido) e passava o check.
+    raw = (
+        "FULANO DE TAL, inscrito no CPF sob o nº 111.111.111-11, "
+        "propor ação em face de EMPRESA LTDA., CNPJ nº 00.000.000/0000-00."
+    )
+    summary = _summary(parties=[Parte(name="FULANO DE TAL", document="[CPF_1]", pole=Polo.ACTIVE)])
+    report = CheckAdmissibility().run(summary, raw_text=raw)
+    item = next(i for i in report.items if i.requirement is Requirement.QUALIFICATION)
+    assert item.present is False
+
+
+def test_valid_cpf_in_raw_text_passes_qualification() -> None:
+    # raw_text tem CPF válido do autor (ainda que mascarado no resumo do LLM).
+    raw = (
+        "FULANO DE TAL, inscrito no CPF sob o nº 529.982.247-25, "
+        "propor ação em face de EMPRESA LTDA., CNPJ nº 11.222.333/0001-81."
+    )
+    summary = _summary(parties=[Parte(name="FULANO DE TAL", document="[CPF_1]", pole=Polo.ACTIVE)])
+    report = CheckAdmissibility().run(summary, raw_text=raw)
+    item = next(i for i in report.items if i.requirement is Requirement.QUALIFICATION)
+    assert item.present is True
 
 
 def test_claim_amount_provenance_is_normalized() -> None:

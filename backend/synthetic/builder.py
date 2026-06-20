@@ -96,7 +96,11 @@ _DEFAULT_CTX = _RandCtx(rng=random.Random(42))
 _ENDERECAMENTO = "EXCELENTÍSSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A) DE DIREITO DA VARA CÍVEL"
 
 
-def _qualificacao(autor_cpf: str = "529.982.247-25", ctx: _RandCtx | None = None) -> list[str]:
+def _qualificacao(
+    autor_cpf: str = "529.982.247-25",
+    reu_cnpj: str = "11.222.333/0001-81",
+    ctx: _RandCtx | None = None,
+) -> list[str]:
     if ctx:
         return [
             f"{ctx.nome}, brasileiro(a), solteiro(a), autônomo(a), inscrito(a) no CPF sob o nº {ctx.cpf},",
@@ -109,7 +113,7 @@ def _qualificacao(autor_cpf: str = "529.982.247-25", ctx: _RandCtx | None = None
         f"FULANO DE TAL, brasileiro, solteiro, autônomo, inscrito no CPF sob o nº {autor_cpf},",
         "residente na Rua das Flores, nº 100, São Paulo/SP, CEP 01310-100, e-mail fulano@exemplo.com,",
         "vem, por seu advogado (procuração anexa), propor a presente ação em face de",
-        "EMPRESA EXEMPLO LTDA., pessoa jurídica inscrita no CNPJ sob o nº 11.222.333/0001-81,",
+        f"EMPRESA EXEMPLO LTDA., pessoa jurídica inscrita no CNPJ sob o nº {reu_cnpj},",
         "com sede na Av. Central, nº 500, São Paulo/SP, pelos fatos e fundamentos a seguir.",
     ]
 
@@ -210,13 +214,15 @@ def _body_sem_pedidos() -> list[str]:
 
 
 def _body_cpf_invalido() -> list[str]:
-    # CPF com dígitos verificadores inválidos.
+    # CPF do autor com dígitos verificadores inválidos; CNPJ da ré também inválido
+    # (00.000.000/0000-00 é homogêneo, rejeitado pelo validador da RFB) para garantir
+    # que _scan_valid_document não encontre nenhum documento válido no texto.
     return [
         _ENDERECAMENTO,
         "",
         "AÇÃO DE COBRANÇA",
         "",
-        *_qualificacao(autor_cpf="111.111.111-11"),
+        *_qualificacao(autor_cpf="111.111.111-11", reu_cnpj="00.000.000/0000-00"),
         "",
         "DOS FATOS: Contrato de prestação de serviços inadimplido, no valor de R$ 15.000,00.",
         "DO DIREITO: Arts. 319 e 320 do CPC.",
@@ -757,11 +763,13 @@ _CATALOG: dict[str, _Spec] = {
     ),
     "defect_cpf_invalido": _Spec(
         "defect",
-        "CPF do autor com dígitos inválidos (qualificação).",
+        "CPF do autor com dígitos inválidos (qualificação) — sem CPF/CNPJ válido no documento.",
         _body_cpf_invalido,
         _render_clean,
         False,
         "PASS",
+        expect_semaforo="AMARELO",
+        expect_requer_emenda=False,
     ),
     # --- variantes aleatórias de cobrança (mesmo cenário, dados distintos) ---
     **{

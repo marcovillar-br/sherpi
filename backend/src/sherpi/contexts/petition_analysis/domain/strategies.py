@@ -88,11 +88,7 @@ class CivelStrategy:
         )
 
     def _check_qualification(self, s: PetitionSummary, raw_text: str | None) -> ChecklistItem:
-        # Preferir o texto ORIGINAL (robusto ao mascaramento de PII no resumo do LLM).
-        if raw_text is not None:
-            doc = _scan_valid_document(raw_text)
-            detail = "CPF/CNPJ válido no documento (checksum)." if doc else "Sem CPF/CNPJ válido."
-            return self._det(Requirement.QUALIFICATION, doc is not None, doc, detail)
+        # 1. Parte ativa extraída pelo LLM tem precedência (documento não-mascarado).
         for parte in s.parties:
             if parte.pole is Polo.ACTIVE:
                 doc = _valid_document(parte.document)
@@ -100,6 +96,17 @@ class CivelStrategy:
                     return self._det(
                         Requirement.QUALIFICATION, True, doc, "CPF/CNPJ do autor válido (checksum)."
                     )
+                # Documento mascarado pela anonimização — validar pelo texto original.
+                if raw_text is not None:
+                    doc = _scan_valid_document(raw_text)
+                    detail = "CPF/CNPJ válido no documento (checksum)." if doc else "Sem CPF/CNPJ válido."
+                    return self._det(Requirement.QUALIFICATION, doc is not None, doc, detail)
+                return self._det(Requirement.QUALIFICATION, False, None, "Autor sem CPF/CNPJ válido.")
+        # 2. LLM não identificou parte ativa — escanear texto original como fallback.
+        if raw_text is not None:
+            doc = _scan_valid_document(raw_text)
+            detail = "CPF/CNPJ válido no documento." if doc else "Sem CPF/CNPJ válido."
+            return self._det(Requirement.QUALIFICATION, doc is not None, doc, detail)
         return self._det(Requirement.QUALIFICATION, False, None, "Autor sem CPF/CNPJ válido.")
 
     def _check_text(self, req: Requirement, value: str) -> ChecklistItem:
