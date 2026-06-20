@@ -1,15 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { login, ApiError } from "@/lib/api";
+
+const STORAGE_KEY = "sherpi_saved_credentials";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const { email: e, password: p } = JSON.parse(saved) as { email: string; password: string };
+        setEmail(e);
+        setPassword(p);
+        setRemember(true);
+      }
+    } catch {
+      // localStorage indisponível ou dados corrompidos — ignorar silenciosamente.
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -17,6 +34,11 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(email, password);
+      if (remember) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ email, password }));
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
       router.replace("/");
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -68,6 +90,19 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none"
             />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              id="remember"
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 accent-gray-900"
+            />
+            <label htmlFor="remember" className="text-sm text-gray-600">
+              Lembrar acesso
+            </label>
           </div>
 
           {error && (
