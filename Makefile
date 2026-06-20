@@ -5,7 +5,7 @@
 BACKEND_DIR := backend
 FRONTEND_DIR := frontend
 
-.PHONY: help up down setup migrate seed-tpu synthetic test lint typecheck dev-backend dev-backend-fake dev-frontend e2e
+.PHONY: help up down setup migrate seed-tpu synthetic test lint typecheck eval dev-backend dev-backend-fake dev-frontend e2e
 
 help:
 	@echo "Comandos disponíveis:"
@@ -18,6 +18,7 @@ help:
 	@echo "  make test          Roda a suite de testes"
 	@echo "  make lint          ruff check + format --check"
 	@echo "  make typecheck     mypy strict"
+	@echo "  make eval          Eval harness (gate de CI; sai != 0 abaixo do limiar)"
 	@echo "  make dev-backend       Inicia o backend (hot reload, LLM real)"
 	@echo "  make dev-backend-fake  Inicia o backend com FakeProvider (sem tokens)"
 	@echo "  make dev-frontend      Inicia o frontend (hot reload)"
@@ -61,6 +62,10 @@ lint:
 
 typecheck:
 	cd $(BACKEND_DIR) && uv run mypy src/ evals/
+
+# Eval harness — gate de CI; sai com código != 0 se abaixo do limiar.
+eval:
+	cd $(BACKEND_DIR) && PYTHONPATH=. uv run python -m evals.run --ci
 
 # --- Servidores ---
 

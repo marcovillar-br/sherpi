@@ -63,7 +63,7 @@ Modelo de ameaças do SHERPI, derivado da seção "Segurança & Confiabilidade" 
 ## 4. Decisões de risco aceitas no MVP
 
 - O firewall é **heurístico** e não cobre todos os vetores possíveis — risco residual aceito, mitigado por defesa em profundidade e eval por vetor.
-- Sem RBAC/MFA no MVP — todo usuário autenticado tem o mesmo acesso (ver ADR 0007).
+- Sem RBAC/MFA no MVP — todo usuário autenticado tem o mesmo acesso (ver ADR 0007). Os papéis já estão modelados (`Role` ADMIN/REVISOR, embutidos no JWT), mas **sem enforcement** nas rotas; a autorização efetiva fica para a Fase 4.
 - LLM externo (Gemini) no MVP — risco de PII tratado por synthetic-first + Anonymizer; LLM local fica para a Fase 4.
 
 Controles detalhados e seu faseamento (MVP vs. Fase 4) em `security.md`.
