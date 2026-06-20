@@ -72,7 +72,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 2. Enviar **`data/synthetic/clean_acao_cobranca.pdf`** → **Analisar**.
 3. Mostrar lado a lado:
    - **Laudo de integridade**: verde "Documento íntegro".
-   - **Resumo estruturado**: partes (CPF/CNPJ anonimizados no LLM), fato gerador, pedidos,
+   - **Resumo estruturado**: partes (CPF/CNPJ e nomes anonimizados no LLM), fato gerador, pedidos,
      valor da causa. *"Economiza a leitura de dezenas de laudas."*
    - **Admissibilidade**: semáforo VERDE + checklist (arts. 319/321), método e evidência por item.
 4. *Interpretabilidade:* "cada item mostra COMO foi verificado e a evidência — o juiz entende
@@ -146,8 +146,10 @@ curl localhost:8000/ready    # → {"status":"ok"}
    Com `SHERPI_LOG_LEVEL=DEBUG`, loga o prompt completo e a resposta (texto já anonimizado
    pelo LGPD layer — seguro). *"Sabe exatamente o que foi enviado ao modelo, quando e com
    qual resultado — rastreabilidade exigida pela Res. CNJ 615/2025."*
-3. **LGPD**: mostrar no código que `MappedRegexAnonymizer` substitui CPF, CNPJ, e-mail,
-   telefone e CEP antes de enviar ao Gemini. Para nomes: `PresidioAnonymizer` (extra `ner`).
+3. **LGPD**: mostrar no código que o `CompositeAnonymizer` (`RegexAnonymizer` +
+   `RegexNameAnonymizer`) substitui CPF, CNPJ, e-mail, telefone, CEP **e nomes das partes**
+   (inclusive litisconsórcio) antes de enviar ao LLM externo. `MappedRegexAnonymizer`
+   (reversível) e `PresidioAnonymizer` (NER, extra `ner`) ficam como opções/evolução.
 4. **Retenção**: `DELETE /v1/analyses?older_than_days=90` remove análises antigas
    (direito ao esquecimento, LGPD art. 18).
 5. **Supply-chain**: `uv run pip-audit` — nenhuma vulnerabilidade conhecida.
@@ -179,11 +181,11 @@ curl localhost:8000/ready    # → {"status":"ok"}
 ## 9. Princípios de engenharia/IA (1 min)
 
 - **Agnóstico a LLM:** `SHERPI_LLM_BACKEND` / `SHERPI_LLM_MODEL` → troca provedor sem tocar
-  no código (port + adapter). Default Gemini Flash; Maritaca/OpenAI/Ollama plugáveis.
+  no código (port + adapter). Default Gemini Flash; **Grok (xAI)** e **Claude Sonnet (Anthropic)** plugáveis (httpx, sem SDK).
 - **Qualidade (medida, não prometida):**
   ```bash
   uv run python -m evals.run   # firewall p/r=1.0; extração sanidade=1.0; corpus resumo; TPU top-3=1.0
-  uv run pytest -q             # 196 testes verdes
+  uv run pytest -q             # 203 testes verdes
   make e2e                     # 27 testes Playwright — firewall de todos os 26 PDFs (zero tokens)
   make e2e-llm                 # 10 cenários Playwright — semáforo + liminar com LLM real
   npm run build && npm run lint # frontend: zero erros TS/ESLint
@@ -193,8 +195,9 @@ curl localhost:8000/ready    # → {"status":"ok"}
   `requests_evidence`, `cited_documents`, `SUBSIDIARY`). `eval_extraction_corpus()` valida os campos
   extraídos com expectativa definida.
 - **Rigor:** ruff + mypy strict + pip-audit no CI (gate real). Arquitetura **DDD + hexagonal**.
-- **LGPD end-to-end:** anonimização antes do LLM; retenção configurável; extra `ner` para NER
-  de nomes (Presidio/spaCy). Log de auditoria das chamadas ao LLM (texto anonimizado, ver §7).
+- **LGPD end-to-end:** anonimização antes do LLM (estruturados + **nomes das partes**, por regex
+  ancorado); detecção de PDF-imagem (sem texto → não vai ao LLM); retenção configurável; NER
+  (Presidio, extra `ner`) como evolução. Log de auditoria das chamadas ao LLM (texto anonimizado, ver §7).
 
 ---
 
@@ -213,7 +216,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 auditável (CNJ 615/2025), classificação TPU, LGPD pronto para produção, ingestão
 automatizada de sistemas processuais, UI funcional ponta a ponta, auditoria estruturada
 de cada chamada ao LLM e suíte E2E Playwright sobre 26 cenários sintéticos. Arquitetura
-DDD + hexagonal, 196 testes, CI rigoroso, Next.js 16 + React 19."*
+DDD + hexagonal, 203 testes, CI rigoroso, Next.js 16 + React 19."*
 
 ---
 
@@ -239,7 +242,7 @@ DDD + hexagonal, 196 testes, CI rigoroso, Next.js 16 + React 19."*
   - Vícios de admissibilidade: `defect_sem_qualificacao_reu.pdf`, `defect_sem_fundamentacao.pdf`
   - Variantes aleatórias: `clean_acao_cobranca_v1.pdf` … `v3.pdf` (nomes/CPFs/valores distintos)
 - **Métricas ao vivo:** `uv run python -m evals.run`
-- **Testes unitários/integração:** `uv run pytest -q` (196 testes)
+- **Testes unitários/integração:** `uv run pytest -q` (203 testes)
 - **Testes E2E:** `make e2e` (27 testes, zero tokens) · `make e2e-llm` (10 cenários, LLM real)
 - **Contrato da API:** [`tech-spec-sherpi.md`](tech-spec-sherpi.md) §8
 - **Swagger local:** `http://localhost:8000/docs`
