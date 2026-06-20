@@ -48,6 +48,7 @@ from sherpi.contexts.integration.infrastructure.sql_job_repository import SqlIng
 from sherpi.contexts.review.application.record_review import RecordReview
 from sherpi.contexts.review.domain.events import AuditEvent, ReviewDecision
 from sherpi.contexts.review.domain.ports import AuditRepository
+from sherpi.infrastructure.llm.audit_store import LLMCall, LLMCallRepository
 from sherpi.infrastructure.logging import configure_logging, get_logger
 from sherpi.interfaces.api.dependencies import (
     get_audit_repository,
@@ -55,6 +56,7 @@ from sherpi.interfaces.api.dependencies import (
     get_current_user,
     get_ingest_queue,
     get_job_repository,
+    get_llm_call_repository,
     get_orchestrator,
     get_record_review,
     get_repository,
@@ -245,6 +247,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if record is None:
             raise HTTPException(status_code=404, detail="Análise não encontrada.")
         return AnalyzeResponse(id=record.id, result=record.result)
+
+    @v1.get("/analyses/{analysis_id}/llm-calls", response_model=list[LLMCall])
+    def list_llm_calls(
+        analysis_id: str,
+        llm_repo: Annotated[LLMCallRepository, Depends(get_llm_call_repository)],
+        current_user: Annotated[User, Depends(get_current_user)],
+    ) -> list[LLMCall]:
+        """Auditoria: prompt + resposta de cada chamada ao LLM desta análise."""
+        return llm_repo.list_by_analysis(analysis_id)
 
     @v1.post("/analyses/{analysis_id}/review", response_model=AuditEvent)
     def create_review(

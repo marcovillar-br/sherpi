@@ -95,6 +95,19 @@ export interface AnalysisSummary {
   review_comment: string | null;
 }
 
+export interface LLMCall {
+  id: string;
+  analysis_id: string | null;
+  call_type: string;
+  model: string | null;
+  prompt: string;
+  response: string;
+  prompt_chars: number;
+  response_chars: number;
+  duration_ms: number;
+  created_at: string;
+}
+
 export interface AuditEvent {
   id: string;
   analysis_id: string;

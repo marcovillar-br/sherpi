@@ -4,6 +4,7 @@ import type {
   AnalysisSummary,
   AnalyzeResponse,
   AuditEvent,
+  LLMCall,
   ReviewDecision,
   Rito,
   TokenResponse,
@@ -78,6 +79,12 @@ export async function listAnalyses(): Promise<AnalysisSummary[]> {
 export async function getAnalysis(id: string): Promise<AnalyzeResponse> {
   const res = await apiFetch(`/v1/analyses/${id}`);
   return (await expectOk(res)).json() as Promise<AnalyzeResponse>;
+}
+
+/** Auditoria do LLM: prompt + resposta de cada chamada desta análise. */
+export async function getLlmCalls(analysisId: string): Promise<LLMCall[]> {
+  const res = await apiFetch(`/v1/analyses/${analysisId}/llm-calls`);
+  return (await expectOk(res)).json() as Promise<LLMCall[]>;
 }
 
 /** Registra uma decisão de revisão humana sobre uma análise. */

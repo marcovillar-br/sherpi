@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -20,12 +21,14 @@ from sherpi.contexts.petition_analysis.domain.summary import (
     Polo,
 )
 from sherpi.contexts.review.infrastructure.repository import SqlAuditRepository
+from sherpi.infrastructure.llm.audit_store import LLMCall
 from sherpi.infrastructure.llm.fake import FakeProvider
 from sherpi.infrastructure.persistence.engine import create_all
-from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
+from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository, SqlLLMCallRepository
 from sherpi.interfaces.api.dependencies import (
     get_audit_repository,
     get_current_user,
+    get_llm_call_repository,
     get_orchestrator,
     get_repository,
 )
@@ -57,9 +60,11 @@ def client() -> Iterator[TestClient]:
     create_all(engine)
     repository = SqlAnalysisRepository(engine)
     audit_repo = SqlAuditRepository(engine)
+    llm_repo = SqlLLMCallRepository(engine)
     app.dependency_overrides[get_orchestrator] = lambda: orchestrator
     app.dependency_overrides[get_repository] = lambda: repository
     app.dependency_overrides[get_audit_repository] = lambda: audit_repo
+    app.dependency_overrides[get_llm_call_repository] = lambda: llm_repo
     app.dependency_overrides[get_current_user] = lambda: _FAKE_USER
     yield TestClient(app)
     app.dependency_overrides.clear()
@@ -161,3 +166,50 @@ def test_list_without_review_has_null_fields(client: TestClient) -> None:
     item = client.get("/v1/analyses").json()[0]
     assert item["review_decision"] is None
     assert item["review_comment"] is None
+
+
+# --- Auditoria do LLM: GET /v1/analyses/{id}/llm-calls ---
+
+
+def _seed_llm_call(client: TestClient, analysis_id: str) -> None:
+    app = client.app  # type: ignore[union-attr]
+    repo = app.dependency_overrides[get_llm_call_repository]()
+    repo.append(
+        LLMCall(
+            id="call-1",
+            analysis_id=analysis_id,
+            call_type="extract",
+            model="gemini-test",
+            prompt='[{"role": "user", "content": "petição..."}]',
+            response='{"facts": "..."}',
+            prompt_chars=30,
+            response_chars=16,
+            duration_ms=42,
+            created_at=datetime.now(UTC),
+        )
+    )
+
+
+def test_list_llm_calls_returns_persisted(client: TestClient) -> None:
+    aid = _post_analysis(client)
+    _seed_llm_call(client, aid)
+    items = client.get(f"/v1/analyses/{aid}/llm-calls").json()
+    assert len(items) == 1
+    assert items[0]["analysis_id"] == aid
+    assert items[0]["call_type"] == "extract"
+    assert "petição" in items[0]["prompt"]
+    assert items[0]["response"] == '{"facts": "..."}'
+
+
+def test_list_llm_calls_empty_when_none(client: TestClient) -> None:
+    aid = _post_analysis(client)
+    assert client.get(f"/v1/analyses/{aid}/llm-calls").json() == []
+
+
+def test_list_llm_calls_requires_auth(client: TestClient) -> None:
+    aid = _post_analysis(client)
+    app = client.app  # type: ignore[union-attr]
+    app.dependency_overrides.pop(get_current_user, None)
+    resp = client.get(f"/v1/analyses/{aid}/llm-calls")
+    assert resp.status_code == 401
+    app.dependency_overrides[get_current_user] = lambda: _FAKE_USER

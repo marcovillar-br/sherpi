@@ -42,9 +42,19 @@ export default function AnalysisDetailPage() {
     <main className="mx-auto w-[80%] max-w-6xl space-y-6 p-6">
       <NavHeader />
 
-      <Link href="/analises" className="text-sm text-gray-500 hover:text-gray-900">
-        ← Voltar ao histórico
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/analises" className="text-sm text-gray-500 hover:text-gray-900">
+          ← Voltar ao histórico
+        </Link>
+        {data && (
+          <Link
+            href={`/analises/${params.id}/llm`}
+            className="text-sm text-gray-500 hover:text-gray-900"
+          >
+            Auditoria do LLM (prompt/resposta) →
+          </Link>
+        )}
+      </div>
 
       {error && (
         <div className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700">

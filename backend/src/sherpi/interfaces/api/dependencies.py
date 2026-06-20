@@ -40,11 +40,12 @@ from sherpi.contexts.taxonomy.infrastructure.embedding import FakeEmbeddingModel
 from sherpi.contexts.taxonomy.infrastructure.sql_index import SqlTpuIndex
 from sherpi.infrastructure.anonymization.factory import build_anonymizer
 from sherpi.infrastructure.llm.audit import LoggingLLMProvider
+from sherpi.infrastructure.llm.audit_store import LLMCallRepository, PersistingLLMProvider
 from sherpi.infrastructure.llm.circuit_breaker import CircuitBreakerLLMProvider
 from sherpi.infrastructure.llm.factory import build_llm_provider
 from sherpi.infrastructure.llm.fake import RepeatingFakeProvider
 from sherpi.infrastructure.persistence.engine import make_engine
-from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
+from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository, SqlLLMCallRepository
 from sherpi.shared_kernel.ports import LLMProvider
 
 _bearer = HTTPBearer(auto_error=False)
@@ -96,7 +97,9 @@ def _build_orchestrator() -> AnalyzePetition:
             failure_threshold=settings.llm_circuit_breaker_threshold,
             reset_timeout=settings.llm_circuit_breaker_reset_seconds,
         )
-    llm = LoggingLLMProvider(inner, label="extract")  # auditoria (logs)
+    # Persiste cada chamada (prompt+resposta) e loga metadados.
+    persisted = PersistingLLMProvider(inner, _build_llm_call_repository(), label="extract")
+    llm = LoggingLLMProvider(persisted, label="extract")
     return AnalyzePetition(
         PyMuPDFParser(timeout_seconds=settings.pdf_parse_timeout_seconds),
         ExtractPetition(llm, temperature=settings.llm_temperature),
@@ -109,6 +112,17 @@ def _build_orchestrator() -> AnalyzePetition:
 def _build_repository() -> SqlAnalysisRepository:
     settings: Settings = get_settings()
     return SqlAnalysisRepository(make_engine(settings.database_url))
+
+
+@lru_cache
+def _build_llm_call_repository() -> SqlLLMCallRepository:
+    settings: Settings = get_settings()
+    return SqlLLMCallRepository(make_engine(settings.database_url))
+
+
+def get_llm_call_repository() -> LLMCallRepository:
+    """Dependency: repositório de auditoria das chamadas ao LLM (prompt+resposta)."""
+    return _build_llm_call_repository()
 
 
 @lru_cache

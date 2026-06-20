@@ -55,6 +55,28 @@ class TpuEntryRow(SQLModel, table=True):
     embedding_dim: int
 
 
+class LLMCallRow(SQLModel, table=True):
+    """Auditoria persistida de cada chamada ao LLM (prompt + resposta).
+
+    O conteúdo já foi anonimizado antes de ir ao LLM (LGPD). `analysis_id` liga
+    a chamada à análise (sem FK rígida: a chamada é gravada durante o pipeline,
+    antes do registro da análise).
+    """
+
+    __tablename__ = "llm_calls"
+
+    id: str = Field(primary_key=True)
+    analysis_id: str | None = Field(default=None, index=True)
+    call_type: str
+    model: str | None = Field(default=None)
+    prompt: str
+    response: str
+    prompt_chars: int
+    response_chars: int
+    duration_ms: int
+    created_at: datetime
+
+
 class IngestJobRow(SQLModel, table=True):
     __tablename__ = "ingest_jobs"
 
