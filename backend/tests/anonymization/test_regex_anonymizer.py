@@ -25,7 +25,9 @@ def test_noop_keeps_text() -> None:
 
 
 def test_factory_uses_regex_for_external_llm() -> None:
-    settings = Settings(llm_backend="gemini", anonymize_before_llm=True)
+    # anonymize_names desligado isola o caminho regex-only (estruturado).
+    # O default composto (estruturado + nomes) é coberto em test_name_anonymizer.py.
+    settings = Settings(llm_backend="gemini", anonymize_before_llm=True, anonymize_names=False)
     assert isinstance(build_anonymizer(settings), RegexAnonymizer)
 
 

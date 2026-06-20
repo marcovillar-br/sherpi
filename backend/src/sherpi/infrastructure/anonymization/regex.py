@@ -3,9 +3,9 @@
 Mascara identificadores estruturados (CPF, CNPJ, e-mail, telefone, CEP) **antes**
 de enviar o texto a um LLM externo. Determinístico e local.
 
-Limitação conhecida (MVP): não anonimiza **nomes** de pessoas (exige NER —
-ex.: Presidio/spaCy, previsto para a Fase 4). Por isso a estratégia *synthetic-first*
-permanece a principal salvaguarda; este adapter é a defesa estrutural complementar.
+Nomes das partes são mascarados pelo `RegexNameAnonymizer` (por âncora, best-effort,
+sem NER) — ver classe. NER pleno (Presidio/spaCy) continua a opção robusta da Fase 4.
+A estratégia *synthetic-first* permanece a principal salvaguarda.
 
 Os placeholders são tipados (`[CPF]`, `[CNPJ]`...) para o LLM ainda entender a
 estrutura do documento. A validação determinística de CPF/CNPJ roda sobre o texto
@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import re
 
+from sherpi.shared_kernel.ports import Anonymizer
+
 # Ordem importa: padrões mais longos/específicos primeiro (CNPJ antes de CPF; CEP por último).
 _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("[EMAIL]", re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")),
@@ -25,6 +27,20 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("[CEP]", re.compile(r"\b\d{5}-?\d{3}\b")),
 )
 
+# --- Mascaramento de nomes por ÂNCORA (LGPD, best-effort, sem NER/dependências) ---
+# Sequência de nome próprio: tokens iniciando em maiúscula + conectivos (da/de/dos/e).
+_NAME = (
+    r"[A-ZÀ-Ý][A-Za-zÀ-ÿ&.'-]*"
+    r"(?:\s+(?:d[aeo]s?|e|&|[A-ZÀ-Ý][A-Za-zÀ-ÿ&.'-]*)){0,6}"
+)
+# Nome ANTES de um marcador de qualificação (pessoa física/jurídica).
+_NAME_BEFORE_CUE = re.compile(
+    _NAME + r"(?=\s*,?\s*(?:[Bb]rasileir|[Ee]strangeir|[Pp]ortugu|[Pp]ortador"
+    r"|[Ii]nscrit[oa]\s+no\s+CPF|[Pp]essoa\s+jur|[Pp]essoa\s+f[ií]sica))"
+)
+# Nome DEPOIS de "em face de/da" ou "em desfavor de" (tipicamente o réu).
+_NAME_AFTER_PARTY = re.compile(r"((?:[Ee]m face d[ea]|[Ee]m desfavor de)\s+)(" + _NAME + r")")
+
 
 class RegexAnonymizer:
     """Implementação do port `Anonymizer` baseada em regex."""
@@ -32,6 +48,34 @@ class RegexAnonymizer:
     def anonymize(self, text: str) -> str:
         for placeholder, pattern in _PATTERNS:
             text = pattern.sub(placeholder, text)
+        return text
+
+
+class RegexNameAnonymizer:
+    """Mascara nomes das partes por ÂNCORA — sem NER, O(n), determinístico.
+
+    Pega o nome na qualificação: imediatamente antes de "brasileiro/pessoa
+    jurídica/inscrito no CPF…" ou logo após "em face de". É **best-effort**: pode
+    não pegar nomes citados livremente nos fatos, e raramente pode mascarar a mais.
+    NER (Presidio) continua a opção robusta da Fase 4. Não altera o veredito nem a
+    admissibilidade (que usam o texto original).
+    """
+
+    def anonymize(self, text: str) -> str:
+        text = _NAME_BEFORE_CUE.sub("[NOME]", text)
+        text = _NAME_AFTER_PARTY.sub(lambda m: m.group(1) + "[NOME]", text)
+        return text
+
+
+class CompositeAnonymizer:
+    """Aplica vários anonimizadores em sequência (ex.: estruturado + nomes)."""
+
+    def __init__(self, anonymizers: list[Anonymizer]) -> None:
+        self._anonymizers = anonymizers
+
+    def anonymize(self, text: str) -> str:
+        for anonymizer in self._anonymizers:
+            text = anonymizer.anonymize(text)
         return text
 
 

@@ -4,18 +4,26 @@ from __future__ import annotations
 
 from sherpi.config import Settings
 from sherpi.infrastructure.anonymization.regex import (
+    CompositeAnonymizer,
     MappedRegexAnonymizer,
     NoOpAnonymizer,
     RegexAnonymizer,
+    RegexNameAnonymizer,
 )
 from sherpi.shared_kernel.ports import Anonymizer
 
 
 def build_anonymizer(settings: Settings) -> Anonymizer:
-    """Anonimiza só quando faz sentido: flag ligada **e** LLM externo."""
-    if settings.anonymize_before_llm and settings.is_external_llm:
-        return RegexAnonymizer()
-    return NoOpAnonymizer()
+    """Anonimiza só quando faz sentido: flag ligada **e** LLM externo.
+
+    Com `anonymize_names`, encadeia o mascaramento de nomes (por âncora) após os
+    identificadores estruturados.
+    """
+    if not (settings.anonymize_before_llm and settings.is_external_llm):
+        return NoOpAnonymizer()
+    if settings.anonymize_names:
+        return CompositeAnonymizer([RegexAnonymizer(), RegexNameAnonymizer()])
+    return RegexAnonymizer()
 
 
 def build_mapped_anonymizer(settings: Settings) -> MappedRegexAnonymizer | NoOpAnonymizer:

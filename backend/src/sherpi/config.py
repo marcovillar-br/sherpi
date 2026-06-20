@@ -46,6 +46,10 @@ class Settings(BaseSettings):
 
     # --- Anonimização (LGPD) ---
     anonymize_before_llm: bool = True
+    # Mascarar nomes das partes (regex por âncora, sem NER): pega o nome na
+    # qualificação (antes de "brasileiro/pessoa jurídica/CPF" ou após "em face de").
+    # Best-effort e O(n); NER (Presidio) continua a opção robusta da Fase 4.
+    anonymize_names: bool = True
 
     # --- Firewall (Document Integrity) ---
     max_upload_mb: int = 25
