@@ -68,6 +68,7 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 | EP8 — Integração Judicial | Conectores PJe/E-Proc; ingestão em lote/assíncrona. | C | 7 | ✅ |
 | EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-8 | — |
 | EP12 — Refactor de nomenclatura (en-US compliance) | Renomear identificadores Python pt-BR para en-US nos contextos `petition_analysis` e `review`. Débito técnico; não afeta funcionalidade. | C | 9 | ✅ |
+| EP13 — OCR de documentos digitalizados | Extrair texto de PDFs imagem/escaneados (total ou parcial) via OCR (Tesseract / OCR de nuvem / visão), alimentando o pipeline normal (firewall + anonimização + extração). Hoje o Nível 1 só **detecta e sinaliza** "sem camada de texto". Ver discussão em §LGPD/[ADR-0010](adr/0010-name-masking-regex-vs-ner.md). | — | — (não priorizado) | ⚪ |
 
 ### Limitações conhecidas (medidas, não mascaradas)
 
@@ -224,7 +225,7 @@ concluídas (MVP + multi-domínio + Fase 4 backend + UI frontend S4–S7).
 
 **Definition of Done (Sprint 9)**
 
-- [x] `uv run pytest -q` → 193 passed, 0 failed.
+- [x] `uv run pytest -q` → 196 passed, 0 failed.
 - [x] `ruff check --fix . && ruff format . && mypy src/ evals/` → limpos.
 - [x] `npm run build && npm run lint` → limpos.
 - [x] Nenhum identificador pt-BR violando a regra de duas camadas (exceção `trabalhista` documentada).

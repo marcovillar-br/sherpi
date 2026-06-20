@@ -77,6 +77,10 @@ class AnalyzePetition:
             return AnalysisResult(rito=rito, forensics=forensics)  # early-exit: sem LLM
 
         original_text = document.visible_text()
+        if not original_text.strip():
+            # Sem texto extraível (provável documento-imagem/escaneado): não há o que
+            # analisar cognitivamente. O laudo sinaliza via forensics.image_only_pages.
+            return AnalysisResult(rito=rito, forensics=forensics)
         # Texto que vai ao LLM é anonimizado (LGPD); a admissibilidade usa o original.
         llm_text = (
             self._anonymizer.anonymize(original_text)

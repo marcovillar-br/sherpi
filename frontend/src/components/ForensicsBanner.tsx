@@ -15,6 +15,13 @@ export function ForensicsBanner({ report }: { report: ForensicsReport }) {
         <h2 className="font-semibold">Laudo de integridade — {style.label}</h2>
         <span className="text-sm">risco {report.risk_score.toFixed(2)}</span>
       </div>
+      {report.image_only_pages.length > 0 && (
+        <p className="mt-3 rounded border border-amber-300 bg-amber-50 p-2 text-sm text-amber-800">
+          ⚠ Documento sem camada de texto em {report.image_only_pages.length} página
+          {report.image_only_pages.length > 1 ? "s" : ""} (provável digitalização/imagem). A
+          extração não é confiável nesse conteúdo — requer OCR.
+        </p>
+      )}
       {report.anomalies.length > 0 && (
         <ul className="mt-3 space-y-2 text-sm">
           {report.anomalies.map((a, i) => (

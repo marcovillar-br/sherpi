@@ -109,7 +109,7 @@ class DetectInjection:
             anomalies.extend(self._inspect_span(span, doc))
 
         anomalies.extend(self._inspect_metadata(doc))
-        return ForensicsReport.from_anomalies(anomalies)
+        return ForensicsReport.from_anomalies(anomalies, image_only_pages=doc.image_only_pages())
 
     def _inspect_span(self, span: TextSpan, doc: ParsedDocument) -> list[Anomaly]:
         found: list[Anomaly] = []

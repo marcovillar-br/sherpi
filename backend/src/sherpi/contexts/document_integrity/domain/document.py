@@ -38,6 +38,8 @@ class PageGeometry(BaseModel):
 
     page: int
     cropbox: BBox
+    has_text: bool = True  # há texto extraível na página
+    image_ratio: float = 0.0  # fração da página coberta por imagem (0..1)
 
 
 class ParsedDocument(BaseModel):
@@ -78,3 +80,8 @@ class ParsedDocument(BaseModel):
         if current:
             groups.append(" ".join(current))
         return "\n".join(groups)
+
+    def image_only_pages(self) -> list[int]:
+        """Páginas sem texto extraível mas cobertas por imagem (≥50%) — provável
+        digitalização/escaneamento, onde a extração de texto não é confiável."""
+        return [p.page for p in self.pages if not p.has_text and p.image_ratio >= 0.5]

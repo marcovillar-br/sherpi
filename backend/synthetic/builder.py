@@ -988,3 +988,19 @@ def build_clean() -> bytes:
 
 def build_white_on_white() -> bytes:
     return build_one("injection_texto_branco")
+
+
+def build_image_only() -> bytes:
+    """PDF cujo conteúdo é uma IMAGEM rasterizada (sem camada de texto).
+
+    Simula um documento escaneado: `get_text` retorna vazio e a página é coberta
+    por um bloco de imagem. Usado para testar a detecção de "documento sem texto".
+    """
+    src = pymupdf.open()
+    _write_paginated(src, _body_cobranca())
+    pix = src[0].get_pixmap(dpi=120)
+    src.close()
+    out = pymupdf.open()
+    page = out.new_page(width=_A4_W, height=_A4_H)
+    page.insert_image(page.rect, pixmap=pix)
+    return _finalize(out)

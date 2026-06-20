@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from synthetic.builder import build_clean, build_white_on_white
+from synthetic.builder import build_clean, build_image_only, build_white_on_white
 
 from sherpi.application.analyze_petition import AnalyzePetition
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
@@ -50,6 +50,17 @@ async def test_injection_blocks_before_llm() -> None:
     assert result.blocked is True
     assert result.summary is None and result.admissibility is None
     assert fake.calls == []  # NENHUMA chamada de LLM no caminho bloqueado
+
+
+async def test_image_only_pdf_skips_extraction() -> None:
+    # Documento sem texto (imagem/escaneado): firewall não bloqueia, mas a extração
+    # é pulada (sem LLM) e o laudo sinaliza as páginas-imagem.
+    fake = FakeProvider(_SUMMARY)
+    result = await _orchestrator(fake).run(build_image_only(), max_pages=300)
+    assert result.blocked is False
+    assert result.summary is None and result.admissibility is None
+    assert result.forensics.image_only_pages == [0]
+    assert fake.calls == []  # nada a extrair → nenhuma chamada de LLM
 
 
 async def test_non_pdf_rejected() -> None:

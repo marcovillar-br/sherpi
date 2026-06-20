@@ -100,8 +100,17 @@ class PyMuPDFParser:
                 cb = page.cropbox
                 cropbox = (cb.x0, cb.y0, cb.x1, cb.y1)
                 page.set_cropbox(page.mediabox)
-                pages.append(PageGeometry(page=index, cropbox=cropbox))
-                spans.extend(self._extract_spans(page, index))
+                page_spans = self._extract_spans(page, index)
+                spans.extend(page_spans)
+                page_area = max((cb.x1 - cb.x0) * (cb.y1 - cb.y0), 1.0)
+                pages.append(
+                    PageGeometry(
+                        page=index,
+                        cropbox=cropbox,
+                        has_text=any(s.text.strip() for s in page_spans),
+                        image_ratio=min(self._image_area(page) / page_area, 1.0),
+                    )
+                )
 
             return ParsedDocument(
                 page_count=doc.page_count,
@@ -112,6 +121,16 @@ class PyMuPDFParser:
             )
         finally:
             doc.close()
+
+    @staticmethod
+    def _image_area(page: pymupdf.Page) -> float:
+        """Área total coberta por blocos de imagem na página (pontos²)."""
+        total = 0.0
+        for block in page.get_text("dict").get("blocks", []):
+            if block.get("type") == 1:  # bloco de imagem (0 = texto)
+                x0, y0, x1, y1 = block["bbox"]
+                total += (x1 - x0) * (y1 - y0)
+        return total
 
     @staticmethod
     def _extract_spans(page: pymupdf.Page, index: int) -> list[TextSpan]:

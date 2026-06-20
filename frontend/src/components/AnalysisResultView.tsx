@@ -35,7 +35,10 @@ export function AnalysisResultView({
         </>
       ) : (
         <p className="text-sm text-gray-500">
-          Análise cognitiva não executada — o documento foi bloqueado pelo firewall.
+          Análise cognitiva não executada —{" "}
+          {result.forensics.image_only_pages.length > 0
+            ? "documento sem camada de texto (imagem/escaneado); requer OCR."
+            : "o documento foi bloqueado pelo firewall."}
         </p>
       )}
 

@@ -61,20 +61,28 @@ class ForensicsReport(BaseModel):
     verdict: RiskVerdict
     risk_score: float  # 0.0 (íntegro) .. 1.0 (manipulação grave)
     anomalies: list[Anomaly]
+    # Páginas sem camada de texto (imagem/escaneado): a extração não é confiável
+    # ali (requer OCR — não implementado). Não altera o veredito de injeção.
+    image_only_pages: list[int] = []
 
     @property
     def blocked(self) -> bool:
         return self.verdict is RiskVerdict.BLOCK
 
     @classmethod
-    def from_anomalies(cls, anomalies: list[Anomaly]) -> ForensicsReport:
+    def from_anomalies(
+        cls, anomalies: list[Anomaly], image_only_pages: list[int] | None = None
+    ) -> ForensicsReport:
         """Deriva escore e veredito a partir das anomalias encontradas.
 
         Regra: qualquer anomalia HIGH/CRITICAL ⇒ BLOCK; qualquer MEDIUM ⇒ WARN;
         só LOW ⇒ WARN; nenhuma ⇒ PASS. Escore = maior peso observado.
         """
+        image_pages = image_only_pages or []
         if not anomalies:
-            return cls(verdict=RiskVerdict.PASS, risk_score=0.0, anomalies=[])
+            return cls(
+                verdict=RiskVerdict.PASS, risk_score=0.0, anomalies=[], image_only_pages=image_pages
+            )
 
         score = max(_SEVERITY_WEIGHT[a.severity] for a in anomalies)
         worst = max((a.severity for a in anomalies), key=lambda s: _SEVERITY_WEIGHT[s])
@@ -82,4 +90,9 @@ class ForensicsReport(BaseModel):
             verdict = RiskVerdict.BLOCK
         else:
             verdict = RiskVerdict.WARN
-        return cls(verdict=verdict, risk_score=round(score, 3), anomalies=anomalies)
+        return cls(
+            verdict=verdict,
+            risk_score=round(score, 3),
+            anomalies=anomalies,
+            image_only_pages=image_pages,
+        )
