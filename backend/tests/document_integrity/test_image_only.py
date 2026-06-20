@@ -39,3 +39,15 @@ def test_corpus_scanned_partial_has_both_text_and_image_pages() -> None:
     flagged = doc.image_only_pages()
     assert flagged  # a página-imagem é sinalizada
     assert len(flagged) < doc.page_count  # mas nem todas as páginas são imagem
+
+
+def test_corpus_scanned_mista_is_image_heavy_not_image_only() -> None:
+    # Página mista: cabeçalho em texto + imagem dominante (texto embutido em imagem).
+    doc = PyMuPDFParser().parse(build_one("scanned_mista"), max_pages=10)
+    assert doc.visible_text().strip() != ""  # há o cabeçalho em texto
+    assert doc.image_only_pages() == []  # NÃO é "sem texto"
+    assert doc.image_heavy_pages()  # mas a página tem imagem dominante
+
+    report = DetectInjection().run(doc)
+    assert report.image_heavy_pages and not report.image_only_pages
+    assert report.verdict is RiskVerdict.PASS  # imagem não é injeção

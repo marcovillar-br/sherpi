@@ -15,6 +15,9 @@ BBox = tuple[float, float, float, float]
 # Componentes RGB normalizados de 0.0 a 1.0.
 Rgb = tuple[float, float, float]
 
+# Fração mínima de imagem para considerar a página "dominada por imagem".
+_IMAGE_PAGE_RATIO = 0.5
+
 
 class TextSpan(BaseModel):
     """Um trecho contíguo de texto com seus atributos visuais."""
@@ -84,4 +87,10 @@ class ParsedDocument(BaseModel):
     def image_only_pages(self) -> list[int]:
         """Páginas sem texto extraível mas cobertas por imagem (≥50%) — provável
         digitalização/escaneamento, onde a extração de texto não é confiável."""
-        return [p.page for p in self.pages if not p.has_text and p.image_ratio >= 0.5]
+        return [p.page for p in self.pages if not p.has_text and p.image_ratio >= _IMAGE_PAGE_RATIO]
+
+    def image_heavy_pages(self) -> list[int]:
+        """Páginas **mistas**: têm algum texto, mas uma imagem domina (≥50%) — pode
+        haver conteúdo (texto embutido em imagem) que NÃO é extraído. A extração do
+        texto disponível prossegue, mas o revisor deve ser avisado (requer OCR)."""
+        return [p.page for p in self.pages if p.has_text and p.image_ratio >= _IMAGE_PAGE_RATIO]

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from synthetic.builder import build_clean, build_image_only, build_white_on_white
+from synthetic.builder import build_clean, build_image_only, build_one, build_white_on_white
 
 from sherpi.application.analyze_petition import AnalyzePetition
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
@@ -61,6 +61,17 @@ async def test_image_only_pdf_skips_extraction() -> None:
     assert result.summary is None and result.admissibility is None
     assert result.forensics.image_only_pages == [0]
     assert fake.calls == []  # nada a extrair → nenhuma chamada de LLM
+
+
+async def test_mixed_page_warns_but_still_extracts() -> None:
+    # Página mista (texto + imagem dominante): a extração do texto disponível
+    # prossegue, mas o laudo avisa que pode haver conteúdo embutido na imagem.
+    fake = FakeProvider(_SUMMARY)
+    result = await _orchestrator(fake).run(build_one("scanned_mista"), max_pages=300)
+    assert result.forensics.image_heavy_pages  # avisa
+    assert not result.forensics.image_only_pages
+    assert result.summary is not None  # ainda extrai (há texto)
+    assert len(fake.calls) == 1
 
 
 async def test_non_pdf_rejected() -> None:

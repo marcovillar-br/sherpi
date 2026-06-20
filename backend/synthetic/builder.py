@@ -672,6 +672,23 @@ def _render_scanned_partial(body: list[str]) -> bytes:
     return _finalize(doc)
 
 
+def _render_mixed_page(body: list[str]) -> bytes:
+    """Página única MISTA: cabeçalho em TEXTO real + corpo da petição como IMAGEM.
+
+    A página tem `has_text=True` (o cabeçalho), mas a imagem domina (>50%) — o
+    conteúdo embutido na imagem não é extraído. Exercita `image_heavy_pages`.
+    """
+    src = pymupdf.open()
+    _write_paginated(src, body)
+    pix = src[0].get_pixmap(dpi=120)
+    src.close()
+    out = pymupdf.open()
+    page = out.new_page(width=_A4_W, height=_A4_H)
+    page.insert_text((_MARGIN_X, 40), "PETIÇÃO INICIAL — autos digitais", fontsize=_FONT)
+    page.insert_image(pymupdf.Rect(0, 60, _A4_W, _A4_H), pixmap=pix)  # imagem domina a página
+    return _finalize(out)
+
+
 # --- Catálogo de cenários --------------------------------------------------------
 
 
@@ -767,6 +784,14 @@ _CATALOG: dict[str, _Spec] = {
         False,
         "PASS",
         expect_liminar=False,  # a página de texto continua extraível
+    ),
+    "scanned_mista": _Spec(
+        "scanned",
+        "Página mista: cabeçalho em texto + corpo da petição como imagem.",
+        _body_cobranca,
+        _render_mixed_page,
+        False,
+        "PASS",  # tem texto (cabeçalho) → não é image_only, mas é image_heavy
     ),
     "clean_dano_moral_com_liminar": _Spec(
         "clean",

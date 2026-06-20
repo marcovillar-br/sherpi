@@ -22,6 +22,14 @@ export function ForensicsBanner({ report }: { report: ForensicsReport }) {
           extração não é confiável nesse conteúdo — requer OCR.
         </p>
       )}
+      {report.image_heavy_pages.length > 0 && (
+        <p className="mt-3 rounded border border-amber-300 bg-amber-50 p-2 text-sm text-amber-800">
+          ⚠ {report.image_heavy_pages.length} página
+          {report.image_heavy_pages.length > 1 ? "s" : ""} com imagem dominante (texto + imagem):
+          pode haver conteúdo embutido na imagem que <strong>não foi extraído</strong> — confira o
+          documento original.
+        </p>
+      )}
       {report.anomalies.length > 0 && (
         <ul className="mt-3 space-y-2 text-sm">
           {report.anomalies.map((a, i) => (

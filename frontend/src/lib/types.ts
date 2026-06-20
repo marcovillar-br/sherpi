@@ -21,6 +21,7 @@ export interface ForensicsReport {
   risk_score: number;
   anomalies: Anomaly[];
   image_only_pages: number[];
+  image_heavy_pages: number[];
 }
 
 export interface Parte {
