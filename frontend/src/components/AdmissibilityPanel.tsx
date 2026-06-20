@@ -6,6 +6,21 @@ const STATUS: Record<AdmissibilityStatus, { dot: string; label: string }> = {
   RED: { dot: "bg-red-500", label: "Requer emenda (art. 321)" },
 };
 
+// Rótulos pt-BR dos requisitos (a API usa os valores en-US do enum Requirement).
+const REQUIREMENT_LABELS: Record<string, string> = {
+  court: "Endereçamento",
+  parties: "Partes",
+  qualification: "Qualificação",
+  facts: "Fatos",
+  legal_basis: "Fundamentação",
+  claims: "Pedidos",
+  claim_value: "Valor da causa",
+  evidence: "Provas",
+  hearing: "Audiência",
+  documents: "Documentos",
+  liquid_claim: "Pedido líquido",
+};
+
 export function AdmissibilityPanel({ report }: { report: AdmissibilityReport }) {
   const s = STATUS[report.status];
   return (
@@ -27,7 +42,9 @@ export function AdmissibilityPanel({ report }: { report: AdmissibilityReport }) 
             </span>
             <span className="flex flex-col">
               <span>
-                <span className="font-medium capitalize">{item.requirement}</span>
+                <span className="font-medium">
+                  {REQUIREMENT_LABELS[item.requirement] ?? item.requirement}
+                </span>
                 <span className="ml-1 text-xs text-gray-400">[{item.method.toLowerCase()}]</span>
                 {item.detail && <span className="text-gray-600"> — {item.detail}</span>}
                 {item.evidence && (
