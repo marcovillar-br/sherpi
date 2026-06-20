@@ -832,23 +832,27 @@ _CATALOG: dict[str, _Spec] = {
     ),
     "defect_sem_qualificacao_reu": _Spec(
         "defect",
-        "Réu sem qualificação completa — falta CNPJ e endereço (art. 319, II).",
+        "Réu sem qualificação completa — falta CNPJ e endereço (art. 319, II). "
+        "Vício sanável → YELLOW: qualificação não é requisito essencial no checklist "
+        "(admissibility _ESSENTIAL_REQS).",
         _body_sem_qualificacao_reu,
         _render_clean,
         False,
         "PASS",
-        expect_semaforo="VERMELHO",
-        expect_requer_emenda=True,
+        expect_semaforo="AMARELO",
+        expect_requer_emenda=False,
     ),
     "defect_sem_fundamentacao": _Spec(
         "defect",
-        "Falta a seção de fundamentos legais (art. 319, III).",
+        "Falta a seção de fundamentos legais (art. 319, III). "
+        "Vício sanável → YELLOW: fundamentação não é requisito essencial no checklist "
+        "(admissibility _ESSENTIAL_REQS).",
         _body_sem_fundamentacao,
         _render_clean,
         False,
         "PASS",
-        expect_semaforo="VERMELHO",
-        expect_requer_emenda=True,
+        expect_semaforo="AMARELO",
+        expect_requer_emenda=False,
     ),
     "trabalhista_misto": _Spec(
         "trabalhista",
