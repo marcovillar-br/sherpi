@@ -4,8 +4,8 @@ description: "Bounded contexts, relações upstream/downstream e glossário da l
 doc_type: context-map
 project: SHERPI
 status: approved
-version: 1.2
-updated: 2026-06-19
+version: 1.3
+updated: 2026-06-20
 language: pt-BR
 tags: [ddd, bounded-context, linguagem-ubiqua]
 ---
@@ -15,9 +15,9 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | Campo | Valor |
 |---|---|
 | Documento | Context Map + Glossário |
-| Versão | 1.2 |
+| Versão | 1.3 |
 | Status | Aprovado |
-| Última atualização | 2026-06-19 |
+| Última atualização | 2026-06-20 |
 
 ---
 
@@ -107,7 +107,7 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 |---|---|
 | **Prompt injection** | Inserção de comandos ocultos no PDF para manipular a inferência de um LLM (ex.: branco-no-branco, U+200B, OCG oculto, /ActualText). |
 | **Firewall (anti prompt-injection)** | Controle determinístico que inspeciona o PDF e bloqueia/alerta antes de qualquer envio ao LLM. Núcleo de segurança do produto. |
-| **ForensicsReport / Anomaly** | Laudo forense do PDF e cada anomalia detectada (vetor, severidade, localização). |
+| **ForensicsReport / Anomaly** | Laudo forense do PDF e cada anomalia detectada (vetor, severidade, localização). Inclui `image_only_pages` (páginas sem camada de texto). |
 | **Verdict (RiskVerdict)** | Resultado gradual do firewall: `BLOCK` (encerra sem LLM), `WARN`, `PASS`. |
 | **PetitionSummary** | Resumo estruturado extraído pela IA (partes, fato gerador, fundamentação, pedidos, liminar, valor da causa). |
 | **AdmissibilityReport** | Checklist de admissibilidade com semáforo (verde/amarelo/vermelho). |
@@ -115,10 +115,14 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **TpuSuggestion** | Sugestão de código TPU com grau de confiança (top-3). |
 | **Bounded context** | Fronteira de modelo no DDD; cada "skill" do SHERPI é uma capacidade de um contexto. |
 | **Port / Adapter** | Interface no domínio (port) e sua implementação na infraestrutura (adapter); base do design hexagonal e do LLM-agnóstico. |
-| **LLMProvider** | Port que abstrai o modelo de linguagem; default Gemini Flash e FakeProvider (testes). Adapters Maritaca/OpenAI/Ollama são planejados (Fase 4, ainda não implementados). |
-| **Anonymizer** | Port que mascara identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) antes do envio ao LLM externo (LGPD). |
+| **LLMProvider** | Port que abstrai o modelo de linguagem. Adapters: **Gemini** (default, SDK google-genai), **Grok (xAI)** e **Anthropic (Sonnet)** — estes via httpx sobre a base `HttpLLMProvider` — e `FakeProvider` (testes). |
+| **HttpLLMProvider** | Base comum dos adapters de LLM sobre HTTP (httpx): guarda de custo, timeout e retry com backoff; cada provider implementa só a montagem do payload/parsing. |
+| **Decorators de LLM** | Encadeados sobre o provider real: `CircuitBreakerLLMProvider` → `PersistingLLMProvider` (persiste prompt anonimizado + resposta p/ auditoria) → `LoggingLLMProvider`. |
+| **Anonymizer** | Port que mascara PII antes do envio ao LLM externo (LGPD): identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) via `RegexAnonymizer` + nomes das partes via `RegexNameAnonymizer`, compostos em `CompositeAnonymizer`. |
+| **RegexNameAnonymizer** | Mascara nomes das partes por âncora (qualificação / "em face de"), inclusive listas (litisconsórcio) → `[NOME]`. Best-effort, sem dependências (ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)). |
 | **MappedRegexAnonymizer** | Anonimizador reversível com placeholders numerados (`[CPF_1]`); retorna mapa texto→placeholder para reconstituição posterior. |
-| **PresidioAnonymizer** | Adapter opcional (extra `ner`; lazy import) para NER de nomes com Presidio + spaCy. |
+| **PresidioAnonymizer** | Adapter opcional (extra `ner`; lazy import) para NER de nomes com Presidio + spaCy (cobertura completa — Fase 4). |
+| **image_only_pages** | Páginas sem camada de texto (imagem/escaneado) sinalizadas no `ForensicsReport`; a extração é pulada (não confiável; OCR é Fase 4). |
 | **Synthetic-first** | Estratégia de usar petições sintéticas para evitar PII real e prover ground truth. |
 | **Human-in-the-loop** | Princípio inegociável: a IA sugere, o humano decide; nunca decisão automática. |
 | **JurisBERT** | Modelo de embeddings jurídicos em português usado na classificação TPU (extra `ml`). |
