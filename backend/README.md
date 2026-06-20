@@ -44,7 +44,16 @@ tests/                  # pytest
 uv run pytest                          # testes (domínio puro + integração do firewall)
 uv run ruff check . && uv run ruff format --check .
 uv run mypy src/                       # type check strict
-uv run python -m synthetic.generate    # gera data/synthetic/ (corpus rotulado)
+uv run python -m synthetic.generate    # gera data/synthetic/ (corpus rotulado, PDFs do zero)
+
+# Petições a partir de templates reais (.docx em docs/templates/) — preenche os
+# campos com dados sintéticos e emite .docx + .pdf + ground truth. PDF via
+# LibreOffice (soffice). --enrich-llm reescreve a narrativa via LLMProvider.
+uv run python -m synthetic.from_template "../docs/templates/2.1 ACIDENTE ....docx" --n 3
+
+# Catálogo de identidades fake (PF/PJ com CPF/CNPJ de checksum válido e dados
+# cadastrais coerentes) — fonte única usada por from_template e builder.
+uv run python -m synthetic.entities --pf 30 --pj 15   # exporta data/fake_entities.json
 ```
 
 ## Status

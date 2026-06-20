@@ -15,6 +15,7 @@ help:
 	@echo "  make migrate       Roda as migrations Alembic"
 	@echo "  make seed-tpu      Popula o índice TPU no banco"
 	@echo "  make synthetic     Gera o corpus sintético (data/synthetic/)"
+	@echo "  make synthetic-from-template TEMPLATE=... [N=3]  Petições a partir de um .docx real (requer LibreOffice)"
 	@echo "  make test          Roda a suite de testes"
 	@echo "  make lint          ruff check + format --check"
 	@echo "  make typecheck     mypy strict"
@@ -51,6 +52,11 @@ seed-tpu:
 
 synthetic:
 	cd $(BACKEND_DIR) && uv run python -m synthetic.generate
+
+# Gera petições a partir dos templates reais (.docx) em docs/templates/.
+# Requer LibreOffice (soffice) para o PDF. Use TEMPLATE=... e, opcionalmente, N=...
+synthetic-from-template:
+	cd $(BACKEND_DIR) && uv run python -m synthetic.from_template "$(TEMPLATE)" --n $(or $(N),3)
 
 # --- Qualidade ---
 
