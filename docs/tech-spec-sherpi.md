@@ -249,7 +249,7 @@ fechando o laço de explicabilidade e accountability (a base do retreino futuro 
 
 ## 7. Modelo de segurança do firewall
 
-O firewall inspeciona o PDF em busca dos vetores de injeção mapeados na seção 2.3 do relatório de pesquisa. Detecção determinística via PyMuPDF (acesso a cores, tamanho de fonte, coordenadas, camadas, metadados).
+O firewall inspeciona o documento em busca dos vetores de injeção mapeados na seção 2.3 do relatório de pesquisa. Detecção determinística via PyMuPDF (PDF: cores, tamanho de fonte, coordenadas, camadas, metadados). O **DOCX** (python-docx) é parseado para o **mesmo** `ParsedDocument` — populando cor, tamanho, texto oculto (`w:vanish` → `in_hidden_ocg`) e metadados —, então o `DetectInjection` é **reusado**; só as checagens geométricas (CropBox/OCG/`/ActualText`) não se aplicam (ver [ADR-0013](adr/0013-docx-support-native-firewall.md)).
 
 | Vetor | Forma de ataque | Heurística de detecção |
 |---|---|---|
@@ -291,9 +291,9 @@ O versionamento `/v1` permite evoluir o contrato sem quebrar clientes. Erros con
 
 ### 8.1 `POST /v1/analyze`
 
-- **Request**: `multipart/form-data` — campo `file` (PDF) e campo `rito` (`CIVEL` | `TRABALHISTA`; default `CIVEL`; valor inválido → **422**).
+- **Request**: `multipart/form-data` — campo `file` (**PDF ou DOCX**) e campo `rito` (`CIVEL` | `TRABALHISTA`; default `CIVEL`; valor inválido → **422**).
 - **200**: `{ id, result: { forensics, summary?, admissibility? } }`. Quando `forensics.verdict = BLOCK` — ou quando o PDF não tem camada de texto (`forensics.image_only_pages` não vazio) — `summary` e `admissibility` vêm `null` (encerrou antes do LLM).
-- **413**: arquivo grande demais. **415**: não é PDF. **422**: payload inválido. **502**: falha do LLM.
+- **413**: arquivo grande demais. **415**: formato não suportado (nem PDF nem DOCX). **422**: payload inválido. **502**: falha do LLM.
 
 ### 8.2 `GET /v1/analyses/{id}`
 
@@ -363,7 +363,7 @@ sequenceDiagram
 | Camada | Tecnologia |
 |---|---|
 | Backend | Python ≥3.12, FastAPI, uv |
-| Firewall | PyMuPDF |
+| Firewall | PyMuPDF (PDF) + python-docx (DOCX); `DocumentParser` despachado por formato |
 | LLM | google-genai (Gemini default); **Grok/xAI** e **Anthropic/Sonnet** via httpx direto (sem SDK); FakeProvider |
 | Embeddings TPU | sentence-transformers/transformers (JurisBERT) via extra `ml`; FakeEmbeddingModel (sha256, sem ML) |
 | Validação | Pydantic v2, pydantic-settings, validate-docbr |

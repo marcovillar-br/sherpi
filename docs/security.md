@@ -65,7 +65,7 @@ Domínio com PII jurídica — controle crítico.
 
 **MVP**
 
-- Validação de **assinatura** (magic bytes `%PDF-`) e **tamanho máximo**.
+- Validação de **assinatura** (magic bytes: `%PDF-` ou zip OOXML `PK\x03\x04`; só **PDF/DOCX**) e **tamanho máximo**. O firewall cobre os vetores de injeção **também no DOCX** (texto oculto `w:vanish`, cor branca, fonte minúscula, metadados) — ver [ADR-0013](adr/0013-docx-support-native-firewall.md).
 - **Limite de páginas**.
 - **Timeout** no parsing (best-effort via SIGALRM; PyMuPDF tem CVEs — tratar PDF como hostil). *Isolamento pleno de recursos (subprocesso + `setrlimit`): Fase 4.*
 - Rejeitar não-PDF.

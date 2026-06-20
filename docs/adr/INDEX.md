@@ -4,7 +4,7 @@ description: "Lista das decisões de arquitetura (Architecture Decision Records)
 doc_type: adr-index
 project: SHERPI
 status: reference
-version: 1.2
+version: 1.3
 updated: 2026-06-20
 language: pt-BR
 tags: [adr, arquitetura, index]
@@ -30,5 +30,6 @@ que substitua outra cria um novo ADR que marca o anterior como *Substituído*.
 | [0010](0010-name-masking-regex-vs-ner.md) | Mascaramento de nomes por âncora (regex) no MVP; NER (Presidio) na Fase 4 | ✅ Aceito |
 | [0011](0011-grok-anthropic-adapters-httpx.md) | Adapters Grok (xAI) e Anthropic (Sonnet) via httpx; remoção da dep órfã `openai` | ✅ Aceito |
 | [0012](0012-reversible-anonymization-restore.md) | Anonimização reversível: restaurar PII real no resumo do revisor (LLM externo só vê o anonimizado) | ✅ Aceito |
+| [0013](0013-docx-support-native-firewall.md) | Suporte a .docx com firewall nativo (OOXML via python-docx; reusa o `DetectInjection`) | ✅ Aceito |
 
 > Convenção: arquivos nomeados `NNNN-titulo-em-kebab-case.md`, numeração sequencial.

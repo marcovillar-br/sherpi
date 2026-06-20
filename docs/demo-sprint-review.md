@@ -88,6 +88,8 @@ curl localhost:8000/ready    # → {"status":"ok"}
    - **Determinístico e sem LLM** — encerra antes de qualquer chamada ao modelo (sem custo,
      sem alimentar a IA com conteúdo manipulado).
    - Subsidia o juiz para **multa por litigância de má-fé**.
+4. *Também em .docx:* o mesmo firewall pega texto oculto em Word (`w:vanish`, cor branca, fonte
+   minúscula) — o advogado **valida a peça antes de gerar o PDF** (ADR-0013).
 
 ---
 

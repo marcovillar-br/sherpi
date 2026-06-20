@@ -25,7 +25,7 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 
 | Contexto | Tipo | Responsabilidade |
 |---|---|---|
-| **document_integrity** | Supporting (diferencial do produto) | Firewall anti prompt-injection. Inspeciona o PDF (PyMuPDF, sem LLM) e emite `ForensicsReport` com verdito `BLOCK/WARN/PASS`. |
+| **document_integrity** | Supporting (diferencial do produto) | Firewall anti prompt-injection. Inspeciona o documento — **PDF** (PyMuPDF) e **DOCX** (python-docx), sem LLM — e emite `ForensicsReport` com verdito `BLOCK/WARN/PASS`. |
 | **petition_analysis** | **Core domain** | Extração estruturada (`PetitionSummary`) e checagem de admissibilidade **rito-aware** (`AdmissibilityReport`): `CheckAdmissibility` despacha por `Rito` para uma `AdmissibilityStrategy` — `CivelStrategy` (CPC 319/321) ou `TrabalhistaStrategy` (CLT 840 §1º). Razão de existir do sistema. |
 | **taxonomy** | Supporting subdomain | Classificação TPU: embedding (JurisBERT) + k-NN sobre seed → top-3 `TpuSuggestion`. |
 | **review** | Supporting | Human-in-the-loop e auditoria append-only (Res. CNJ 615/2025): `ReviewDecision`, `AuditEvent`. |
@@ -106,7 +106,8 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | Termo | Definição |
 |---|---|
 | **Prompt injection** | Inserção de comandos ocultos no PDF para manipular a inferência de um LLM (ex.: branco-no-branco, U+200B, OCG oculto, /ActualText). |
-| **Firewall (anti prompt-injection)** | Controle determinístico que inspeciona o PDF e bloqueia/alerta antes de qualquer envio ao LLM. Núcleo de segurança do produto. |
+| **Firewall (anti prompt-injection)** | Controle determinístico que inspeciona o documento e bloqueia/alerta antes de qualquer envio ao LLM. Núcleo de segurança do produto. |
+| **DocumentParser / DocxParser** | Port que extrai a estrutura forense de um documento; `PyMuPDFParser` (PDF) e `DocxParser` (DOCX) produzem o mesmo `ParsedDocument`; o `DispatchingParser` roteia por *magic number* ([ADR-0013](adr/0013-docx-support-native-firewall.md)). |
 | **ForensicsReport / Anomaly** | Laudo forense do PDF e cada anomalia detectada (vetor, severidade, localização). Inclui `image_only_pages` (páginas sem camada de texto). |
 | **Verdict (RiskVerdict)** | Resultado gradual do firewall: `BLOCK` (encerra sem LLM), `WARN`, `PASS`. |
 | **PetitionSummary** | Resumo estruturado extraído pela IA (partes, fato gerador, fundamentação, pedidos, liminar, valor da causa). |
