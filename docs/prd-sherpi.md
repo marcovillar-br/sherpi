@@ -109,7 +109,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 - Checagem de admissibilidade híbrida (validadores determinísticos + extração semântica).
 - Sugestão TPU (embedding JurisBERT + k-NN sobre seed rotulado).
 - Orquestração explícita: integridade → [BLOCK?] → extração → admissibilidade → TPU.
-- Persistência das análises (PostgreSQL + pgvector).
+- Persistência das análises (PostgreSQL); embeddings TPU como bytes (numpy/float32) + k-NN em Python, sem extensão pgvector.
 - Autenticação obrigatória (OAuth2 password + JWT, perfil único).
 - Registro de revisão humana e trilha de auditoria append-only.
 - Frontend Next.js: login, upload de PDF, painel de extração/resumo, laudo de segurança, sugestões de TPU e painel de revisão (viewer de PDF embutido: Fase 4).
