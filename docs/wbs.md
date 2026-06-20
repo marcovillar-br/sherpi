@@ -64,7 +64,7 @@ flowchart TD
 - **1.3.2 CI/CD e Ferramentas** 🔵 (S1 / S6) — ruff, mypy, pytest, pre-commit, GitHub Actions; `pip-audit` gate ✅ S6.
 - **1.3.3 Dados Sintéticos** 🔵 — gerador de petições rotuladas (synthetic-first).
 - **1.3.4 Eval Harness** 🔵 — métricas (firewall, extração) e gate de CI.
-- **1.3.5 Segurança & Observabilidade** 🔵 (S1 / S6) — segurança de upload; `structlog` + correlation IDs; `MappedRegexAnonymizer` + `PresidioAnonymizer` (NER, extra `ner`); Sentry; `Dockerfile` multi-stage.
+- **1.3.5 Segurança & Observabilidade** 🔵 (S1 / S6) — segurança de upload; detecção de PDF-imagem (sem texto); `structlog` + correlation IDs; anonimização (`RegexAnonymizer` + `RegexNameAnonymizer` em `CompositeAnonymizer`; reversível `MappedRegexAnonymizer`; `PresidioAnonymizer` NER extra `ner`); Sentry; `Dockerfile` multi-stage.
 
 ### 1.4 Documentação
 - **1.4.1 Produto** — PRD.

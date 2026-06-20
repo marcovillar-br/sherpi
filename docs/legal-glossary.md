@@ -100,9 +100,11 @@ tem **regras de admissibilidade próprias**:
 - **Segredo de justiça:** processos com acesso restrito por sigilo legal (ex.: família, dados
   sensíveis) — motiva o uso de dados **sintéticos** no projeto.
 - **LGPD (Lei 13.709):** proteção de dados pessoais (CPF, nomes, endereços das partes) — motiva a
-  **anonimização** de identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) antes de enviar
-  texto a um LLM externo (`RegexAnonymizer` por padrão; variante reversível `MappedRegexAnonymizer`); anonimização de **nomes** via NER disponível
-  como extra opcional (`PresidioAnonymizer`, `--extra ner`) desde a Sprint 6.
+  **anonimização** antes de enviar texto a um LLM externo: identificadores estruturados
+  (CPF/CNPJ/e-mail/telefone/CEP) via `RegexAnonymizer` **e nomes das partes** via
+  `RegexNameAnonymizer` (regex ancorado, *best-effort*), compostos por padrão em
+  `CompositeAnonymizer`. Variante reversível `MappedRegexAnonymizer` e NER (`PresidioAnonymizer`,
+  `--extra ner`) ficam como opções/evolução (ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)).
 
 ---
 

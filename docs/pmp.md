@@ -95,7 +95,7 @@ Guarda de custo de tokens configurável (`SHERPI_LLM_MAX_INPUT_TOKENS`) evita es
 | R5 | Metodologia de IA/Design Sprint só na aula de sábado | Alta | Baixo | *Placeholders* prontos; adaptar `agile-process.md` após a aula. |
 | R6 | Integração de múltiplos contextos atrasar | Média | Médio | Orquestrador explícito simples; *ports* desacoplam modelo de sistema. |
 | R7 | (Fase 4) Falta de *dataset* rotulado petição→TPU | Alta | Alto | Seed sintético rotulado; k-NN sobre embeddings (não exige fine-tuning); acurácia medida e reportada honestamente. |
-| R8 | (Fase 4) NER de nomes (PII) com baixa precisão | Média | Médio | Manter *synthetic-first*; Presidio/spaCy + revisão; anonimização estrutural (regex) já cobre CPF/CNPJ. |
+| R8 | (Fase 4) NER de nomes (PII) com baixa precisão | Média | Médio | Manter *synthetic-first*; Presidio/spaCy + revisão; a anonimização por regex já cobre CPF/CNPJ **e nomes das partes** (best-effort, ADR-0010). |
 | R9 | (Fase 4) Acesso a PJe/E-Proc (credenciais/sandbox) indisponível | Alta | Médio | Adapter atrás de port; usar homologação/sandbox; manter upload manual como fallback. |
 
 ## 6. Gerenciamento de Recursos e Equipe

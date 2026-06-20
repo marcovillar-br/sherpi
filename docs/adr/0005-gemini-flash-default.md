@@ -34,4 +34,4 @@ Adotar **Google Gemini Flash** como default (`gemini.py`), pela janela de contex
 
 - LLM externo implica enviar texto para fora → mitigado por synthetic-first + port `Anonymizer` (ver ADR 0003 e security.md).
 - Free tier tem limites de taxa; tratado com timeout/retry/backoff e guarda de custo.
-- Sabiá pode superar o Gemini em português jurídico; por isso a avaliação comparativa na Fase 4.
+- Outro provider pode superar o Gemini em português jurídico; por isso a avaliação comparativa entre os adapters (Gemini/Grok/Sonnet) na Fase 4.
