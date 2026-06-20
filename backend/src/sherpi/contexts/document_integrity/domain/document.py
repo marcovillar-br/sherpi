@@ -26,6 +26,7 @@ class TextSpan(BaseModel):
     size: float  # tamanho da fonte em pontos
     bbox: BBox
     page: int  # índice da página (0-based)
+    block: int = 0  # índice do bloco (parágrafo) na página — agrupa o texto por estrutura
     in_hidden_ocg: bool = False  # pertence a uma camada (OCG) desativada
     actual_text: str | None = None  # /ActualText associado (camada de acessibilidade)
 
@@ -53,7 +54,27 @@ class ParsedDocument(BaseModel):
     has_optional_content: bool = False
 
     def visible_text(self) -> str:
-        """Texto que um humano de fato enxerga (exclui spans ocultos)."""
+        """Texto que um humano de fato enxerga (exclui spans ocultos).
+
+        Spans são agrupados por **bloco** (parágrafo): unidos por espaço dentro do
+        bloco e por quebra de linha entre blocos. Isso preserva a estrutura do
+        documento (endereçamento, título e qualificação ficam em parágrafos
+        distintos) — sem o qual a anonimização de nomes "atravessaria" o título.
+        """
         from .detector import is_span_hidden  # import tardio: evita ciclo
 
-        return " ".join(s.text for s in self.spans if not is_span_hidden(s, self))
+        groups: list[str] = []
+        current: list[str] = []
+        current_key: tuple[int, int] | None = None
+        for span in self.spans:
+            if is_span_hidden(span, self):
+                continue
+            key = (span.page, span.block)
+            if current and key != current_key:
+                groups.append(" ".join(current))
+                current = []
+            current_key = key
+            current.append(span.text)
+        if current:
+            groups.append(" ".join(current))
+        return "\n".join(groups)

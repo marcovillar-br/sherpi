@@ -46,11 +46,13 @@ _STOPWORDS = (
 # "CÍVEL") + maiúscula inicial, exceto se for um stopword.
 _TOKEN = r"\b(?!(?:" + _STOPWORDS + r")\b)[A-ZÀ-Ý][A-Za-zÀ-ÿ&.'-]*"
 # Sequência de nome próprio: token + conectivos (da/de/dos/e) ou mais tokens.
-_NAME = _TOKEN + r"(?:\s+(?:d[aeo]s?|e|&|" + _TOKEN + r")){0,6}"
-# Nome ANTES de um marcador de qualificação (pessoa física/jurídica).
+# `[^\S\n]` = espaço/tab mas NÃO quebra de linha: o nome não cruza fronteira de
+# bloco/parágrafo (o visible_text separa blocos por \n).
+_NAME = _TOKEN + r"(?:[^\S\n]+(?:d[aeo]s?|e|&|" + _TOKEN + r")){0,6}"
+# Nome ANTES de um marcador de qualificação (pessoa física/jurídica), no mesmo bloco.
 _NAME_BEFORE_CUE = re.compile(
-    _NAME + r"(?=\s*,?\s*(?:[Bb]rasileir|[Ee]strangeir|[Pp]ortugu|[Pp]ortador"
-    r"|[Ii]nscrit[oa]\s+no\s+CPF|[Pp]essoa\s+jur|[Pp]essoa\s+f[ií]sica))"
+    _NAME + r"(?=[^\S\n]*,?[^\S\n]*(?:[Bb]rasileir|[Ee]strangeir|[Pp]ortugu|[Pp]ortador"
+    r"|[Ii]nscrit[oa][^\S\n]+no[^\S\n]+CPF|[Pp]essoa[^\S\n]+jur|[Pp]essoa[^\S\n]+f[ií]sica))"
 )
 # Nome DEPOIS de "em face de/da" ou "em desfavor de" (tipicamente o réu).
 _NAME_AFTER_PARTY = re.compile(r"((?:[Ee]m face d[ea]|[Ee]m desfavor de)\s+)(" + _NAME + r")")

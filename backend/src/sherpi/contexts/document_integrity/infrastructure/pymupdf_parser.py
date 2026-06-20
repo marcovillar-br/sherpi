@@ -117,7 +117,7 @@ class PyMuPDFParser:
     def _extract_spans(page: pymupdf.Page, index: int) -> list[TextSpan]:
         spans: list[TextSpan] = []
         data = page.get_text("dict")
-        for block in data.get("blocks", []):
+        for block_idx, block in enumerate(data.get("blocks", [])):
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
                     text = span.get("text", "")
@@ -130,6 +130,7 @@ class PyMuPDFParser:
                             size=float(span.get("size", 0.0)),
                             bbox=tuple(span["bbox"]),
                             page=index,
+                            block=block_idx,
                         )
                     )
         return spans

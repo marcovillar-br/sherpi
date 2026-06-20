@@ -56,6 +56,13 @@ def test_does_not_swallow_enderecamento_into_name() -> None:
     assert "FULANO" not in out
 
 
+def test_name_does_not_cross_block_boundary() -> None:
+    # Título e qualificação em blocos distintos (\n entre eles, via visible_text por
+    # bloco). O nome não cruza a quebra — mesmo sem o título ser stopword.
+    out = _NAMER.anonymize("RELATÓRIO FINAL\nFULANO DE TAL, brasileiro")
+    assert out == "RELATÓRIO FINAL\n[NOME], brasileiro"
+
+
 def test_composite_applies_structured_then_names() -> None:
     comp = CompositeAnonymizer([RegexAnonymizer(), RegexNameAnonymizer()])
     out = comp.anonymize("FULANO DE TAL, brasileiro, CPF 529.982.247-25, e-mail a@b.com")
