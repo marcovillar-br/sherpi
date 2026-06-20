@@ -176,9 +176,12 @@ LLMProvider.complete(messages, response_schema) -> objeto validado
 
 | Adapter | Papel |
 |---|---|
-| `gemini.py` | **DEFAULT** — Google Gemini Flash (contexto grande, free tier acadêmico). |
-| `grok.py` *(planejado)* | **Grok (xAI)** — a API do Grok é OpenAI-compatível, então o adapter usa o SDK `openai` apontando `base_url` para o endpoint da xAI. Ainda não implementado: a factory levanta erro explícito. |
+| `gemini.py` | **DEFAULT** — Google Gemini Flash (contexto grande, free tier acadêmico). Usa o SDK `google-genai`. |
+| `grok.py` | **Grok (xAI)** — API OpenAI-compatível (`/chat/completions` + `response_format: json_schema`). HTTP direto via **httpx** (sem SDK). |
+| `anthropic.py` | **Claude Sonnet (Anthropic)** — Messages API; saída estruturada via **tool-use** forçado. HTTP direto via **httpx** (sem SDK). |
 | `fake.py` | `FakeProvider` determinístico, sem rede, para testes. |
+
+Grok e Anthropic compartilham a base `HttpLLMProvider` (httpx): guarda de custo, timeout e retry com backoff. O modelo vem da config; a factory aplica um default por backend (`grok-4-latest`, `claude-sonnet-4-6`) quando `SHERPI_LLM_MODEL` não é trocado.
 
 Sobre o provider real aplicam-se três **decorators** (compostos no wiring, de dentro para fora): `CircuitBreakerLLMProvider` (corta falhas sustentadas) → `PersistingLLMProvider` (persiste o prompt anonimizado + a resposta de cada chamada, para auditoria) → `LoggingLLMProvider` (log estruturado via structlog).
 
@@ -356,7 +359,7 @@ sequenceDiagram
 |---|---|
 | Backend | Python ≥3.12, FastAPI, uv |
 | Firewall | PyMuPDF |
-| LLM | google-genai (default); SDK `openai` como base do adapter **Grok/xAI** (OpenAI-compatível — planejado); FakeProvider |
+| LLM | google-genai (Gemini default); **Grok/xAI** e **Anthropic/Sonnet** via httpx direto (sem SDK); FakeProvider |
 | Embeddings TPU | sentence-transformers/transformers (JurisBERT) via extra `ml`; FakeEmbeddingModel (sha256, sem ML) |
 | Validação | Pydantic v2, pydantic-settings, validate-docbr |
 | Persistência | PostgreSQL + SQLModel + Alembic + psycopg (dev/test: SQLite via aiosqlite) |

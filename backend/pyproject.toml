@@ -21,9 +21,9 @@ dependencies = [
     "sqlmodel>=0.0.22",
     "alembic>=1.14",
     "psycopg[binary]>=3.2",
-    # LLM (port + adapters)
+    # LLM (port + adapters). Grok (xAI) e Anthropic falam HTTP direto via httpx —
+    # sem SDK próprio. Gemini usa o google-genai.
     "google-genai>=0.3",
-    "openai>=1.54",
     # Resiliência / observabilidade
     "tenacity>=9.0",
     "structlog>=24.4",

@@ -13,7 +13,7 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-LLMBackend = Literal["gemini", "openai_compat", "fake"]
+LLMBackend = Literal["gemini", "grok", "anthropic", "fake"]
 
 
 class Settings(BaseSettings):
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     llm_backend: LLMBackend = "gemini"
     llm_model: str = "gemini-2.5-flash"
     llm_api_key: str | None = None
-    llm_base_url: str | None = None  # usado por openai_compat (Maritaca/OpenAI/Ollama)
+    llm_base_url: str | None = None  # sobrescreve o endpoint (grok/anthropic têm default)
     llm_timeout_seconds: float = 30.0
     llm_max_retries: int = 3
     # Circuit breaker: nº de falhas consecutivas que abre o circuito e cooldown (s)
@@ -90,7 +90,7 @@ class Settings(BaseSettings):
     @property
     def is_external_llm(self) -> bool:
         """True quando o LLM é um serviço externo (exige anonimização de PII)."""
-        return self.llm_backend in ("gemini", "openai_compat")
+        return self.llm_backend in ("gemini", "grok", "anthropic")
 
     @property
     def cookie_secure(self) -> bool:
