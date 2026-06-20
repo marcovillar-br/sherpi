@@ -26,6 +26,12 @@ from sherpi.contexts.identity.infrastructure.repository import SqlUserRepository
 from sherpi.contexts.integration.infrastructure.queue import IngestQueue
 from sherpi.contexts.integration.infrastructure.sql_job_repository import SqlIngestJobRepository
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
+from sherpi.contexts.petition_analysis.domain.summary import (
+    Parte,
+    Pedido,
+    PetitionSummary,
+    Polo,
+)
 from sherpi.contexts.review.application.record_review import RecordReview
 from sherpi.contexts.review.domain.ports import AuditRepository
 from sherpi.contexts.review.infrastructure.repository import SqlAuditRepository
@@ -36,10 +42,27 @@ from sherpi.infrastructure.anonymization.factory import build_anonymizer
 from sherpi.infrastructure.llm.audit import LoggingLLMProvider
 from sherpi.infrastructure.llm.circuit_breaker import CircuitBreakerLLMProvider
 from sherpi.infrastructure.llm.factory import build_llm_provider
+from sherpi.infrastructure.llm.fake import RepeatingFakeProvider
 from sherpi.infrastructure.persistence.engine import make_engine
 from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
+from sherpi.shared_kernel.ports import LLMProvider
 
 _bearer = HTTPBearer(auto_error=False)
+
+# Resumo canônico devolvido pelo backend fake (sem rede). Stub schema-válido: o
+# e2e valida o veredito do firewall, não o conteúdo da extração.
+_FAKE_SUMMARY = PetitionSummary(
+    court="Vara Cível (stub fake)",
+    parties=[
+        Parte(name="Autor Stub", pole=Polo.ACTIVE),
+        Parte(name="Réu Stub", pole=Polo.PASSIVE),
+    ],
+    facts="Resumo sintético gerado pelo provider fake (sem LLM).",
+    legal_basis="Fundamentação stub (sem LLM).",
+    claims=[Pedido(description="Pedido stub")],
+    has_injunction=False,
+    claim_amount="R$ 1.000,00",
+)
 
 
 @lru_cache
@@ -62,13 +85,18 @@ def _build_suggest_tpu() -> SuggestTpu | None:
 @lru_cache
 def _build_orchestrator() -> AnalyzePetition:
     settings: Settings = get_settings()
-    # Provedor real → circuit breaker (corta falhas sustentadas) → auditoria (logs).
-    breaker = CircuitBreakerLLMProvider(
-        build_llm_provider(settings),
-        failure_threshold=settings.llm_circuit_breaker_threshold,
-        reset_timeout=settings.llm_circuit_breaker_reset_seconds,
-    )
-    llm = LoggingLLMProvider(breaker, label="extract")
+    inner: LLMProvider
+    if settings.llm_backend == "fake":
+        # Servidor sem rede (dev-backend-fake/e2e): extração determinística, zero token.
+        inner = RepeatingFakeProvider(_FAKE_SUMMARY)
+    else:
+        # Provedor real → circuit breaker (corta falhas sustentadas).
+        inner = CircuitBreakerLLMProvider(
+            build_llm_provider(settings),
+            failure_threshold=settings.llm_circuit_breaker_threshold,
+            reset_timeout=settings.llm_circuit_breaker_reset_seconds,
+        )
+    llm = LoggingLLMProvider(inner, label="extract")  # auditoria (logs)
     return AnalyzePetition(
         PyMuPDFParser(timeout_seconds=settings.pdf_parse_timeout_seconds),
         ExtractPetition(llm, temperature=settings.llm_temperature),

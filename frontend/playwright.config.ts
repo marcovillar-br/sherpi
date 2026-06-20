@@ -22,6 +22,9 @@ export default defineConfig({
     },
     {
       name: "e2e",
+      // Só o firewall (determinístico, zero-token). Admissibilidade exige LLM
+      // real e roda via playwright.llm.config.ts (make e2e-llm).
+      testMatch: /scenarios\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/user.json",

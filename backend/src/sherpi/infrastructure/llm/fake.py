@@ -39,3 +39,27 @@ class FakeProvider:
         self._index += 1
         # Revalida contra o schema esperado (garante o mesmo contrato do adapter real).
         return response_schema.model_validate(response.model_dump())
+
+
+class RepeatingFakeProvider:
+    """Fake que devolve SEMPRE a mesma resposta canônica (sem rede, nunca esgota).
+
+    Diferente do `FakeProvider` (respostas finitas, voltado a asserts em testes),
+    serve a um servidor de longa duração: é o adapter de `SHERPI_LLM_BACKEND=fake`
+    usado por `make dev-backend-fake`/e2e — extração determinística, zero custo de
+    token. O conteúdo do resumo é stub; o e2e valida o veredito do firewall, não a
+    extração.
+    """
+
+    def __init__(self, response: BaseModel) -> None:
+        self._response = response
+
+    async def complete(
+        self,
+        messages: list[ChatMessage],
+        response_schema: type[TModel],
+        *,
+        temperature: float = 0.0,
+        max_tokens: int | None = None,
+    ) -> TModel:
+        return response_schema.model_validate(self._response.model_dump())
