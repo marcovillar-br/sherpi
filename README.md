@@ -7,8 +7,9 @@ petições iniciais:
 
 1. **Firewall anti *prompt-injection*** — detecta, de forma determinística e sem LLM, manipulações
    ocultas em PDFs (texto branco no branco, fonte microscópica, texto fora da área visível, Unicode
-   invisível, `/ActualText` divergente, metadados e comandos de IA embutidos). É o diferencial do
-   produto e a primeira barreira do fluxo.
+   invisível, `/ActualText` divergente, metadados e comandos de IA embutidos). Também sinaliza PDFs
+   **sem camada de texto** (imagem/escaneado), que não seguem para o LLM. É o diferencial do produto
+   e a primeira barreira do fluxo.
 2. **Extração estruturada + checagem de admissibilidade *rito-aware*** — resume a petição e verifica
    os requisitos por rito: arts. 319/321 do CPC no cível e CLT art. 840 §1º (pedido líquido) no
    trabalhista (extração via LLM + validadores determinísticos).
@@ -25,7 +26,7 @@ em conformidade com a Resolução CNJ 615/2025 e a LGPD.
 Monólito modular orientado a **Domain-Driven Design** com **ports & adapters (hexagonal)**.
 O domínio é puro; toda dependência externa (LLM, banco, parser de PDF, storage) é um *port* com
 *adapter* trocável — é o que torna o sistema **agnóstico a LLM** (default Google Gemini Flash;
-Maritaca Sabiá/OpenAI/Ollama como adapters).
+**Grok (xAI)** e **Claude Sonnet (Anthropic)** como adapters trocáveis por configuração).
 
 | Bounded context | Papel | Status |
 |---|---|---|
@@ -50,7 +51,7 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 
 ```
 backend/     # API e domínio (DDD) — ver backend/README.md
-frontend/    # UI Next.js completa (login, análise, TPU, revisão)
+frontend/    # UI Next.js completa (login, análise, TPU, revisão, histórico, auditoria de LLM)
 docs/        # PRD, spec técnica, roadmap, mapa DDD, ADRs, modelo de ameaças
 docker-compose.yml       # PostgreSQL 16 (dev: só o banco)
 docker-compose.prod.yml  # Postgres + backend (produção)
@@ -99,7 +100,7 @@ Lista completa de alvos: `make help`. Detalhes do backend: [`backend/README.md`]
 - **Sprint 3** ✅ — **Domínio Trabalhista (CLT 840) + arquitetura rito-aware** (foco do grupo)
 - **Sprint 4** ✅ — Confiança & Conformidade: autenticação JWT + revisão/auditoria append-only
 - **Sprint 5** ✅ — Classificação TPU por ramo (JurisBERT + k-NN/numpy)
-- **Sprint 6** ✅ — Produção: structlog + correlation ID, LGPD pleno (NER), Dockerfile, pip-audit gate
+- **Sprint 6** ✅ — Produção: structlog + correlation ID, LGPD (anonimização de PII + retenção), Dockerfile, pip-audit gate
 - **Sprint 7** ✅ — Integração PJe/E-Proc: ingestão assíncrona (asyncio.Queue + SandboxSourceAdapter)
 - **Sprint 8** ✅ — UI das Sprints 4–7: login, seletor de rito, TPU top-3, revisão humana (Next.js 16)
 - **Domínios adicionais** (pós rito-aware) — previdenciário/INSS, execução fiscal, família/JEC

@@ -26,12 +26,13 @@ src/sherpi/
   shared_kernel/        # VOs e ports transversais (CPF, CNPJ, ValorCausa, RiskVerdict, LLMProvider...)
   contexts/
     document_integrity/ # ✅ firewall anti prompt-injection (domain puro + PyMuPDF adapter)
-    petition_analysis/  # ⬜ extração + admissibilidade (core domain)
-    taxonomy/           # ⬜ classificação TPU (embedding + k-NN)
-    review/             # ⬜ human-in-the-loop + auditoria
-    identity/           # ⬜ autenticação (perfil único)
+    petition_analysis/  # ✅ extração + admissibilidade rito-aware (core domain)
+    taxonomy/           # ✅ classificação TPU (embedding + k-NN)
+    review/             # ✅ human-in-the-loop + auditoria append-only
+    identity/           # ✅ autenticação JWT (perfil único)
+    integration/        # ✅ ingestão assíncrona (PJe/E-Proc/sandbox)
   application/          # orquestrador cross-context (analyze_petition)
-  infrastructure/       # adapters: llm/ persistence/ storage/
+  infrastructure/       # adapters: llm/ (Gemini/Grok/Anthropic) · persistence/ · storage/ · anonymization/
   interfaces/api/       # FastAPI
 synthetic/              # gerador de PDFs sintéticos rotulados (dev/eval, fora do pacote)
 tests/                  # pytest
@@ -46,10 +47,16 @@ uv run mypy src/                       # type check strict
 uv run python -m synthetic.generate    # gera data/synthetic/ (corpus rotulado)
 ```
 
-## Status (Sprint 1 entregue)
+## Status
 
-O contexto **document_integrity** (o firewall — diferencial do produto) está completo:
-detecta branco-no-branco, fonte microscópica, texto fora da CropBox, Unicode invisível,
+Sistema completo (Sprints 1–9): firewall, extração + admissibilidade **rito-aware**
+(cível/trabalhista), TPU, identidade/JWT, revisão/auditoria append-only, ingestão assíncrona
+e UI. LLM **agnóstico** (Gemini default; Grok/Anthropic trocáveis por config), com PII
+anonimizada (CPF/CNPJ/e-mail/telefone/CEP **e nomes**) antes do envio externo.
+
+O contexto **document_integrity** (o firewall — diferencial do produto) detecta
+branco-no-branco, fonte microscópica, texto fora da CropBox, Unicode invisível,
 /ActualText divergente, metadados e comandos de injeção em texto oculto — de forma
 **determinística e sem LLM**, interrompendo o fluxo (veredito `BLOCK`) antes de qualquer
-gasto de token. Cobertura por testes de unidade (domínio) e integração (PDF→parser→laudo).
+gasto de token; também sinaliza PDFs **sem camada de texto** (imagem/escaneado). Cobertura
+por testes de unidade (domínio) e integração (PDF→parser→laudo).
