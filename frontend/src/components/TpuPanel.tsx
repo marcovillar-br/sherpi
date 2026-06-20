@@ -18,7 +18,7 @@ export function TpuPanel({ suggestions }: { suggestions: TpuSuggestion[] }) {
       <h2 className="font-semibold text-gray-800">Sugestão TPU (top‑3)</h2>
       <ol className="space-y-3">
         {suggestions.map((s, i) => (
-          <li key={s.tpu_code} className="rounded-md border border-gray-200 bg-white p-3">
+          <li key={`${s.tpu_code}-${i}`} className="rounded-md border border-gray-200 bg-white p-3">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <span className="text-xs font-semibold text-gray-400">#{i + 1} · cód. {s.tpu_code}</span>
