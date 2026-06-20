@@ -1,3 +1,4 @@
+import { CHECK_METHOD_LABEL } from "@/lib/labels";
 import type { AdmissibilityReport, AdmissibilityStatus } from "@/lib/types";
 
 const STATUS: Record<AdmissibilityStatus, { dot: string; label: string }> = {
@@ -45,7 +46,9 @@ export function AdmissibilityPanel({ report }: { report: AdmissibilityReport }) 
                 <span className="font-medium">
                   {REQUIREMENT_LABELS[item.requirement] ?? item.requirement}
                 </span>
-                <span className="ml-1 text-xs text-gray-400">[{item.method.toLowerCase()}]</span>
+                <span className="ml-1 text-xs text-gray-400">
+                  [{CHECK_METHOD_LABEL[item.method] ?? item.method.toLowerCase()}]
+                </span>
                 {item.detail && <span className="text-gray-600"> — {item.detail}</span>}
                 {item.evidence && (
                   <span className="ml-1 text-xs text-gray-500">({item.evidence})</span>

@@ -1,3 +1,4 @@
+import { ANOMALY_TYPE_LABEL, SEVERITY_LABEL } from "@/lib/labels";
 import type { ForensicsReport, RiskVerdict } from "@/lib/types";
 
 const STYLES: Record<RiskVerdict, { box: string; label: string }> = {
@@ -19,7 +20,7 @@ export function ForensicsBanner({ report }: { report: ForensicsReport }) {
           {report.anomalies.map((a, i) => (
             <li key={i} className="rounded border border-current/20 bg-white/50 p-2">
               <div className="font-medium">
-                {a.type} · {a.severity}
+                {ANOMALY_TYPE_LABEL[a.type] ?? a.type} · {SEVERITY_LABEL[a.severity] ?? a.severity}
                 {a.page !== null && <span> · pág. {a.page + 1}</span>}
               </div>
               <div>{a.detail}</div>

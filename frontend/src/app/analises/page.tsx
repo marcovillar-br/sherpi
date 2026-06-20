@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { NavHeader } from "@/components/NavHeader";
 import { ApiError, listAnalyses } from "@/lib/api";
+import { ADMISSIBILITY_LABEL, RITO_LABEL, VERDICT_LABEL } from "@/lib/labels";
 import type { AdmissibilityStatus, AnalysisSummary, RiskVerdict, Rito } from "@/lib/types";
 
 const VERDICT_DOT: Record<RiskVerdict, string> = {
@@ -14,21 +15,15 @@ const VERDICT_DOT: Record<RiskVerdict, string> = {
   BLOCK: "bg-red-500",
 };
 
-const ADM: Record<AdmissibilityStatus, { dot: string; label: string }> = {
-  GREEN: { dot: "bg-green-500", label: "Verde" },
-  YELLOW: { dot: "bg-amber-500", label: "Amarelo" },
-  RED: { dot: "bg-red-500", label: "Vermelho" },
+const ADM_DOT: Record<AdmissibilityStatus, string> = {
+  GREEN: "bg-green-500",
+  YELLOW: "bg-amber-500",
+  RED: "bg-red-500",
 };
 
-const RITO_LABEL: Record<Rito, string> = { CIVEL: "Cível", TRABALHISTA: "Trabalhista" };
-
 type VerdictFilter = "ALL" | RiskVerdict;
-const VERDICT_FILTERS: { value: VerdictFilter; label: string }[] = [
-  { value: "ALL", label: "Todos" },
-  { value: "PASS", label: "PASS" },
-  { value: "WARN", label: "WARN" },
-  { value: "BLOCK", label: "BLOCK" },
-];
+type RitoFilter = "ALL" | Rito;
+type AdmFilter = "ALL" | AdmissibilityStatus | "BLOCKED";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -40,12 +35,17 @@ function formatDate(iso: string): string {
   });
 }
 
+const SELECT_CLASS =
+  "rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm shadow-sm focus:border-gray-500 focus:outline-none";
+
 export default function HistoryPage() {
   const router = useRouter();
   const [items, setItems] = useState<AnalysisSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [verdict, setVerdict] = useState<VerdictFilter>("ALL");
+  const [rito, setRito] = useState<RitoFilter>("ALL");
+  const [adm, setAdm] = useState<AdmFilter>("ALL");
 
   useEffect(() => {
     let active = true;
@@ -69,6 +69,9 @@ export default function HistoryPage() {
   const q = query.trim().toLowerCase();
   const filtered = (items ?? []).filter((it) => {
     if (verdict !== "ALL" && it.verdict !== verdict) return false;
+    if (rito !== "ALL" && it.rito !== rito) return false;
+    if (adm === "BLOCKED" && it.admissibility_status !== null) return false;
+    if (adm !== "ALL" && adm !== "BLOCKED" && it.admissibility_status !== adm) return false;
     if (q && !`${it.filename ?? ""} ${it.id}`.toLowerCase().includes(q)) return false;
     return true;
   });
@@ -102,25 +105,39 @@ export default function HistoryPage() {
             placeholder="Buscar por arquivo ou id…"
             className="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-gray-500 focus:outline-none"
           />
-          <div className="flex overflow-hidden rounded-md border border-gray-300">
-            {VERDICT_FILTERS.map((f) => (
-              <button
-                key={f.value}
-                type="button"
-                onClick={() => setVerdict(f.value)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-                  verdict === f.value
-                    ? "bg-gray-900 text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {f.value !== "ALL" && (
-                  <span className={`inline-block h-2 w-2 rounded-full ${VERDICT_DOT[f.value]}`} aria-hidden />
-                )}
-                {f.label}
-              </button>
-            ))}
-          </div>
+          <select
+            value={verdict}
+            onChange={(e) => setVerdict(e.target.value as VerdictFilter)}
+            className={SELECT_CLASS}
+            aria-label="Filtrar por veredito"
+          >
+            <option value="ALL">Veredito: todos</option>
+            <option value="PASS">{VERDICT_LABEL.PASS}</option>
+            <option value="WARN">{VERDICT_LABEL.WARN}</option>
+            <option value="BLOCK">{VERDICT_LABEL.BLOCK}</option>
+          </select>
+          <select
+            value={rito}
+            onChange={(e) => setRito(e.target.value as RitoFilter)}
+            className={SELECT_CLASS}
+            aria-label="Filtrar por rito"
+          >
+            <option value="ALL">Rito: todos</option>
+            <option value="CIVEL">{RITO_LABEL.CIVEL}</option>
+            <option value="TRABALHISTA">{RITO_LABEL.TRABALHISTA}</option>
+          </select>
+          <select
+            value={adm}
+            onChange={(e) => setAdm(e.target.value as AdmFilter)}
+            className={SELECT_CLASS}
+            aria-label="Filtrar por admissibilidade"
+          >
+            <option value="ALL">Admissibilidade: todas</option>
+            <option value="GREEN">{ADMISSIBILITY_LABEL.GREEN}</option>
+            <option value="YELLOW">{ADMISSIBILITY_LABEL.YELLOW}</option>
+            <option value="RED">{ADMISSIBILITY_LABEL.RED}</option>
+            <option value="BLOCKED">Bloqueada (sem análise)</option>
+          </select>
         </div>
       )}
 
@@ -137,13 +154,13 @@ export default function HistoryPage() {
       )}
 
       {items !== null && items.length > 0 && filtered.length === 0 && (
-        <p className="text-sm text-gray-500">Nenhuma análise corresponde ao filtro.</p>
+        <p className="text-sm text-gray-500">Nenhuma análise corresponde aos filtros.</p>
       )}
 
       {filtered.length > 0 && (
         <ul className="space-y-2">
           {filtered.map((item) => {
-            const adm = item.admissibility_status ? ADM[item.admissibility_status] : null;
+            const status = item.admissibility_status;
             return (
               <li key={item.id}>
                 <Link
@@ -153,7 +170,7 @@ export default function HistoryPage() {
                   <div className="flex min-w-0 items-center gap-3">
                     <span
                       className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${VERDICT_DOT[item.verdict]}`}
-                      title={`Firewall: ${item.verdict}`}
+                      title={`Firewall: ${VERDICT_LABEL[item.verdict]}`}
                       aria-hidden
                     />
                     <div className="min-w-0">
@@ -166,10 +183,10 @@ export default function HistoryPage() {
 
                   <div className="flex items-center gap-3 text-xs text-gray-500">
                     <span>{RITO_LABEL[item.rito]}</span>
-                    {adm ? (
+                    {status ? (
                       <span className="flex items-center gap-1">
-                        <span className={`inline-block h-2 w-2 rounded-full ${adm.dot}`} aria-hidden />
-                        {adm.label}
+                        <span className={`inline-block h-2 w-2 rounded-full ${ADM_DOT[status]}`} aria-hidden />
+                        {ADMISSIBILITY_LABEL[status]}
                       </span>
                     ) : (
                       <span className="text-gray-400">— (bloqueada)</span>

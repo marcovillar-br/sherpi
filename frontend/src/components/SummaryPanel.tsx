@@ -1,3 +1,4 @@
+import { CLAIM_TYPE_LABEL, POLO_LABEL } from "@/lib/labels";
 import type { PetitionSummary } from "@/lib/types";
 
 export function SummaryPanel({ summary }: { summary: PetitionSummary }) {
@@ -21,7 +22,7 @@ export function SummaryPanel({ summary }: { summary: PetitionSummary }) {
             <li key={i}>
               <span className="font-medium">{p.name}</span>{" "}
               <span className="text-xs text-gray-500">
-                ({p.pole.toLowerCase()}
+                ({POLO_LABEL[p.pole] ?? p.pole.toLowerCase()}
                 {p.document ? ` · ${p.document}` : ""})
               </span>
             </li>
@@ -38,7 +39,9 @@ export function SummaryPanel({ summary }: { summary: PetitionSummary }) {
             <li key={i} className={p.type === "INJUNCTION" ? "font-semibold text-red-700" : ""}>
               {p.description}
               {p.type !== "MAIN" && (
-                <span className="ml-1 text-xs text-gray-500">[{p.type.toLowerCase()}]</span>
+                <span className="ml-1 text-xs text-gray-500">
+                  [{CLAIM_TYPE_LABEL[p.type] ?? p.type.toLowerCase()}]
+                </span>
               )}
             </li>
           ))}
