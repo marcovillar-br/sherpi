@@ -6,10 +6,10 @@ MVP acadêmico de IA aplicada ao Judiciário brasileiro que ataca três gargalos
 petições iniciais:
 
 1. **Firewall anti *prompt-injection*** — detecta, de forma determinística e sem LLM, manipulações
-   ocultas em PDFs (texto branco no branco, fonte microscópica, texto fora da área visível, Unicode
-   invisível, `/ActualText` divergente, metadados e comandos de IA embutidos). Também sinaliza PDFs
-   **sem camada de texto** (imagem/escaneado), que não seguem para o LLM. É o diferencial do produto
-   e a primeira barreira do fluxo.
+   ocultas em **PDF e DOCX** (texto branco no branco, fonte microscópica, texto fora da área visível,
+   Unicode invisível, `/ActualText`, metadados, e no DOCX o atributo `w:vanish` — útil para validar a
+   peça **antes** de gerar o PDF). Também sinaliza PDFs **sem camada de texto** (imagem/escaneado), que
+   não seguem para o LLM. É o diferencial do produto e a primeira barreira do fluxo.
 2. **Extração estruturada + checagem de admissibilidade *rito-aware*** — resume a petição e verifica
    os requisitos por rito: arts. 319/321 do CPC no cível e CLT art. 840 §1º (pedido líquido) no
    trabalhista (extração via LLM + validadores determinísticos).
@@ -39,7 +39,7 @@ O domínio é puro; toda dependência externa (LLM, banco, parser de PDF, storag
 
 ## Stack
 
-- **Backend**: Python 3.13 · FastAPI · uv · PyMuPDF · Pydantic v2 · SQLModel + Alembic
+- **Backend**: Python 3.13 · FastAPI · uv · PyMuPDF (PDF) + python-docx (DOCX) · Pydantic v2 · SQLModel + Alembic
 - **Auth**: bcrypt + pyjwt (passlib incompatível com bcrypt>=5) · OAuth2 password flow
 - **Observabilidade**: structlog · correlation ID · Sentry (soft-dep)
 - **Frontend**: Next.js 16 + React 19 + TypeScript + Tailwind v4 (desacoplado da API)
