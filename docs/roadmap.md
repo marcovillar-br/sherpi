@@ -4,8 +4,8 @@ description: "Roadmap das sprints (MVP em 2 semanas + Fase 4 concluída), com De
 doc_type: roadmap
 project: SHERPI
 status: approved
-version: 1.3
-updated: 2026-06-19
+version: 1.4
+updated: 2026-06-20
 language: pt-BR
 tags: [roadmap, sprints, planejamento, mvp]
 ---
@@ -15,9 +15,9 @@ tags: [roadmap, sprints, planejamento, mvp]
 | Campo | Valor |
 |---|---|
 | Documento | Roadmap |
-| Versão | 1.3 |
+| Versão | 1.4 |
 | Status | Aprovado |
-| Última atualização | 2026-06-19 |
+| Última atualização | 2026-06-20 |
 
 O **MVP** é entregue em **2 Sprints (2 semanas)**, conforme o Guia de Diretrizes da disciplina, com
 ritmo de **Design Sprint semanal** e **Sprint Review aos sábados** (ver [`agile-process.md`](agile-process.md)).
@@ -184,6 +184,23 @@ Sprints 4–7 acessíveis ao usuário final sem exigir o Swagger.
 - [x] `ruff` + `mypy` limpos; `npm run build && npm run lint` limpos.
 - [x] Zero identificadores pt-BR violando a regra (exceção `trabalhista` documentada).
 
+### Refinamentos contínuos (pós-Sprint 9)
+
+Melhorias entregues após o fechamento das sprints, na branch `development`:
+
+- **Anonimização de nomes por default** (`RegexNameAnonymizer` + `CompositeAnonymizer`): mascara os
+  nomes das partes — inclusive listas (litisconsórcio) — antes do LLM externo; robustez estrutural
+  via `visible_text` por bloco. Best-effort; NER (Presidio) segue como evolução ([ADR-0010](adr/0010-name-masking-regex-vs-ner.md)).
+- **Detecção de PDF sem camada de texto** (imagem/escaneado): sinaliza no laudo (`image_only_pages`)
+  e pula a extração — sem laudo "íntegro" falso. OCR fica como **EP13** ([`backlog.md`](backlog.md)).
+- **Adapters de LLM Grok (xAI) e Claude Sonnet (Anthropic)** via httpx, trocáveis por config
+  (com remoção da dep órfã `openai`).
+- **UI**: histórico de análises (lista + filtros + detalhe) e auditoria das chamadas ao LLM
+  (prompt anonimizado + resposta).
+- **Cenário sintético de litisconsórcio** (multi-parte) + testes de integração ponta a ponta.
+
+Estado: **203 testes** verdes; ruff/mypy e `npm run build`/`lint` limpos.
+
 ---
 
 ### Domínios adicionais (épicos incrementais, pós rito-aware)
@@ -207,3 +224,4 @@ cenários + ramo de TPU), por ordem de volume: **Previdenciário/INSS** → **Ex
 | M7 — Integração processual | 7 | ✅ `SandboxSourceAdapter` + `IngestPetitions` + `IngestQueue` (asyncio); `POST /v1/ingestion/jobs` (202). |
 | M8 — UI completa (S4–S7) | 8 | ✅ Login + seletor de rito + `TpuPanel` + `ReviewPanel`; frontend ponta a ponta. |
 | M9 — en-US compliance | 9 | ✅ Todos os identificadores Python em en-US; contratos API, testes e frontend sincronizados. |
+| M10 — Refinamentos pós-MVP | — | ✅ Anonimização de nomes (default); detecção de PDF-imagem; adapters Grok/Anthropic; UI histórico + auditoria de LLM. |
