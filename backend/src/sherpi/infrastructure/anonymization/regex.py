@@ -47,15 +47,24 @@ _STOPWORDS = (
 _TOKEN = r"\b(?!(?:" + _STOPWORDS + r")\b)[A-ZÀ-Ý][A-Za-zÀ-ÿ&.'-]*"
 # Sequência de nome próprio: token + conectivos (da/de/dos/e) ou mais tokens.
 # `[^\S\n]` = espaço/tab mas NÃO quebra de linha: o nome não cruza fronteira de
-# bloco/parágrafo (o visible_text separa blocos por \n).
-_NAME = _TOKEN + r"(?:[^\S\n]+(?:d[aeo]s?|e|&|" + _TOKEN + r")){0,6}"
-# Nome ANTES de um marcador de qualificação (pessoa física/jurídica), no mesmo bloco.
-_NAME_BEFORE_CUE = re.compile(
-    _NAME + r"(?=[^\S\n]*,?[^\S\n]*(?:[Bb]rasileir|[Ee]strangeir|[Pp]ortugu|[Pp]ortador"
-    r"|[Ii]nscrit[oa][^\S\n]+no[^\S\n]+CPF|[Pp]essoa[^\S\n]+jur|[Pp]essoa[^\S\n]+f[ií]sica))"
+# bloco/parágrafo (o visible_text separa blocos por \n). Cap alto p/ nomes longos
+# e composições "A e de B" (litisconsórcio dentro de um mesmo nome/run).
+_NAME = _TOKEN + r"(?:[^\S\n]+(?:d[aeo]s?|e|&|" + _TOKEN + r")){0,10}"
+# Marcador de qualificação (cue) que vem após o(s) nome(s).
+_CUE = (
+    r"(?:[Bb]rasileir|[Ee]strangeir|[Pp]ortugu|[Pp]ortador"
+    r"|[Ii]nscrit[oa][^\S\n]+no[^\S\n]+CPF|[Pp]essoa[^\S\n]+jur|[Pp]essoa[^\S\n]+f[ií]sica)"
 )
-# Nome DEPOIS de "em face de/da" ou "em desfavor de" (tipicamente o réu).
+# Separador entre nomes numa lista (litisconsórcio): vírgula ou " e ".
+_NAME_SEP = r"(?:[^\S\n]*,[^\S\n]*|[^\S\n]+e[^\S\n]+)"
+# Lista de 1+ nomes (separados por vírgula/"e") terminando num cue, no mesmo bloco.
+_NAME_LIST_BEFORE_CUE = re.compile(
+    r"(?:" + _NAME + _NAME_SEP + r")*" + _NAME + r"(?=[^\S\n]*,?[^\S\n]*" + _CUE + r")"
+)
+# Nome(s) DEPOIS de "em face de/da" ou "em desfavor de" (tipicamente o réu).
 _NAME_AFTER_PARTY = re.compile(r"((?:[Ee]m face d[ea]|[Ee]m desfavor de)\s+)(" + _NAME + r")")
+# Para remascarar cada nome dentro de uma lista, preservando os separadores.
+_NAME_SOLO = re.compile(_NAME)
 
 
 class RegexAnonymizer:
@@ -78,7 +87,9 @@ class RegexNameAnonymizer:
     """
 
     def anonymize(self, text: str) -> str:
-        text = _NAME_BEFORE_CUE.sub("[NOME]", text)
+        # Lista antes do cue: mascara CADA nome, preservando os separadores
+        # (ex.: "A, B e C, brasileiros" → "[NOME], [NOME] e [NOME], brasileiros").
+        text = _NAME_LIST_BEFORE_CUE.sub(lambda m: _NAME_SOLO.sub("[NOME]", m.group(0)), text)
         text = _NAME_AFTER_PARTY.sub(lambda m: m.group(1) + "[NOME]", text)
         return text
 

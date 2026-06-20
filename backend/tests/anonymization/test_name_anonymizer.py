@@ -56,6 +56,31 @@ def test_does_not_swallow_enderecamento_into_name() -> None:
     assert "FULANO" not in out
 
 
+def test_masks_comma_separated_name_list() -> None:
+    # Litisconsórcio: lista separada por vírgula/"e" antes do cue — nenhum vaza.
+    out = _NAMER.anonymize("MARIA DA SILVA, JOÃO DOS SANTOS e PEDRO LIMA, brasileiros, casados")
+    assert "MARIA" not in out
+    assert "JOÃO" not in out
+    assert "PEDRO" not in out
+    assert "[NOME]" in out and "brasileiros" in out
+
+
+def test_masks_multiple_reus_after_em_face_de() -> None:
+    out = _NAMER.anonymize("em face de FULANO DE TAL e de SICRANO DE TAL, ambos brasileiros")
+    assert "FULANO" not in out
+    assert "SICRANO" not in out
+    assert "TAL" not in out
+    assert out.startswith("em face de [NOME]")
+
+
+def test_masks_two_authors_each_with_own_qualification() -> None:
+    out = _NAMER.anonymize(
+        "FULANO DE TAL, brasileiro, solteiro, e BELTRANA DE SOUZA, brasileira, casada,"
+    )
+    assert "FULANO" not in out and "BELTRANA" not in out
+    assert out.count("[NOME]") == 2
+
+
 def test_name_does_not_cross_block_boundary() -> None:
     # Título e qualificação em blocos distintos (\n entre eles, via visible_text por
     # bloco). O nome não cruza a quebra — mesmo sem o título ser stopword.
