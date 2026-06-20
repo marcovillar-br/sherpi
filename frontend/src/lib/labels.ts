@@ -62,7 +62,7 @@ export const ANOMALY_TYPE_LABEL: Record<string, string> = {
   TINY_FONT: "Fonte microscópica",
   OFF_CROPBOX: "Texto fora da área visível",
   ZERO_WIDTH_UNICODE: "Caracteres invisíveis",
-  HIDDEN_OCG_LAYER: "Camada oculta",
+  HIDDEN_OCG_LAYER: "Texto oculto (camada/vanish)",
   ACTUALTEXT_DIVERGENCE: "Divergência de /ActualText",
   SUSPICIOUS_METADATA: "Metadados suspeitos",
   INJECTION_KEYWORDS: "Comando oculto à IA",

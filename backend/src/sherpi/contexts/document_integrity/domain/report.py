@@ -23,7 +23,7 @@ class AnomalyType(StrEnum):
     TINY_FONT = "TINY_FONT"  # fonte microscópica (< 1pt)
     OFF_CROPBOX = "OFF_CROPBOX"  # texto fora da área visível da página
     ZERO_WIDTH_UNICODE = "ZERO_WIDTH_UNICODE"  # caracteres invisíveis (U+200B etc.)
-    HIDDEN_OCG_LAYER = "HIDDEN_OCG_LAYER"  # camada de conteúdo desativada
+    HIDDEN_OCG_LAYER = "HIDDEN_OCG_LAYER"  # texto oculto: camada OCG (PDF) ou w:vanish (DOCX)
     ACTUALTEXT_DIVERGENCE = "ACTUALTEXT_DIVERGENCE"  # /ActualText ≠ texto renderizado
     SUSPICIOUS_METADATA = "SUSPICIOUS_METADATA"  # comandos imperativos em metadados
     INJECTION_KEYWORDS = "INJECTION_KEYWORDS"  # comando à IA em texto oculto

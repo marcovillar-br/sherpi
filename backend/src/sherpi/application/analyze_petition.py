@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from sherpi.application.deanonymize import deanonymize_model
 from sherpi.contexts.document_integrity.application.analyze import guard_upload
-from sherpi.contexts.document_integrity.application.ports import PdfParser
+from sherpi.contexts.document_integrity.application.ports import DocumentParser
 from sherpi.contexts.document_integrity.domain.detector import DetectInjection
 from sherpi.contexts.document_integrity.domain.report import ForensicsReport
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
@@ -53,7 +53,7 @@ class AnalysisResult(BaseModel):
 class AnalyzePetition:
     def __init__(
         self,
-        parser: PdfParser,
+        parser: DocumentParser,
         extractor: ExtractPetition,
         *,
         detector: DetectInjection | None = None,

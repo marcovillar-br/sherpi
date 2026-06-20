@@ -156,13 +156,14 @@ class DetectInjection:
                 )
             )
 
-        # 4. Camada OCG oculta
+        # 4. Texto oculto por camada/atributo (OCG no PDF; w:vanish no DOCX)
         if text_has_content and span.in_hidden_ocg:
             found.append(
                 Anomaly(
                     type=AnomalyType.HIDDEN_OCG_LAYER,
                     severity=Severity.MEDIUM,
-                    detail="Texto em camada de conteúdo opcional (OCG) desativada.",
+                    detail="Texto marcado como oculto (camada OCG no PDF ou atributo "
+                    "'vanish' no DOCX) — invisível ao leitor.",
                     page=span.page,
                     evidence=_truncate(span.text),
                 )

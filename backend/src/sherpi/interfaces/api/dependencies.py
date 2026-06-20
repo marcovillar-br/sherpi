@@ -16,6 +16,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sherpi.application.analyze_petition import AnalyzePetition
 from sherpi.application.persistence import AnalysisRepository
 from sherpi.config import Settings, get_settings
+from sherpi.contexts.document_integrity.infrastructure.dispatching_parser import DispatchingParser
+from sherpi.contexts.document_integrity.infrastructure.docx_parser import DocxParser
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
 from sherpi.contexts.identity.application.authenticate import Authenticate
 from sherpi.contexts.identity.domain.hasher import BcryptHasher
@@ -101,7 +103,10 @@ def _build_orchestrator() -> AnalyzePetition:
     persisted = PersistingLLMProvider(inner, _build_llm_call_repository(), label="extract")
     llm = LoggingLLMProvider(persisted, label="extract")
     return AnalyzePetition(
-        PyMuPDFParser(timeout_seconds=settings.pdf_parse_timeout_seconds),
+        DispatchingParser(
+            PyMuPDFParser(timeout_seconds=settings.pdf_parse_timeout_seconds),
+            DocxParser(),
+        ),
         ExtractPetition(llm, temperature=settings.llm_temperature),
         anonymizer=build_anonymizer(settings),
         suggest_tpu=_build_suggest_tpu(),

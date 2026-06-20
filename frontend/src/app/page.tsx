@@ -24,8 +24,11 @@ export default function Home() {
   const [response, setResponse] = useState<AnalyzeResponse | null>(null);
 
   function selectFile(f: File | null) {
-    if (f && f.type !== "application/pdf") {
-      setError("Selecione um arquivo PDF.");
+    const isDocx =
+      f?.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      f?.name.toLowerCase().endsWith(".docx");
+    if (f && f.type !== "application/pdf" && !isDocx) {
+      setError("Selecione um arquivo PDF ou DOCX.");
       return;
     }
     setFile(f);
@@ -78,7 +81,7 @@ export default function Home() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="application/pdf"
+          accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx"
           className="hidden"
           onChange={(e) => selectFile(e.target.files?.[0] ?? null)}
         />
@@ -114,7 +117,7 @@ export default function Home() {
             ⬆
           </span>
           <span className="text-sm text-gray-600">
-            Arraste o PDF aqui ou{" "}
+            Arraste o PDF ou DOCX aqui ou{" "}
             <span className="font-medium text-gray-900">clique para selecionar</span>
           </span>
         </div>

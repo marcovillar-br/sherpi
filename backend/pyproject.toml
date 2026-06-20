@@ -15,8 +15,9 @@ dependencies = [
     "pydantic-settings>=2.6",
     "validate-docbr>=1.10",
     "numpy>=2.1",
-    # Ingestão de PDF (firewall)
+    # Ingestão de documentos (firewall): PDF via PyMuPDF, DOCX via python-docx
     "pymupdf>=1.24",
+    "python-docx>=1.1",
     # Persistência
     "sqlmodel>=0.0.22",
     "alembic>=1.14",

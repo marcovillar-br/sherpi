@@ -67,7 +67,7 @@ def _parse_deadline(seconds: float) -> Iterator[None]:
 
 
 class PyMuPDFParser:
-    """Implementação do port `PdfParser` usando PyMuPDF."""
+    """Implementação do port `DocumentParser` usando PyMuPDF."""
 
     def __init__(self, *, timeout_seconds: float = 0.0) -> None:
         # 0.0 desativa a guarda de tempo (default usado por testes/evals); a API
