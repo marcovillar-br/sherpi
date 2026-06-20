@@ -4,8 +4,8 @@ description: "Visão, problema, personas, histórias de usuário, escopo e métr
 doc_type: prd
 project: SHERPI
 status: approved
-version: 1.2
-updated: 2026-06-19
+version: 1.3
+updated: 2026-06-20
 language: pt-BR
 tags: [produto, requisitos, personas, metricas]
 ---
@@ -17,10 +17,10 @@ tags: [produto, requisitos, personas, metricas]
 | Campo | Valor |
 |---|---|
 | Documento | Documento de Requisitos de Produto (PRD) |
-| Versão | 1.2 |
+| Versão | 1.3 |
 | Status | Aprovado para MVP |
 | Natureza | MVP acadêmico (pós-graduação) — entrega em 2 sprints (2 semanas) + Sprint 3 (multi-domínio) + roadmap de produção |
-| Última atualização | 2026-06-19 |
+| Última atualização | 2026-06-20 |
 
 ---
 
@@ -104,7 +104,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 ### 5.1 Dentro do escopo (MVP)
 
 - Upload manual de PDF de petição inicial.
-- Firewall anti prompt-injection determinístico (PyMuPDF, sem LLM).
+- Firewall anti prompt-injection determinístico (PyMuPDF, sem LLM); detecta também documentos **sem camada de texto** (imagem/escaneado) e sinaliza no laudo, sem prosseguir para o LLM (OCR fica para a Fase 4).
 - Extração estruturada via LLM (provider injetável; default Gemini Flash).
 - Checagem de admissibilidade híbrida (validadores determinísticos + extração semântica).
 - Sugestão TPU (embedding JurisBERT + k-NN sobre seed rotulado).
@@ -112,7 +112,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 - Persistência das análises (PostgreSQL); embeddings TPU como bytes (numpy/float32) + k-NN em Python, sem extensão pgvector.
 - Autenticação obrigatória (OAuth2 password + JWT, perfil único).
 - Registro de revisão humana e trilha de auditoria append-only.
-- Frontend Next.js: login, upload de PDF, painel de extração/resumo, laudo de segurança, sugestões de TPU e painel de revisão (viewer de PDF embutido: Fase 4).
+- Frontend Next.js: login, upload de PDF, painel de extração/resumo, laudo de segurança, sugestões de TPU, painel de revisão, **histórico de análises** (lista com filtros + detalhe) e **auditoria das chamadas ao LLM** (prompt anonimizado + resposta). Viewer de PDF embutido: Fase 4.
 - Dados **sintéticos primeiro** (synthetic-first) com injeções plantadas para avaliação.
 - Eval harness com métricas reportadas honestamente.
 
@@ -121,7 +121,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 - Integração com PJe/E-Proc.
 - Autorização granular (RBAC), MFA, refresh tokens.
 - Detecção de litigância predatória por análise de rede/clustering entre processos.
-- Processamento de documentos anexos (procuração, comprovantes) por OCR/visão computacional.
+- Transcrição de documentos-imagem/anexos (procuração, comprovantes) por OCR/visão computacional. O MVP **detecta e sinaliza** PDFs sem camada de texto, mas não os transcreve (ver EP13 no [`backlog.md`](backlog.md)).
 - Execução assíncrona/fila para escala; containerização completa; deploy gerenciado.
 - Storage de blobs em S3/MinIO; criptografia em repouso; política de retenção/DPIA.
 
@@ -159,7 +159,7 @@ As métricas abaixo são **metas a medir** no eval harness sobre o dataset sint�
 | Risco | Descrição | Mitigação |
 |---|---|---|
 | **Decisão automática indevida** | Tratar a saída do sistema como decisão, violando o devido processo. | Invariante de domínio "nunca decisão automática"; *human-in-the-loop* obrigatório; registro de revisão; UI que rotula tudo como sugestão. |
-| **Vazamento de PII (LGPD)** | Envio de dados pessoais das partes a LLM externo (Gemini). | Synthetic-first no MVP; port `Anonymizer` (mascara CPF/CNPJ/nomes/endereços) antes do envio; sem PII em log. Fase 4: opção de LLM local, criptografia, retenção. |
+| **Vazamento de PII (LGPD)** | Envio de dados pessoais das partes a LLM externo (Gemini). | Synthetic-first no MVP; port `Anonymizer` mascara **CPF, CNPJ, e-mail, telefone, CEP e nomes das partes** antes do envio (nomes por regex ancorado, *best-effort* — ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)); sem PII em log; retenção configurável. Fase 4: NER (Presidio) para nomes em texto livre, opção de LLM local, criptografia em repouso. |
 | **Segredo de justiça** | Processamento de peças sigilosas. | Dados sintéticos no MVP; em produção, classificação de sigilo e LLM on-prem para sensíveis. |
 | **Falso negativo do firewall** | Vetor de injeção não coberto pela heurística passa despercebido. | Firewall é heurístico e não pega tudo — combinado a *defensive prompting* (texto tratado como dado, não instrução) em defesa em profundidade; eval por vetor. |
 | **Falso positivo do firewall** | Bloquear peça legítima (ex.: ruído de digitalização). | Verdito gradual `BLOCK/WARN/PASS` com `risk_score`; revisão humana; calibração no eval. |
