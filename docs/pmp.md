@@ -23,7 +23,7 @@ Complementa o backlog (responsabilidade do PO, [`backlog.md`](backlog.md)) e a
 | Projeto | **SHERPI** — Sistema Híbrido de Extração e Resumo Estruturado de Petições Iniciais |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
 | **Formato da entrega** | **MVP** (sistema funcional, com código implementado e executável) |
-| Duração | **MVP em 2 Sprints** + **Fase 4** em 6 sprints (3–8); **Sprints 1–8 entregues** |
+| Duração | **MVP em 2 Sprints** + **Fase 4** em 7 sprints (3–9); **Sprints 1–9 entregues** |
 | Cliente/patrocinador (simulado) | Gabinete judicial de 1º grau (persona: magistrado/assessor) |
 | Avaliador | Professor (Sprint Reviews aos sábados) |
 
@@ -44,7 +44,7 @@ supervisão humana.
 Com o MVP entregue, as capacidades adiadas foram **agendadas em sprints** por importância/ganho:
 domínio trabalhista + rito-aware (Sprint 3, ✅), identidade + revisão/auditoria (Sprint 4, ✅),
 classificação TPU (Sprint 5, ✅), hardening de produção — observabilidade/LGPD pleno/deploy (Sprint 6, ✅),
-integração PJe/E-Proc (Sprint 7, ✅) e UI das Sprints 4–7 (Sprint 8, ✅). Detalhe das histórias/tasks em [`backlog.md`](backlog.md);
+integração PJe/E-Proc (Sprint 7, ✅), UI das Sprints 4–7 (Sprint 8, ✅) e refactor en-US/compliance (Sprint 9, ✅). Detalhe das histórias/tasks em [`backlog.md`](backlog.md);
 objetivos e DoD em [`roadmap.md`](roadmap.md).
 
 > A divisão escopo-completo (produto) × escopo-de-execução (sprint) segue formalizada no backlog,
@@ -66,9 +66,10 @@ Ritmo de **Design Sprint semanal** (modelo Google), **Dailies** de alinhamento c
 | **Sprint 6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | ✅ entregue |
 | **Sprint 7** | Integração PJe/E-Proc (ingestão assíncrona) | ✅ entregue |
 | **Sprint 8** | UI das Sprints 4–7: login, seletor de rito, TPU top-3, revisão humana | ✅ entregue |
-| *(pós-8)* | Domínios adicionais: previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware) | backlog |
+| **Sprint 9** | Refactor de nomenclatura en-US (EP12): identificadores Python, enums, prompts e frontend | ✅ entregue |
+| *(pós-9)* | Domínios adicionais: previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware) | backlog |
 
-Marcos: **M1** firewall (✅); **M2** MVP (✅); **M3** trabalhista (✅); **M4** identity+review (✅); **M5** TPU (✅); **M6** produção (✅); **M7** integração (✅); **M8** UI completa (✅). Detalhe em [`roadmap.md`](roadmap.md).
+Marcos: **M1** firewall (✅); **M2** MVP (✅); **M3** trabalhista (✅); **M4** identity+review (✅); **M5** TPU (✅); **M6** produção (✅); **M7** integração (✅); **M8** UI completa (✅); **M9** en-US compliance (✅). Detalhe em [`roadmap.md`](roadmap.md).
 
 ## 4. Gerenciamento de Custos
 

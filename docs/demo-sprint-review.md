@@ -183,7 +183,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 - **Qualidade (medida, não prometida):**
   ```bash
   uv run python -m evals.run   # firewall p/r=1.0; extração sanidade=1.0; corpus resumo; TPU top-3=1.0
-  uv run pytest -q             # 144 testes verdes
+  uv run pytest -q             # 148 testes verdes
   make e2e                     # 26 testes Playwright — firewall de todos os 25 PDFs (zero tokens)
   make e2e-llm                 # 8 testes Playwright — semáforo + liminar com LLM real
   npm run build && npm run lint # frontend: zero erros TS/ESLint
@@ -201,7 +201,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 ## 10. Processo ágil (30s — abrir os docs)
 
 - **9 sprints entregues** — backend completo (S1–S7) + frontend completo (S8) + refactor de qualidade (S9/EP12).
-- Mostrar rapidamente: [`pmp.md`](pmp.md) (M1–M8 ✅), [`wbs.md`](wbs.md),
+- Mostrar rapidamente: [`pmp.md`](pmp.md) (M1–M9 ✅), [`wbs.md`](wbs.md),
   [`backlog.md`](backlog.md), [`agile-process.md`](agile-process.md).
 
 ---
@@ -213,7 +213,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 auditável (CNJ 615/2025), classificação TPU, LGPD pronto para produção, ingestão
 automatizada de sistemas processuais, UI funcional ponta a ponta, auditoria estruturada
 de cada chamada ao LLM e suíte E2E Playwright sobre 25 cenários sintéticos. Arquitetura
-DDD + hexagonal, 144 testes, CI rigoroso, Next.js 16 + React 19."*
+DDD + hexagonal, 148 testes, CI rigoroso, Next.js 16 + React 19."*
 
 ---
 
@@ -239,7 +239,7 @@ DDD + hexagonal, 144 testes, CI rigoroso, Next.js 16 + React 19."*
   - Vícios de admissibilidade: `defect_sem_qualificacao_reu.pdf`, `defect_sem_fundamentacao.pdf`
   - Variantes aleatórias: `clean_acao_cobranca_v1.pdf` … `v3.pdf` (nomes/CPFs/valores distintos)
 - **Métricas ao vivo:** `uv run python -m evals.run`
-- **Testes unitários/integração:** `uv run pytest -q` (144 testes)
+- **Testes unitários/integração:** `uv run pytest -q` (148 testes)
 - **Testes E2E:** `make e2e` (26 testes, zero tokens) · `make e2e-llm` (8 testes, LLM real)
 - **Contrato da API:** [`tech-spec-sherpi.md`](tech-spec-sherpi.md) §8
 - **Swagger local:** `http://localhost:8000/docs`

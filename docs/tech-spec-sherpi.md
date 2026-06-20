@@ -101,7 +101,7 @@ flowchart LR
 
 Regra inegociável: **se o firewall retornar `BLOCK`, o fluxo encerra sem nenhuma chamada de LLM** (economia de tokens + não alimentar o modelo com conteúdo manipulado).
 
-> **Arquitetura completa (Sprints 1–8).** O MVP (Sprints 1–2) entregou o caminho **firewall → extração → admissibilidade**; a Fase 4 (Sprints 3–8) adicionou rito-aware (S3), `identity`/`review` (S4), `taxonomy` TPU (S5), observabilidade/LGPD/deploy (S6), `integration` PJe/E-Proc (S7) e UI completa — login, rito, TPU, revisão (S8).
+> **Arquitetura completa (Sprints 1–9).** O MVP (Sprints 1–2) entregou o caminho **firewall → extração → admissibilidade**; a Fase 4 (Sprints 3–9) adicionou rito-aware (S3), `identity`/`review` (S4), `taxonomy` TPU (S5), observabilidade/LGPD/deploy (S6), `integration` PJe/E-Proc (S7), UI completa — login, rito, TPU, revisão (S8) e refactor en-US/compliance (S9).
 
 ---
 
@@ -150,7 +150,7 @@ Chamada com `temperature=0`; **saída validada por schema com retry**; *chunking
 - **`CivelStrategy`** — arts. 319/321 do CPC (comportamento do MVP, inalterado).
 - **`TrabalhistaStrategy`** — reaproveita o checklist do art. 319 e acrescenta o requisito **`PEDIDO_LIQUIDO`** (CLT art. 840 §1º): todo `Pedido` precisa de `valor` parseável; pedido ilíquido → emenda (vermelho).
 
-- **Validadores determinísticos**: checksum de CPF/CNPJ (`validate-docbr`), presença de valor da causa, presença de pedidos, pedido líquido (trabalhista).
+- **Validadores determinísticos**: checksum de CPF (`validate-docbr`) e CNPJ (implementação própria — suporta formato alfanumérico RFB IN 2201/2023, vigência jul/2026), presença de valor da causa, presença de pedidos, pedido líquido (trabalhista).
 - **Extração semântica**: menções a documentos (ex.: comprovante de residência), que **não** são detectáveis por regex — separadas explicitamente dos validadores estruturados.
 
 ### 2.4 Taxonomy — `SuggestTpu`

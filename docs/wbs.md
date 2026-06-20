@@ -14,7 +14,7 @@ tags: [eap, wbs, gerenciamento-de-projeto, escopo]
 
 Decomposição hierárquica de **todo o trabalho** do projeto. Conforme o Guia de Diretrizes, há uma
 ramificação principal dedicada ao **Gerenciamento de Projeto**, com a **Gestão e Rituais Ágeis** como
-sub-ramificação (`1.1 → 1.1.1`). Legenda: 🔵 entregue. Sprints 1–8 concluídas (backend + frontend completo). Ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md).
+sub-ramificação (`1.1 → 1.1.1`). Legenda: 🔵 entregue. Sprints 1–9 concluídas (backend + frontend + en-US compliance). Ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md).
 
 ```mermaid
 flowchart TD
@@ -39,7 +39,7 @@ flowchart TD
 - **1.1.1 Gestão e Rituais Ágeis** — Design Sprint semanal, Sprint Planning, Dailies, Sprint Review
   (sábados), Retrospective e refinamento de backlog.
 - **1.1.2 Gestão de Escopo** — Backlog do Produto, Sprint Backlog, esta EAP, controle de mudanças.
-- **1.1.3 Gestão de Tempo** — cronograma das sprints (S1–S8), marcos (M1–M8), acompanhamento.
+- **1.1.3 Gestão de Tempo** — cronograma das sprints (S1–S9), marcos (M1–M9), acompanhamento.
 - **1.1.4 Gestão de Custos** — *free tier* do LLM, infra local, guarda de tokens.
 - **1.1.5 Gestão de Riscos** — registro e mitigação de riscos (ver [`pmp.md`](pmp.md) §5).
 - **1.1.6 Comunicação e Qualidade** — canais, *Definition of Done*, gate de CI.
