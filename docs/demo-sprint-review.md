@@ -183,14 +183,14 @@ curl localhost:8000/ready    # → {"status":"ok"}
 - **Qualidade (medida, não prometida):**
   ```bash
   uv run python -m evals.run   # firewall p/r=1.0; extração sanidade=1.0; corpus resumo; TPU top-3=1.0
-  uv run pytest -q             # 156 testes verdes
-  make e2e                     # 26 testes Playwright — firewall de todos os 25 PDFs (zero tokens)
-  make e2e-llm                 # 8 testes Playwright — semáforo + liminar com LLM real
+  uv run pytest -q             # 193 testes verdes
+  make e2e                     # 27 testes Playwright — firewall de todos os 26 PDFs (zero tokens)
+  make e2e-llm                 # 10 cenários Playwright — semáforo + liminar com LLM real
   npm run build && npm run lint # frontend: zero erros TS/ESLint
   ```
-- **Corpus sintético:** 25 PDFs rotulados (↑ de 14) com variantes aleatórias (nomes, CPFs,
-  valores) e cenários de atributos estruturais (`hearing_option`, `requests_evidence`,
-  `cited_documents`, `SUBSIDIARY`). `eval_extraction_corpus()` valida todos os campos
+- **Corpus sintético:** 26 PDFs rotulados (↑ de 14) com variantes aleatórias (nomes, CPFs,
+  valores), litisconsórcio (multi-parte) e cenários de atributos estruturais (`hearing_option`,
+  `requests_evidence`, `cited_documents`, `SUBSIDIARY`). `eval_extraction_corpus()` valida os campos
   extraídos com expectativa definida.
 - **Rigor:** ruff + mypy strict + pip-audit no CI (gate real). Arquitetura **DDD + hexagonal**.
 - **LGPD end-to-end:** anonimização antes do LLM; retenção configurável; extra `ner` para NER
@@ -212,8 +212,8 @@ curl localhost:8000/ready    # → {"status":"ok"}
 (inédito no mercado), admissibilidade multi-rito (cível + trabalhista), controle humano
 auditável (CNJ 615/2025), classificação TPU, LGPD pronto para produção, ingestão
 automatizada de sistemas processuais, UI funcional ponta a ponta, auditoria estruturada
-de cada chamada ao LLM e suíte E2E Playwright sobre 25 cenários sintéticos. Arquitetura
-DDD + hexagonal, 156 testes, CI rigoroso, Next.js 16 + React 19."*
+de cada chamada ao LLM e suíte E2E Playwright sobre 26 cenários sintéticos. Arquitetura
+DDD + hexagonal, 193 testes, CI rigoroso, Next.js 16 + React 19."*
 
 ---
 
@@ -231,15 +231,15 @@ DDD + hexagonal, 156 testes, CI rigoroso, Next.js 16 + React 19."*
 
 ## Arquivos de apoio
 
-- **PDFs sintéticos** — 25 cenários em `backend/data/synthetic/` (gerados por `make synthetic`):
+- **PDFs sintéticos** — 26 cenários em `backend/data/synthetic/` (gerados por `make synthetic`):
   - Demo principal: `clean_acao_cobranca.pdf`, `injection_texto_branco.pdf`,
     `trabalhista_pedido_liquido.pdf`, `trabalhista_pedido_iliquido.pdf`
   - Atributos estruturais: `clean_recusa_conciliacao.pdf`, `clean_documentos_citados.pdf`,
-    `clean_pedido_subsidiario.pdf`, `trabalhista_misto.pdf`
+    `clean_pedido_subsidiario.pdf`, `trabalhista_misto.pdf`, `clean_litisconsorcio.pdf` (multi-parte)
   - Vícios de admissibilidade: `defect_sem_qualificacao_reu.pdf`, `defect_sem_fundamentacao.pdf`
   - Variantes aleatórias: `clean_acao_cobranca_v1.pdf` … `v3.pdf` (nomes/CPFs/valores distintos)
 - **Métricas ao vivo:** `uv run python -m evals.run`
-- **Testes unitários/integração:** `uv run pytest -q` (156 testes)
-- **Testes E2E:** `make e2e` (26 testes, zero tokens) · `make e2e-llm` (8 testes, LLM real)
+- **Testes unitários/integração:** `uv run pytest -q` (193 testes)
+- **Testes E2E:** `make e2e` (27 testes, zero tokens) · `make e2e-llm` (10 cenários, LLM real)
 - **Contrato da API:** [`tech-spec-sherpi.md`](tech-spec-sherpi.md) §8
 - **Swagger local:** `http://localhost:8000/docs`

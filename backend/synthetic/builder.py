@@ -118,6 +118,19 @@ def _qualificacao(
     ]
 
 
+def _qualificacao_litisconsorcio() -> list[str]:
+    """Qualificação com litisconsórcio ativo (2 autores) e passivo (2 rés)."""
+    return [
+        "FULANO DE TAL, brasileiro, solteiro, autônomo, inscrito no CPF sob o nº 529.982.247-25,",
+        "e BELTRANA DE SOUZA LIMA, brasileira, casada, professora, inscrita no CPF sob o nº 390.533.447-05,",
+        "ambos residentes na Rua das Flores, nº 100, São Paulo/SP, CEP 01310-100,",
+        "vêm, por seus advogados (procuração anexa), propor a presente ação em face de",
+        "EMPRESA ALFA LTDA., pessoa jurídica inscrita no CNPJ sob o nº 11.222.333/0001-81,",
+        "e EMPRESA BETA S.A., pessoa jurídica inscrita no CNPJ sob o nº 45.997.418/0001-53,",
+        "ambas com sede na Av. Central, nº 500, São Paulo/SP, pelos fatos e fundamentos a seguir.",
+    ]
+
+
 def _conciliacao_provas() -> list[str]:
     return [
         "Protesta provar o alegado por todos os meios em direito admitidos.",
@@ -142,6 +155,25 @@ def _body_cobranca(ctx: _RandCtx | None = None) -> list[str]:
         "DOS PEDIDOS: a) a citação da ré; b) a procedência para condenar a ré ao pagamento de",
         f"{v}, acrescidos de juros e correção; c) a condenação em custas e honorários.",
         f"DO VALOR DA CAUSA: Dá-se à causa o valor de {v}.",
+        "",
+        *_conciliacao_provas(),
+    ]
+
+
+def _body_litisconsorcio() -> list[str]:
+    return [
+        _ENDERECAMENTO,
+        "",
+        "AÇÃO DE COBRANÇA",
+        "",
+        *_qualificacao_litisconsorcio(),
+        "",
+        "DOS FATOS: As partes celebraram contrato de prestação de serviços em 10/01/2026, no",
+        "valor de R$ 20.000,00. Prestados os serviços, as rés não efetuaram o pagamento devido.",
+        "DO DIREITO: Aplicam-se os arts. 319 e 320 do CPC e os arts. 389 e 397 do Código Civil.",
+        "DOS PEDIDOS: a) a citação das rés; b) a procedência para condená-las ao pagamento de",
+        "R$ 20.000,00, acrescidos de juros e correção; c) a condenação em custas e honorários.",
+        "DO VALOR DA CAUSA: Dá-se à causa o valor de R$ 20.000,00.",
         "",
         *_conciliacao_provas(),
     ]
@@ -665,6 +697,17 @@ _CATALOG: dict[str, _Spec] = {
         False,
         "PASS",
         expect_liminar=False,
+        expect_requer_emenda=False,
+    ),
+    "clean_litisconsorcio": _Spec(
+        "clean",
+        "Litisconsórcio ativo e passivo (2 autores, 2 rés) — cobrança.",
+        _body_litisconsorcio,
+        _render_clean,
+        False,
+        "PASS",
+        expect_liminar=False,
+        expect_semaforo="VERDE",
         expect_requer_emenda=False,
     ),
     "clean_dano_moral_com_liminar": _Spec(
