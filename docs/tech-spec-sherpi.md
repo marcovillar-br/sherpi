@@ -124,8 +124,13 @@ Determinístico, via **PyMuPDF**, fortemente unit-testado. É o **núcleo do pro
 
 ### 2.2 Petition Analysis — `ExtractPetition`
 
-- **Entrada**: texto sanitizado (e anonimizado, se a flag estiver ativa).
+- **Entrada**: texto sanitizado (e **anonimizado** para o LLM externo, se a flag estiver ativa).
 - **Saída**: `PetitionSummary`.
+
+A anonimização é **reversível e LLM-only**: o LLM recebe placeholders numerados (`[CPF_1]`/`[NOME_1]`)
+e o orquestrador **restaura** os valores reais no resumo do revisor (`deanonymize_model`, ver
+[ADR-0012](adr/0012-reversible-anonymization-restore.md)). O prompt persistido para auditoria
+permanece anonimizado; o resumo persistido contém PII (acesso por JWT; cripto em repouso = Fase 4).
 
 | VO | Campos |
 |---|---|

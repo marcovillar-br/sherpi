@@ -72,7 +72,7 @@ curl localhost:8000/ready    # → {"status":"ok"}
 2. Enviar **`data/synthetic/clean_acao_cobranca.pdf`** → **Analisar**.
 3. Mostrar lado a lado:
    - **Laudo de integridade**: verde "Documento íntegro".
-   - **Resumo estruturado**: partes (CPF/CNPJ e nomes anonimizados no LLM), fato gerador, pedidos,
+   - **Resumo estruturado**: partes (nomes/CPF/CNPJ **reais** — anonimizados só p/ o LLM e restaurados no resumo), fato gerador, pedidos,
      valor da causa. *"Economiza a leitura de dezenas de laudas."*
    - **Admissibilidade**: semáforo VERDE + checklist (arts. 319/321), método e evidência por item.
 4. *Interpretabilidade:* "cada item mostra COMO foi verificado e a evidência — o juiz entende
@@ -146,10 +146,12 @@ curl localhost:8000/ready    # → {"status":"ok"}
    Com `SHERPI_LOG_LEVEL=DEBUG`, loga o prompt completo e a resposta (texto já anonimizado
    pelo LGPD layer — seguro). *"Sabe exatamente o que foi enviado ao modelo, quando e com
    qual resultado — rastreabilidade exigida pela Res. CNJ 615/2025."*
-3. **LGPD**: mostrar no código que o `CompositeAnonymizer` (`RegexAnonymizer` +
-   `RegexNameAnonymizer`) substitui CPF, CNPJ, e-mail, telefone, CEP **e nomes das partes**
-   (inclusive litisconsórcio) antes de enviar ao LLM externo. `MappedRegexAnonymizer`
-   (reversível) e `PresidioAnonymizer` (NER, extra `ner`) ficam como opções/evolução.
+3. **LGPD**: o `MappedCompositeAnonymizer` substitui CPF, CNPJ, e-mail, telefone, CEP **e nomes
+   das partes** (inclusive litisconsórcio) por placeholders numerados antes de enviar ao LLM
+   externo — e o resumo do revisor é **restaurado** com os valores reais (`deanonymize_model`,
+   [ADR-0012](adr/0012-reversible-anonymization-restore.md)). A anonimização protege o **LLM**, não
+   o humano: mostrar o **prompt persistido** (anonimizado) vs o **resumo** (real). `PresidioAnonymizer`
+   (NER, extra `ner`) é a evolução para nomes em texto livre.
 4. **Retenção**: `DELETE /v1/analyses?older_than_days=90` remove análises antigas
    (direito ao esquecimento, LGPD art. 18).
 5. **Supply-chain**: `uv run pip-audit` — nenhuma vulnerabilidade conhecida.
