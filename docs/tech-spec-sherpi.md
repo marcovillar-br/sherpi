@@ -4,7 +4,7 @@ description: "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilida
 doc_type: tech-spec
 project: SHERPI
 status: approved
-version: 1.4
+version: 1.5
 updated: 2026-06-20
 language: pt-BR
 tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
@@ -124,13 +124,15 @@ Determinístico, via **PyMuPDF**, fortemente unit-testado. É o **núcleo do pro
 
 ### 2.2 Petition Analysis — `ExtractPetition`
 
-- **Entrada**: texto sanitizado (e **anonimizado** para o LLM externo, se a flag estiver ativa).
+- **Entrada**: texto sanitizado (e **pseudonimizado** para o LLM externo, se a flag estiver ativa).
 - **Saída**: `PetitionSummary`.
 
-A anonimização é **reversível e LLM-only**: o LLM recebe placeholders numerados (`[CPF_1]`/`[NOME_1]`)
-e o orquestrador **restaura** os valores reais no resumo do revisor (`deanonymize_model`, ver
-[ADR-0012](adr/0012-reversible-anonymization-restore.md)). O prompt persistido para auditoria
-permanece anonimizado; o resumo persistido contém PII (acesso por JWT; cripto em repouso = Fase 4).
+O masking é **reversível e LLM-only** — por reter o mapa de reversão é, sob a LGPD, **pseudonimização**
+(art. 5º, XI), não anonimização (o código chama de "anonimização reversível"): o LLM recebe placeholders
+numerados (`[CPF_1]`/`[NOME_1]`) e o orquestrador **restaura** os valores reais no resumo do revisor
+(`deanonymize_model`, ver [ADR-0012](adr/0012-reversible-anonymization-restore.md)). Como é reversível, o
+texto continua sendo **dado pessoal** (não sai do escopo da LGPD). O prompt persistido para auditoria
+permanece pseudonimizado; o resumo persistido contém PII (acesso por JWT; cripto em repouso = Fase 4).
 
 | VO | Campos |
 |---|---|

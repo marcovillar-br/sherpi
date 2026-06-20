@@ -26,6 +26,14 @@ já usava o texto original (logo, a evidência dela mostrava o documento real) �
 A anonimização deve proteger o **LLM externo**, não a visão do **revisor autorizado** — o
 propósito da ferramenta é apoiar a triagem de peças **reais**.
 
+> **Nota terminológica (LGPD).** O que este ADR chama de "anonimização reversível" é, sob a
+> Lei 13.709/2018, **pseudonimização** (art. 5º, XI: a associação só se desfaz "pelo uso de informação
+> adicional mantida em separado" — aqui, o **mapa** de reversão). Não é **anonimização** (art. 5º, III +
+> art. 12), que exigiria irreversibilidade e tiraria o dado do escopo da lei. Consequência: o texto
+> mascarado **continua sendo dado pessoal** — reduz a exposição ao LLM externo, não isenta de obrigação.
+> Os nomes de código (`ReversibleAnonymizer`, `MappedRegexAnonymizer`) são mantidos por estabilidade;
+> a leitura correta é "pseudonimizador". Ver `legal-glossary.md` e o skill `lgpd-compliance`.
+
 ## Decisão
 
 Tornar a anonimização **reversível** e **restaurar** os valores reais no resumo:

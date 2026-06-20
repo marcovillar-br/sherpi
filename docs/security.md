@@ -4,7 +4,7 @@ description: "Controles de segurança e confiabilidade, separados em MVP e Fase 
 doc_type: security
 project: SHERPI
 status: approved
-version: 1.1
+version: 1.2
 updated: 2026-06-20
 language: pt-BR
 tags: [seguranca, confiabilidade, lgpd, observabilidade]
@@ -41,11 +41,14 @@ Domínio com PII jurídica — controle crítico.
   o endereçamento/título. **Best-effort**: pega os nomes da qualificação, mas pode não pegar nomes
   citados livremente nos fatos, nem em PDFs-imagem sem camada de texto (ver
   [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)).
-- **Anonimização reversível (LLM-only)**: usa placeholders numerados (`[CPF_1]`/`[NOME_1]`) e o
-  resumo exibido ao revisor é **restaurado** com os valores reais — a anonimização protege o **LLM
-  externo**, não o humano autorizado (ver [ADR-0012](adr/0012-reversible-anonymization-restore.md)).
-  Consequência: o **resumo persistido contém PII** (acesso por JWT; criptografia em repouso é Fase 4).
-  O **prompt persistido para auditoria continua anonimizado**.
+- **Pseudonimização LLM-only** (o código a chama de "anonimização reversível"): usa placeholders
+  numerados (`[CPF_1]`/`[NOME_1]`) e o resumo exibido ao revisor é **restaurado** com os valores reais —
+  protege o **LLM externo**, não o humano autorizado (ver [ADR-0012](adr/0012-reversible-anonymization-restore.md)).
+  Por ser **reversível** (o mapa é retido para restaurar), é **pseudonimização** (LGPD art. 5º, XI) e
+  **não** anonimização (art. 5º, III/12): o texto permanece **dado pessoal**, dentro do escopo da LGPD —
+  reduz o risco de exposição ao LLM, não isenta de obrigação. A garantia de "sem PII" no MVP vem do
+  **synthetic-first**. Consequência: o **resumo persistido contém PII** (acesso por JWT; criptografia em
+  repouso é Fase 4). O **prompt persistido para auditoria continua pseudonimizado**.
 - Invariante de domínio **"nunca decisão automática"** (human-in-the-loop obrigatório).
 - **Sem PII em log**.
 

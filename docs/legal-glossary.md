@@ -4,8 +4,8 @@ description: "Primer dos principais conceitos jurídicos do SHERPI, em linguagem
 doc_type: reference
 project: SHERPI
 status: draft
-version: 1.1
-updated: 2026-06-19
+version: 1.2
+updated: 2026-06-20
 language: pt-BR
 tags: [juridico, glossario, cpc, clt, conceitos, validacao]
 ---
@@ -99,12 +99,26 @@ tem **regras de admissibilidade próprias**:
   `AuditEvent` append-only vinculado ao usuário autenticado. ⚠️ *confirmar exigências aplicáveis a uma ferramenta como o SHERPI.*
 - **Segredo de justiça:** processos com acesso restrito por sigilo legal (ex.: família, dados
   sensíveis) — motiva o uso de dados **sintéticos** no projeto.
-- **LGPD (Lei 13.709):** proteção de dados pessoais (CPF, nomes, endereços das partes) — motiva a
-  **anonimização** antes de enviar texto a um LLM externo: identificadores estruturados
+- **LGPD (Lei 13.709/2018):** proteção de dados pessoais (CPF, nomes, endereços das partes) — motiva o
+  **masking** antes de enviar texto a um LLM externo: identificadores estruturados
   (CPF/CNPJ/e-mail/telefone/CEP) via `RegexAnonymizer` **e nomes das partes** via
   `RegexNameAnonymizer` (regex ancorado, *best-effort*), compostos por padrão em
   `CompositeAnonymizer`. Variante reversível `MappedRegexAnonymizer` e NER (`PresidioAnonymizer`,
   `--extra ner`) ficam como opções/evolução (ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)).
+  ⚠️ **Termo técnico:** o que o código chama de "anonimização reversível" é, sob a LGPD,
+  **pseudonimização** — ver o quadro abaixo.
+
+- **Anonimização × pseudonimização (LGPD):** distinção que governa o que o SHERPI pode afirmar sobre
+  conformidade.
+  - **Anonimização** (art. 5º, III + **art. 12**): o dado **não pode** ser reassociado ao titular, com
+    meios razoáveis → **sai do escopo** da LGPD.
+  - **Pseudonimização** (art. 5º, XI): o dado perde a associação ao titular **exceto pelo uso de
+    informação adicional mantida em separado** (no SHERPI, o **mapa** `[CPF_1] → 529.982.247-25`) →
+    **continua sendo dado pessoal**, dentro do escopo da LGPD.
+  - **O que o SHERPI faz é pseudonimização:** o masking é **reversível** e o resumo do revisor é
+    **restaurado** com os valores reais ([ADR-0012](adr/0012-reversible-anonymization-restore.md)). Logo
+    reduz a exposição ao LLM externo, mas **não isenta** de obrigação; a garantia real de "sem PII" no
+    MVP vem do **synthetic-first** (dados sintéticos). ⚠️ *confirmar enquadramento com especialista.*
 
 ---
 

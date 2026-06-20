@@ -4,7 +4,7 @@ description: "Bounded contexts, relações upstream/downstream e glossário da l
 doc_type: context-map
 project: SHERPI
 status: approved
-version: 1.3
+version: 1.4
 updated: 2026-06-20
 language: pt-BR
 tags: [ddd, bounded-context, linguagem-ubiqua]
@@ -121,7 +121,7 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **Decorators de LLM** | Encadeados sobre o provider real: `CircuitBreakerLLMProvider` → `PersistingLLMProvider` (persiste prompt anonimizado + resposta p/ auditoria) → `LoggingLLMProvider`. |
 | **Anonymizer / ReversibleAnonymizer** | Port que mascara PII antes do envio ao LLM externo (LGPD): estruturados (CPF/CNPJ/e-mail/telefone/CEP) + nomes das partes. A versão **reversível** (`MappedCompositeAnonymizer`, default) devolve o mapa placeholder→valor para **restaurar** os reais no resumo do revisor (`deanonymize_model`, [ADR-0012](adr/0012-reversible-anonymization-restore.md)). |
 | **RegexNameAnonymizer** | Mascara nomes das partes por âncora (qualificação / "em face de"), inclusive listas (litisconsórcio) → `[NOME]`. Best-effort, sem dependências (ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)). |
-| **MappedRegexAnonymizer** | Anonimizador reversível com placeholders numerados (`[CPF_1]`); retorna mapa texto→placeholder para reconstituição posterior. |
+| **MappedRegexAnonymizer** | **Pseudonimizador** (LGPD art. 5º, XI — masking reversível; o nome do código diz "anonimizador") com placeholders numerados (`[CPF_1]`); retorna mapa texto→placeholder para reconstituição posterior. |
 | **PresidioAnonymizer** | Adapter opcional (extra `ner`; lazy import) para NER de nomes com Presidio + spaCy (cobertura completa — Fase 4). |
 | **image_only_pages / image_heavy_pages** | Sinais do `ForensicsReport`: `image_only_pages` = páginas sem camada de texto (imagem/escaneado → extração pulada); `image_heavy_pages` = páginas **mistas** (têm texto, mas imagem domina → extrai e avisa). Ambos requerem OCR (Fase 4). |
 | **Synthetic-first** | Estratégia de usar petições sintéticas para evitar PII real e prover ground truth. |

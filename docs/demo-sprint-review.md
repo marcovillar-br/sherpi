@@ -4,8 +4,8 @@ description: "Runbook passo a passo para apresentar o SHERPI (MVP + rito trabalh
 doc_type: runbook
 project: SHERPI
 status: approved
-version: 1.3
-updated: 2026-06-19
+version: 1.4
+updated: 2026-06-20
 language: pt-BR
 tags: [demo, sprint-review, runbook, apresentacao]
 ---
@@ -151,8 +151,9 @@ curl localhost:8000/ready    # → {"status":"ok"}
 3. **LGPD**: o `MappedCompositeAnonymizer` substitui CPF, CNPJ, e-mail, telefone, CEP **e nomes
    das partes** (inclusive litisconsórcio) por placeholders numerados antes de enviar ao LLM
    externo — e o resumo do revisor é **restaurado** com os valores reais (`deanonymize_model`,
-   [ADR-0012](adr/0012-reversible-anonymization-restore.md)). A anonimização protege o **LLM**, não
-   o humano: mostrar o **prompt persistido** (anonimizado) vs o **resumo** (real). `PresidioAnonymizer`
+   [ADR-0012](adr/0012-reversible-anonymization-restore.md)). Como é reversível, sob a LGPD isso é
+   **pseudonimização** (art. 5º, XI), não anonimização — protege o **LLM externo**, não o humano:
+   mostrar o **prompt persistido** (pseudonimizado) vs o **resumo** (real). `PresidioAnonymizer`
    (NER, extra `ner`) é a evolução para nomes em texto livre.
 4. **Retenção**: `DELETE /v1/analyses?older_than_days=90` remove análises antigas
    (direito ao esquecimento, LGPD art. 18).
