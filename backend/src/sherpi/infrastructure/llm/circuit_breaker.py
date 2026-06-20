@@ -46,6 +46,11 @@ class CircuitBreakerLLMProvider:
         self._failures = 0
         self._opened_at = 0.0
 
+    @property
+    def model(self) -> str | None:
+        """Delega o nome do modelo do provedor interno (para auditoria/logs)."""
+        return getattr(self._inner, "model", None)
+
     async def complete(
         self,
         messages: list[ChatMessage],

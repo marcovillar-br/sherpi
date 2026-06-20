@@ -39,6 +39,11 @@ class GeminiProvider:
         self._max_input_tokens = max_input_tokens
         self._client: genai.Client | None = None
 
+    @property
+    def model(self) -> str:
+        """Nome do modelo (para auditoria/logs)."""
+        return self._model
+
     def _get_client(self) -> genai.Client:
         if self._client is None:
             self._client = genai.Client(api_key=self._api_key)

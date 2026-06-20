@@ -59,6 +59,11 @@ class PersistingLLMProvider:
         self._repository = repository
         self._label = label
 
+    @property
+    def model(self) -> str | None:
+        """Delega o nome do modelo (para o LoggingLLMProvider externo)."""
+        return getattr(self._inner, "model", None)
+
     async def complete(
         self,
         messages: list[ChatMessage],

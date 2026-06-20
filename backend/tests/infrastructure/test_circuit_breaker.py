@@ -111,3 +111,13 @@ async def test_half_open_failure_reopens_immediately() -> None:
     with pytest.raises(CircuitOpenError):
         await _call(breaker)
     assert inner.calls == calls_after_trial  # reaberto: falha rápido de novo
+
+
+def test_model_property_delegates_to_inner() -> None:
+    inner = _ScriptedProvider()
+    inner.model = "gemini-x"  # type: ignore[attr-defined]
+    assert CircuitBreakerLLMProvider(inner).model == "gemini-x"
+
+
+def test_model_property_none_when_inner_has_no_model() -> None:
+    assert CircuitBreakerLLMProvider(_ScriptedProvider()).model is None
