@@ -1,7 +1,9 @@
 """Anonimização de PII por expressões regulares (LGPD).
 
-Mascara identificadores estruturados (CPF, CNPJ, e-mail, telefone, CEP) **antes**
-de enviar o texto a um LLM externo. Determinístico e local.
+Mascara identificadores estruturados (CPF, CNPJ, e-mail, telefone, CEP) e, por âncora
+de contexto, identificadores que só são PII pelo rótulo (RG/CNH, conta/agência bancária,
+nº de benefício do INSS, nº de B.O.) **antes** de enviar o texto a um LLM externo.
+Determinístico e local.
 
 Nomes das partes são mascarados pelo `RegexNameAnonymizer` (por âncora, best-effort,
 sem NER) — ver classe. NER pleno (Presidio/spaCy) continua a opção robusta da Fase 4.
@@ -25,6 +27,39 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("[CPF]", re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")),
     ("[TELEFONE]", re.compile(r"\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}\b")),
     ("[CEP]", re.compile(r"\b\d{5}-?\d{3}\b")),
+)
+
+# --- Identificadores que só são PII pelo CONTEXTO (rótulo/âncora) ------------------
+# RG, conta bancária, nº de benefício do INSS e nº de B.O. não têm forma autossuficiente
+# (um "9179" isolado é inócuo; ao lado de "agência", é dado bancário). Por isso cada
+# padrão tem DOIS grupos: (1) o rótulo/âncora a PRESERVAR e (2) o valor a mascarar — só
+# o grupo 2 é substituído, mantendo a estrutura do documento legível pelo LLM. O `?`
+# após os quantificadores de prefixo é preguiçoso: o valor é o PRIMEIRO número após o
+# rótulo. Roda DEPOIS de `_PATTERNS` (CPF/CNPJ/etc. já mascarados não colidem).
+_ANCHORED_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    # RG / Carteira de Identidade / CNH (formato livre: "1.234.567", "12.345.678-9").
+    (
+        "[RG]",
+        re.compile(
+            r"((?:RG|R\.G\.|C\.?N\.?H\.?|[Cc]arteira de [Ii]dentidade(?:/CNH)?)[^\n\d]{0,25}?)"
+            r"(\d{1,2}\.?\d{3}\.?\d{3}-?[\dxX]?)\b"
+        ),
+    ),
+    # Nº de benefício do INSS (NB): forma de CPF, mas com 1 só dígito verificador → o
+    # regex de CPF (que exige \d{2} final) não o pega, e ele vazaria sem esta âncora.
+    (
+        "[BENEFICIO]",
+        re.compile(r"(benef[íi]cio[^\n\d]{0,20}?)(\d{3}\.?\d{3}\.?\d{3}[-.]?\d)\b"),
+    ),
+    # Dados bancários: código do banco, agência e conta.
+    ("[BANCO]", re.compile(r"(\bBanco[^\S\n]+)(\d{3,4})\b")),
+    ("[AGENCIA]", re.compile(r"([Aa]g[êe]ncia[^\n\d]{0,5}?)(\d{3,5}-?[\dxX]?)\b")),
+    ("[CONTA]", re.compile(r"([Cc]onta(?:[^\S\n]+corrente)?[^\n\d]{0,12}?)(\d{3,8}-?[\dxX])\b")),
+    # Nº de boletim/registro de ocorrência policial (B.O.).
+    (
+        "[OCORRENCIA]",
+        re.compile(r"((?:[Oo]corr[êe]ncia|boletim de ocorr[êe]ncia|B\.?O\.?)[^\n\d]{0,15}?)(\d{4,})\b"),
+    ),
 )
 
 # --- Mascaramento de nomes por ÂNCORA (LGPD, best-effort, sem NER/dependências) ---
@@ -73,6 +108,9 @@ class RegexAnonymizer:
     def anonymize(self, text: str) -> str:
         for placeholder, pattern in _PATTERNS:
             text = pattern.sub(placeholder, text)
+        for placeholder, pattern in _ANCHORED_PATTERNS:
+            # Preserva o rótulo (grupo 1) e mascara só o valor (grupo 2).
+            text = pattern.sub(lambda m, ph=placeholder: m.group(1) + ph, text)
         return text
 
 
@@ -139,6 +177,14 @@ class MappedRegexAnonymizer:
                 key = f"[{base}_{counters[base]}]"
                 mapping[key] = match.group()
                 result = result[: match.start()] + key + result[match.end() :]
+        # Identificadores ancorados: mascara só o grupo 2 (o valor), preservando o rótulo.
+        for placeholder_base, pattern in _ANCHORED_PATTERNS:
+            base = placeholder_base.strip("[]")
+            for match in reversed(list(pattern.finditer(result))):
+                counters[base] = counters.get(base, 0) + 1
+                key = f"[{base}_{counters[base]}]"
+                mapping[key] = match.group(2)
+                result = result[: match.start(2)] + key + result[match.end(2) :]
         return result, mapping
 
 
