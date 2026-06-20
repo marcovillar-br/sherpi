@@ -8,7 +8,7 @@ import { ForensicsBanner } from "@/components/ForensicsBanner";
 import { ReviewPanel } from "@/components/ReviewPanel";
 import { SummaryPanel } from "@/components/SummaryPanel";
 import { TpuPanel } from "@/components/TpuPanel";
-import { analyzePetition, ApiError } from "@/lib/api";
+import { analyzePetition, logout, ApiError } from "@/lib/api";
 import type { AnalyzeResponse, Rito } from "@/lib/types";
 
 const RITOS: { value: Rito; label: string }[] = [
@@ -43,6 +43,11 @@ export default function Home() {
     }
   }
 
+  async function handleLogout() {
+    await logout();
+    router.replace("/login");
+  }
+
   const result = response?.result;
 
   return (
@@ -54,6 +59,13 @@ export default function Home() {
             Triagem assistida de petições iniciais — firewall, resumo e admissibilidade.
           </p>
         </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="text-sm text-gray-500 hover:text-gray-900"
+        >
+          Sair
+        </button>
       </header>
 
       <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-3">

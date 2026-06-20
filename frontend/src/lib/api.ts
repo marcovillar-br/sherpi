@@ -33,6 +33,11 @@ async function expectOk(res: Response): Promise<Response> {
   return res;
 }
 
+/** Encerra a sessão: apaga o cookie httpOnly via route handler do Next.js. */
+export async function logout(): Promise<void> {
+  await fetch("/api/logout", { method: "POST" });
+}
+
 /** Autentica com email+senha; o backend define o cookie httpOnly. */
 export async function login(email: string, password: string): Promise<TokenResponse> {
   const body = new URLSearchParams({ username: email, password });
