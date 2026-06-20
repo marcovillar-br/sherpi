@@ -180,7 +180,7 @@ Sprints 4–7 acessíveis ao usuário final sem exigir o Swagger.
 - `frontend/src/lib/types.ts` e componentes React atualizados.
 
 **Definition of Done**
-- [x] `uv run pytest -q` → 148 passed, 0 failed.
+- [x] `uv run pytest -q` → 156 passed, 0 failed.
 - [x] `ruff` + `mypy` limpos; `npm run build && npm run lint` limpos.
 - [x] Zero identificadores pt-BR violando a regra (exceção `trabalhista` documentada).
 

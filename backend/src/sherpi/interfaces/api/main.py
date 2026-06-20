@@ -166,7 +166,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             token = authenticate.run(username, password)
         except AuthenticationError as exc:
             raise HTTPException(status_code=401, detail=str(exc)) from exc
-        response.set_cookie("access_token", token, httponly=True, samesite="lax")
+        response.set_cookie(
+            "access_token",
+            token,
+            httponly=True,
+            secure=cfg.cookie_secure,
+            samesite="lax",
+        )
         return TokenResponse(access_token=token)
 
     @v1.post("/analyze", response_model=AnalyzeResponse)

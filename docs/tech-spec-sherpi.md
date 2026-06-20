@@ -177,8 +177,10 @@ LLMProvider.complete(messages, response_schema) -> objeto validado
 | Adapter | Papel |
 |---|---|
 | `gemini.py` | **DEFAULT** — Google Gemini Flash (contexto grande, free tier acadêmico). |
-| `openai_compat.py` | Maritaca Sabiá / OpenAI / Ollama — troca via `base_url` + modelo no `config.py`. |
+| `openai_compat.py` *(planejado — Fase 4)* | Maritaca Sabiá / OpenAI / Ollama (API OpenAI-compatível) via `base_url`. Ainda não implementado: a factory levanta erro explícito. |
 | `fake.py` | `FakeProvider` determinístico, sem rede, para testes. |
+
+Sobre o provider real aplicam-se dois **decorators** (compostos no wiring): `CircuitBreakerLLMProvider` (corta falhas sustentadas) e `LoggingLLMProvider` (auditoria via structlog).
 
 Trocar de LLM = trocar um adapter via `config.py`, **sem tocar no domínio**. Modelos não são hardcodados; vêm de configuração.
 
@@ -231,8 +233,8 @@ atenção do revisor. A calibração desses escores é medida no *eval* (§5), n
 ### 6.2 Human-in-the-loop como camada final de interpretabilidade
 
 Nenhuma saída do SHERPI é uma decisão automática — é **insumo** para o humano. A UI apresenta, lado a
-lado: o PDF renderizado, as extrações com proveniência, o laudo forense e as sugestões de TPU com seus
-exemplos-âncora. Cada revisão humana (aceitar/rejeitar/corrigir) é registrada como `AuditEvent`,
+lado: o resumo estruturado com proveniência, o laudo forense, as sugestões de TPU com seus
+exemplos-âncora e o painel de revisão humana. (A renderização do PDF lado a lado é evolução planejada para a Fase 4.) Cada revisão humana (aceitar/rejeitar/corrigir) é registrada como `AuditEvent`,
 fechando o laço de explicabilidade e accountability (a base do retreino futuro na Fase 4).
 
 ---
@@ -358,8 +360,8 @@ sequenceDiagram
 | Persistência | PostgreSQL + SQLModel + Alembic + psycopg (dev/test: SQLite via aiosqlite) |
 | Auth | **bcrypt** direto + **pyjwt** (passlib incompatível com bcrypt>=5); OAuth2 password flow; lockout in-memory |
 | Observabilidade | structlog, CorrelationIdMiddleware, sentry-sdk[fastapi] (soft-dep) |
-| Anonimização | MappedRegexAnonymizer (reversível); PresidioAnonymizer (extra `ner`, lazy import) |
+| Anonimização | RegexAnonymizer (default: CPF/CNPJ/e-mail/telefone/CEP); MappedRegexAnonymizer (reversível, opt-in); PresidioAnonymizer (extra `ner`, lazy import) |
 | Integração | asyncio.Queue; SandboxSourceAdapter; PetitionSource port |
-| Frontend | Next.js + TypeScript + Tailwind + shadcn/ui + react-pdf (PDF.js) |
-| Infra | Dockerfile multi-stage (builder uv / runtime python:3.12-slim, non-root); docker-compose.prod.yml |
+| Frontend | Next.js 16 + React 19 + TypeScript + Tailwind v4; componentes próprios; Playwright (E2E) |
+| Infra | Dockerfile multi-stage (builder uv / runtime python:3.13-slim, non-root); docker-compose.yml (dev: só db) + docker-compose.prod.yml |
 | Qualidade | pytest, ruff, mypy, pre-commit, pip-audit (CI — gate real sem `\|\| true`) |

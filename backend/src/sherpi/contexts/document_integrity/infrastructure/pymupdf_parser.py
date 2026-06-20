@@ -13,6 +13,12 @@ Limitações conhecidas (MVP → refinar na Fase 4):
 
 from __future__ import annotations
 
+import signal
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+from types import FrameType
+
 import pymupdf
 
 from sherpi.contexts.document_integrity.domain.document import (
@@ -28,10 +34,51 @@ def _int_to_rgb(color: int) -> tuple[float, float, float]:
     return ((color >> 16) & 0xFF) / 255.0, ((color >> 8) & 0xFF) / 255.0, (color & 0xFF) / 255.0
 
 
+@contextmanager
+def _parse_deadline(seconds: float) -> Iterator[None]:
+    """Guarda de tempo (best-effort) em torno do parsing CPU-bound do PyMuPDF.
+
+    Mitiga DoS por parsing lento (ex.: bomba de descompressão) cortando o fluxo
+    quando o tempo de parede estoura. Usa SIGALRM, que tem limites conhecidos:
+    só funciona em Unix e na main thread, e NÃO interrompe um laço preso em
+    código C nativo até o controle voltar ao Python. O isolamento pleno de
+    recursos (subprocesso + `setrlimit`) fica para a Fase 4. Fora desse cenário
+    (thread worker, plataforma sem SIGALRM, ou `seconds<=0`) degrada para no-op.
+    """
+    usable = (
+        seconds > 0
+        and hasattr(signal, "SIGALRM")
+        and threading.current_thread() is threading.main_thread()
+    )
+    if not usable:
+        yield
+        return
+
+    def _on_timeout(signum: int, frame: FrameType | None) -> None:
+        raise UntrustedDocumentError(f"Parsing do PDF excedeu {seconds:g}s (possível DoS).")
+
+    previous = signal.signal(signal.SIGALRM, _on_timeout)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
 class PyMuPDFParser:
     """Implementação do port `PdfParser` usando PyMuPDF."""
 
+    def __init__(self, *, timeout_seconds: float = 0.0) -> None:
+        # 0.0 desativa a guarda de tempo (default usado por testes/evals); a API
+        # injeta `pdf_parse_timeout_seconds` da config no wiring de produção.
+        self._timeout_seconds = timeout_seconds
+
     def parse(self, content: bytes, *, max_pages: int) -> ParsedDocument:
+        with _parse_deadline(self._timeout_seconds):
+            return self._parse(content, max_pages=max_pages)
+
+    def _parse(self, content: bytes, *, max_pages: int) -> ParsedDocument:
         try:
             doc = pymupdf.open(stream=content, filetype="pdf")
         except Exception as exc:  # parsing de arquivo hostil

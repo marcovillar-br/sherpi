@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     llm_base_url: str | None = None  # usado por openai_compat (Maritaca/OpenAI/Ollama)
     llm_timeout_seconds: float = 30.0
     llm_max_retries: int = 3
+    # Circuit breaker: nº de falhas consecutivas que abre o circuito e cooldown (s)
+    # durante o qual as chamadas falham rápido antes de uma tentativa de teste.
+    llm_circuit_breaker_threshold: int = 5
+    llm_circuit_breaker_reset_seconds: float = 30.0
     # Guarda de custo: corta requisições acima deste nº estimado de tokens de entrada.
     llm_max_input_tokens: int = 200_000
     # Temperatura da geração; 0.0 = determinístico (recomendado p/ extração jurídica).
@@ -83,6 +87,16 @@ class Settings(BaseSettings):
     def is_external_llm(self) -> bool:
         """True quando o LLM é um serviço externo (exige anonimização de PII)."""
         return self.llm_backend in ("gemini", "openai_compat")
+
+    @property
+    def cookie_secure(self) -> bool:
+        """Flag `Secure` do cookie de sessão: ativa em produção.
+
+        dev e test rodam local em HTTP (onde um cookie `Secure` não seria
+        enviado pelo navegador); só prod serve em HTTPS, e é lá que a flag
+        protege o token contra vazamento em canal não cifrado.
+        """
+        return self.env == "prod"
 
 
 @lru_cache

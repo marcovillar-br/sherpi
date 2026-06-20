@@ -16,7 +16,7 @@ tags: [agil, scrum, kanban, design-sprint, papeis, processo]
 |---|---|
 | Documento | Processo Ágil de Desenvolvimento |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
-| Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; MVP em 2 sprints + Fase 4 (sprints 3–7+) |
+| Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; MVP em 2 sprints + Fase 4 (sprints 3–9) |
 | Versão | 1.3 |
 
 > Este documento registra **como** o SHERPI é desenvolvido — papéis, artefatos e cerimônias —
@@ -72,7 +72,7 @@ Guia. A EAP está em [`wbs.md`](wbs.md). Resumo abaixo.
 
 ### 3.1 Metas das Sprints
 
-Sprints 1–8 entregues (backend + frontend completo). Tasks em [`backlog.md`](backlog.md).
+Sprints 1–9 entregues (backend + frontend completo + refactor en-US/EP12). Tasks em [`backlog.md`](backlog.md).
 
 | Sprint | Meta | Épicos | Status |
 |---|---|---|---|
@@ -84,6 +84,7 @@ Sprints 1–8 entregues (backend + frontend completo). Tasks em [`backlog.md`](b
 | **6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | EP9 | ✅ |
 | **7** | Integração PJe/E-Proc (ingestão assíncrona) | EP8 | ✅ |
 | **8** | UI das Sprints 4–7: login, rito, TPU top-3, revisão humana | EP6, EP7, EP5 | ✅ |
+| **9** | Refactor de nomenclatura para en-US (domínio/API/UI) + coerência documental | EP12 | ✅ |
 
 > Priorização: **risco-primeiro** no MVP (firewall/extração antes); na Fase 4, **valor/conformidade
 > primeiro** (controle humano auditável destrava adoção), depois a capacidade que falta (TPU),
@@ -150,7 +151,12 @@ de projetos de IA/Mineração de Dados.
   cobertura aparente.
 - 🔧 *Ajustar*: investir cedo em interpretabilidade (item nominal da ementa) em vez de deixar para o fim.
 
-### Sprint 2 — *(a registrar na Sprint Review de sábado)*
+### Sprints 2–9
+
+O registro detalhado de Review/Retrospective das Sprints 2–9 vive nos artefatos
+de entrega de cada sprint — ver [`demo-sprint-review.md`](demo-sprint-review.md) e
+[`backlog.md`](backlog.md). Resumo: 9 sprints entregues, frontend completo e
+refactor en-US (EP12); sem débito técnico bloqueante.
 
 ## 7. Métricas de processo (saúde ágil)
 

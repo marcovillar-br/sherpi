@@ -112,7 +112,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 - Persistência das análises (PostgreSQL + pgvector).
 - Autenticação obrigatória (OAuth2 password + JWT, perfil único).
 - Registro de revisão humana e trilha de auditoria append-only.
-- Frontend Next.js: login, viewer de PDF, painel de extração, laudo de segurança.
+- Frontend Next.js: login, upload de PDF, painel de extração/resumo, laudo de segurança, sugestões de TPU e painel de revisão (viewer de PDF embutido: Fase 4).
 - Dados **sintéticos primeiro** (synthetic-first) com injeções plantadas para avaliação.
 - Eval harness com métricas reportadas honestamente.
 

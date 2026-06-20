@@ -40,9 +40,9 @@ Domínio com PII jurídica — controle crítico.
 **Fase 4**
 
 - **Anonimização de nomes** (NER — Presidio/spaCy): o `RegexAnonymizer` do MVP não cobre nomes.
-- Anonimização reversível (placeholders + restauração) onde a utilidade exigir.
+- Anonimização reversível (placeholders + restauração) — **base já disponível** no MVP (`MappedRegexAnonymizer`, opt-in); ampliar o wiring onde a utilidade exigir.
 - Criptografia em repouso.
-- Política de **retenção e eliminação** de PDFs/análises (direito ao esquecimento).
+- Política de **retenção e eliminação** de PDFs/análises (direito ao esquecimento) — **base já disponível** (config `retention_days` + `DELETE /analyses`); ampliar (agendamento, DPIA).
 - DPIA (relatório de impacto à proteção de dados).
 - Opção de **LLM local** (Ollama / Maritaca on-prem) para dados sensíveis reais.
 
@@ -52,9 +52,9 @@ Domínio com PII jurídica — controle crítico.
 
 **MVP**
 
-- Validação de **tipo/MIME** e **tamanho máximo**.
+- Validação de **assinatura** (magic bytes `%PDF-`) e **tamanho máximo**.
 - **Limite de páginas**.
-- **Timeout e limite de recursos** no parsing (PyMuPDF tem CVEs — tratar PDF como hostil).
+- **Timeout** no parsing (best-effort via SIGALRM; PyMuPDF tem CVEs — tratar PDF como hostil). *Isolamento pleno de recursos (subprocesso + `setrlimit`): Fase 4.*
 - Rejeitar não-PDF.
 - **Content hash** para deduplicação/idempotência.
 
@@ -138,7 +138,7 @@ Domínio com PII jurídica — controle crítico.
 | Domínio | MVP | Fase 4 |
 |---|---|---|
 | Privacidade/LGPD | Synthetic-first, Anonymizer, sem PII em log | Cripto em repouso, retenção/DPIA, LLM local |
-| Upload | MIME/tamanho/páginas, timeout, content hash | Sandbox, antimalware, isolamento |
+| Upload | assinatura/tamanho/páginas, timeout (best-effort), content hash | Sandbox, antimalware, isolamento de recursos |
 | Auth/API | JWT+exp, cookie httpOnly+Secure+SameSite, lockout, CORS, CSRF | RBAC, MFA, refresh, secrets manager, TLS/WAF |
 | LLM | Timeout/retry/backoff, guarda de custo, circuit breaker, defensive prompting | Tracing de LLM, monitoramento de custo |
 | Observabilidade | Logs estruturados+correlation IDs, /health, /ready, auditoria append-only | Tracing distribuído, dashboards, Sentry |

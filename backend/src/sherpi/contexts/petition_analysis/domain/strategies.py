@@ -99,9 +99,15 @@ class CivelStrategy:
                 # Documento mascarado pela anonimização — validar pelo texto original.
                 if raw_text is not None:
                     doc = _scan_valid_document(raw_text)
-                    detail = "CPF/CNPJ válido no documento (checksum)." if doc else "Sem CPF/CNPJ válido."
+                    detail = (
+                        "CPF/CNPJ válido no documento (checksum)."
+                        if doc
+                        else "Sem CPF/CNPJ válido."
+                    )
                     return self._det(Requirement.QUALIFICATION, doc is not None, doc, detail)
-                return self._det(Requirement.QUALIFICATION, False, None, "Autor sem CPF/CNPJ válido.")
+                return self._det(
+                    Requirement.QUALIFICATION, False, None, "Autor sem CPF/CNPJ válido."
+                )
         # 2. LLM não identificou parte ativa — escanear texto original como fallback.
         if raw_text is not None:
             doc = _scan_valid_document(raw_text)

@@ -5,6 +5,7 @@ export function POST() {
   res.cookies.set("access_token", "", {
     maxAge: 0,
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
   });

@@ -38,10 +38,10 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 
 ## Stack
 
-- **Backend**: Python 3.12+ · FastAPI · uv · PyMuPDF · Pydantic v2 · SQLModel + Alembic
+- **Backend**: Python 3.13 · FastAPI · uv · PyMuPDF · Pydantic v2 · SQLModel + Alembic
 - **Auth**: bcrypt + pyjwt (passlib incompatível com bcrypt>=5) · OAuth2 password flow
 - **Observabilidade**: structlog · correlation ID · Sentry (soft-dep)
-- **Frontend**: Next.js + TypeScript + Tailwind + shadcn/ui + react-pdf (desacoplado da API)
+- **Frontend**: Next.js 16 + React 19 + TypeScript + Tailwind v4 (desacoplado da API)
 - **Dados**: PostgreSQL + SQLModel · embeddings como bytes (numpy/float32, sem pgvector extension)
 - **IA**: camada `LLMProvider` agnóstica · classificação TPU local (JurisBERT ou FakeEmbeddingModel)
 - **Infra**: Dockerfile multi-stage (non-root) · docker-compose.prod.yml · pip-audit gate real
@@ -52,24 +52,32 @@ Maritaca Sabiá/OpenAI/Ollama como adapters).
 backend/     # API e domínio (DDD) — ver backend/README.md
 frontend/    # UI Next.js completa (login, análise, TPU, revisão)
 docs/        # PRD, spec técnica, roadmap, mapa DDD, ADRs, modelo de ameaças
-docker-compose.yml   # Postgres + pgvector
+docker-compose.yml       # Postgres + pgvector (dev: só o banco)
+docker-compose.prod.yml  # Postgres + backend (produção)
+Makefile                 # orquestra setup, dev, testes (ver "Início rápido")
 ```
 
 ## Início rápido
 
-```bash
-# 1. Banco de dados (a partir da raiz)
-docker compose up -d db
+O `Makefile` (na raiz) orquestra tudo. Requer `docker`, `uv` e `npm`.
 
-# 2. Backend
-cd backend
-uv sync
-cp .env.example .env          # configure SHERPI_LLM_API_KEY, SHERPI_JWT_SECRET, etc.
-uv run pytest                 # roda os testes
-uv run python -m synthetic.generate   # gera o corpus sintético rotulado
+```bash
+# 1. Configure o ambiente do backend
+cp backend/.env.example backend/.env   # ajuste SHERPI_LLM_API_KEY, SHERPI_JWT_SECRET
+
+# 2. Setup completo (banco + migrations + índice TPU + corpus sintético)
+make setup
+
+# 3. Suba os serviços (em terminais separados)
+make dev-backend       # LLM real  (ou: make dev-backend-fake — sem custo de token)
+make dev-frontend
+
+# Testes
+make test              # backend (pytest)
+make e2e               # E2E Playwright (requer `make dev-backend-fake` rodando)
 ```
 
-Detalhes de comandos e estrutura do backend: [`backend/README.md`](backend/README.md).
+Lista completa de alvos: `make help`. Detalhes do backend: [`backend/README.md`](backend/README.md).
 
 ## Documentação
 

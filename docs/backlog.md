@@ -220,7 +220,7 @@ concluídas (MVP + multi-domínio + Fase 4 backend + UI frontend S4–S7).
 
 **Definition of Done (Sprint 9)**
 
-- [x] `uv run pytest -q` → 148 passed, 0 failed.
+- [x] `uv run pytest -q` → 156 passed, 0 failed.
 - [x] `ruff check --fix . && ruff format . && mypy src/ evals/` → limpos.
 - [x] `npm run build && npm run lint` → limpos.
 - [x] Nenhum identificador pt-BR violando a regra de duas camadas (exceção `trabalhista` documentada).

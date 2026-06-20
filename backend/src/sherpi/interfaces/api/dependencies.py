@@ -34,6 +34,7 @@ from sherpi.contexts.taxonomy.infrastructure.embedding import FakeEmbeddingModel
 from sherpi.contexts.taxonomy.infrastructure.sql_index import SqlTpuIndex
 from sherpi.infrastructure.anonymization.factory import build_anonymizer
 from sherpi.infrastructure.llm.audit import LoggingLLMProvider
+from sherpi.infrastructure.llm.circuit_breaker import CircuitBreakerLLMProvider
 from sherpi.infrastructure.llm.factory import build_llm_provider
 from sherpi.infrastructure.persistence.engine import make_engine
 from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
@@ -61,9 +62,15 @@ def _build_suggest_tpu() -> SuggestTpu | None:
 @lru_cache
 def _build_orchestrator() -> AnalyzePetition:
     settings: Settings = get_settings()
-    llm = LoggingLLMProvider(build_llm_provider(settings), label="extract")
+    # Provedor real → circuit breaker (corta falhas sustentadas) → auditoria (logs).
+    breaker = CircuitBreakerLLMProvider(
+        build_llm_provider(settings),
+        failure_threshold=settings.llm_circuit_breaker_threshold,
+        reset_timeout=settings.llm_circuit_breaker_reset_seconds,
+    )
+    llm = LoggingLLMProvider(breaker, label="extract")
     return AnalyzePetition(
-        PyMuPDFParser(),
+        PyMuPDFParser(timeout_seconds=settings.pdf_parse_timeout_seconds),
         ExtractPetition(llm, temperature=settings.llm_temperature),
         anonymizer=build_anonymizer(settings),
         suggest_tpu=_build_suggest_tpu(),

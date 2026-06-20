@@ -115,7 +115,7 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **TpuSuggestion** | Sugestão de código TPU com grau de confiança (top-3). |
 | **Bounded context** | Fronteira de modelo no DDD; cada "skill" do SHERPI é uma capacidade de um contexto. |
 | **Port / Adapter** | Interface no domínio (port) e sua implementação na infraestrutura (adapter); base do design hexagonal e do LLM-agnóstico. |
-| **LLMProvider** | Port que abstrai o modelo de linguagem; default Gemini Flash, com adapters Maritaca/OpenAI/Ollama e FakeProvider. |
+| **LLMProvider** | Port que abstrai o modelo de linguagem; default Gemini Flash e FakeProvider (testes). Adapters Maritaca/OpenAI/Ollama são planejados (Fase 4, ainda não implementados). |
 | **Anonymizer** | Port que mascara identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) antes do envio ao LLM externo (LGPD). |
 | **MappedRegexAnonymizer** | Anonimizador reversível com placeholders numerados (`[CPF_1]`); retorna mapa texto→placeholder para reconstituição posterior. |
 | **PresidioAnonymizer** | Adapter opcional (extra `ner`; lazy import) para NER de nomes com Presidio + spaCy. |
