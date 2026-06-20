@@ -112,6 +112,9 @@ class NoOpAnonymizer:
     def anonymize(self, text: str) -> str:
         return text
 
+    def anonymize_mapped(self, text: str) -> tuple[str, dict[str, str]]:
+        return text, {}
+
 
 class MappedRegexAnonymizer:
     """RegexAnonymizer com mapeamento reversível (LGPD — anonimização rastreável).
@@ -137,3 +140,48 @@ class MappedRegexAnonymizer:
                 mapping[key] = match.group()
                 result = result[: match.start()] + key + result[match.end() :]
         return result, mapping
+
+
+class MappedRegexNameAnonymizer:
+    """Versão reversível do `RegexNameAnonymizer`: numera cada nome (`[NOME_1]`,
+    `[NOME_2]`...) e devolve o mapa placeholder→nome, para restaurar os nomes reais
+    no resumo exibido ao revisor (a LGPD exige proteger o LLM externo, não o humano)."""
+
+    def anonymize(self, text: str) -> str:
+        return self.anonymize_mapped(text)[0]
+
+    def anonymize_mapped(self, text: str) -> tuple[str, dict[str, str]]:
+        mapping: dict[str, str] = {}
+        counter = 0
+
+        def _placeholder(name: str) -> str:
+            nonlocal counter
+            counter += 1
+            key = f"[NOME_{counter}]"
+            mapping[key] = name
+            return key
+
+        # Lista antes do cue: cada nome vira um placeholder numerado distinto.
+        text = _NAME_LIST_BEFORE_CUE.sub(
+            lambda m: _NAME_SOLO.sub(lambda mm: _placeholder(mm.group()), m.group(0)), text
+        )
+        # Nome após "em face de/da" / "em desfavor de".
+        text = _NAME_AFTER_PARTY.sub(lambda m: m.group(1) + _placeholder(m.group(2)), text)
+        return text, mapping
+
+
+class MappedCompositeAnonymizer:
+    """Encadeia anonimizadores **reversíveis** acumulando o mapa combinado."""
+
+    def __init__(self, anonymizers: list[MappedRegexAnonymizer | MappedRegexNameAnonymizer]) -> None:
+        self._anonymizers = anonymizers
+
+    def anonymize(self, text: str) -> str:
+        return self.anonymize_mapped(text)[0]
+
+    def anonymize_mapped(self, text: str) -> tuple[str, dict[str, str]]:
+        mapping: dict[str, str] = {}
+        for anonymizer in self._anonymizers:
+            text, partial = anonymizer.anonymize_mapped(text)
+            mapping.update(partial)
+        return text, mapping

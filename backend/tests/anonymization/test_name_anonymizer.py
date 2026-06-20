@@ -6,6 +6,8 @@ from sherpi.config import Settings
 from sherpi.infrastructure.anonymization.factory import build_anonymizer
 from sherpi.infrastructure.anonymization.regex import (
     CompositeAnonymizer,
+    MappedCompositeAnonymizer,
+    MappedRegexAnonymizer,
     NoOpAnonymizer,
     RegexAnonymizer,
     RegexNameAnonymizer,
@@ -99,12 +101,12 @@ def test_composite_applies_structured_then_names() -> None:
 
 def test_factory_external_with_names_is_composite() -> None:
     anon = build_anonymizer(Settings(llm_backend="gemini", anonymize_names=True))
-    assert isinstance(anon, CompositeAnonymizer)
+    assert isinstance(anon, MappedCompositeAnonymizer)  # reversível (estruturado + nomes)
 
 
 def test_factory_external_without_names_is_regex_only() -> None:
     anon = build_anonymizer(Settings(llm_backend="gemini", anonymize_names=False))
-    assert isinstance(anon, RegexAnonymizer)
+    assert isinstance(anon, MappedRegexAnonymizer)
 
 
 def test_factory_local_llm_is_noop() -> None:

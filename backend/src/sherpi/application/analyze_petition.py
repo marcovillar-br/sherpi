@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from sherpi.application.deanonymize import deanonymize_model
 from sherpi.contexts.document_integrity.application.analyze import guard_upload
 from sherpi.contexts.document_integrity.application.ports import PdfParser
 from sherpi.contexts.document_integrity.domain.detector import DetectInjection
@@ -25,7 +26,7 @@ from sherpi.contexts.petition_analysis.domain.admissibility import (
 from sherpi.contexts.petition_analysis.domain.summary import PetitionSummary
 from sherpi.contexts.taxonomy.application.suggest_tpu import SuggestTpu
 from sherpi.contexts.taxonomy.domain.tpu import TpuSuggestion
-from sherpi.shared_kernel.ports import Anonymizer
+from sherpi.shared_kernel.ports import ReversibleAnonymizer
 from sherpi.shared_kernel.value_objects import Rito
 
 
@@ -57,7 +58,7 @@ class AnalyzePetition:
         *,
         detector: DetectInjection | None = None,
         admissibility: CheckAdmissibility | None = None,
-        anonymizer: Anonymizer | None = None,
+        anonymizer: ReversibleAnonymizer | None = None,
         suggest_tpu: SuggestTpu | None = None,
     ) -> None:
         self._parser = parser
@@ -81,13 +82,15 @@ class AnalyzePetition:
             # Sem texto extraível (provável documento-imagem/escaneado): não há o que
             # analisar cognitivamente. O laudo sinaliza via forensics.image_only_pages.
             return AnalysisResult(rito=rito, forensics=forensics)
-        # Texto que vai ao LLM é anonimizado (LGPD); a admissibilidade usa o original.
-        llm_text = (
-            self._anonymizer.anonymize(original_text)
-            if self._anonymizer is not None
-            else original_text
-        )
+        # O texto que vai ao LLM externo é anonimizado (LGPD); guardamos o mapa para
+        # restaurar os valores reais no resumo do revisor (a admissibilidade já usa o
+        # original). O prompt persistido para auditoria permanece anonimizado.
+        if self._anonymizer is not None:
+            llm_text, pii_map = self._anonymizer.anonymize_mapped(original_text)
+        else:
+            llm_text, pii_map = original_text, {}
         summary = await self._extractor.run(llm_text)
+        summary = deanonymize_model(summary, pii_map)  # restaura nome/CPF/CNPJ reais
         admissibility = self._admissibility.run(summary, rito, raw_text=original_text)
         tpu_suggestions: list[TpuSuggestion] | None = None
         if self._suggest_tpu is not None:

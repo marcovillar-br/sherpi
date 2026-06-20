@@ -82,18 +82,54 @@ async def test_non_pdf_rejected() -> None:
 
 
 async def test_anonymizer_masks_pii_before_llm_but_admissibility_uses_original() -> None:
-    from sherpi.infrastructure.anonymization.regex import RegexAnonymizer
+    from sherpi.infrastructure.anonymization.regex import MappedRegexAnonymizer
 
     fake = FakeProvider(_SUMMARY)
     orchestrator = AnalyzePetition(
-        PyMuPDFParser(), ExtractPetition(fake), anonymizer=RegexAnonymizer()
+        PyMuPDFParser(), ExtractPetition(fake), anonymizer=MappedRegexAnonymizer()
     )
     result = await orchestrator.run(build_clean(), max_pages=300)
 
-    # O texto enviado ao LLM NÃO contém o CPF bruto (mascarado).
+    # O texto enviado ao LLM NÃO contém o CPF bruto (mascarado, numerado).
     user_msg = next(m.content for m in fake.calls[0] if m.role == "user")
     assert "529.982.247-25" not in user_msg
-    assert "[CPF]" in user_msg
+    assert "[CPF_1]" in user_msg
+    assert result.summary is not None
+
+
+async def test_summary_restores_real_pii_for_human_reviewer() -> None:
+    # A LLM recebe placeholders, mas o RESUMO exibido ao revisor deve trazer os
+    # valores reais de volta (anonimização é só para o LLM externo).
+    from sherpi.contexts.petition_analysis.domain.summary import Parte, PetitionSummary, Polo
+    from sherpi.infrastructure.anonymization.regex import (
+        MappedCompositeAnonymizer,
+        MappedRegexAnonymizer,
+        MappedRegexNameAnonymizer,
+    )
+
+    anonymizer = MappedCompositeAnonymizer([MappedRegexAnonymizer(), MappedRegexNameAnonymizer()])
+    # Descobre os placeholders reais que a anonimização produz para esta peça.
+    text = PyMuPDFParser().parse(build_clean(), max_pages=300).visible_text()
+    _, mapping = anonymizer.anonymize_mapped(text)
+    cpf_ph = next(k for k in mapping if k.startswith("[CPF"))
+    nome_ph = next(k for k in mapping if k.startswith("[NOME"))
+
+    # A "LLM" devolve um resumo COM placeholders (como aconteceria de fato).
+    echoed = PetitionSummary(
+        parties=[Parte(name=nome_ph, document=cpf_ph, pole=Polo.ACTIVE)],
+        facts=f"O autor {nome_ph} (CPF {cpf_ph}) cobra a dívida.",
+        legal_basis="CPC.",
+        has_injunction=False,
+    )
+    orchestrator = AnalyzePetition(
+        PyMuPDFParser(), ExtractPetition(FakeProvider(echoed)), anonymizer=anonymizer
+    )
+    result = await orchestrator.run(build_clean(), max_pages=300)
+
+    assert result.summary is not None
+    assert result.summary.parties[0].name == mapping[nome_ph]  # nome real restaurado
+    assert result.summary.parties[0].document == mapping[cpf_ph]  # CPF real restaurado
+    assert "[NOME" not in result.summary.facts and "[CPF" not in result.summary.facts
 
     # Ainda assim a admissibilidade valida o CPF a partir do texto ORIGINAL.
     qualification = next(

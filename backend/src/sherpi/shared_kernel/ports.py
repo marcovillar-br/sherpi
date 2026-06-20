@@ -71,3 +71,18 @@ class Anonymizer(Protocol):
     def anonymize(self, text: str) -> str:
         """Retorna o texto com PII mascarada."""
         ...
+
+
+@runtime_checkable
+class ReversibleAnonymizer(Protocol):
+    """Anonimizador que devolve o **mapa** placeholder→valor original.
+
+    Permite anonimizar só para o LLM externo (LGPD) e depois **restaurar** os
+    valores reais no resumo exibido ao revisor humano autorizado.
+    """
+
+    def anonymize(self, text: str) -> str: ...
+
+    def anonymize_mapped(self, text: str) -> tuple[str, dict[str, str]]:
+        """Retorna (texto_anonimizado, {placeholder: valor_original})."""
+        ...
