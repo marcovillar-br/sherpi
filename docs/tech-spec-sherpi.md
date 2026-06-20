@@ -4,8 +4,8 @@ description: "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilida
 doc_type: tech-spec
 project: SHERPI
 status: approved
-version: 1.3
-updated: 2026-06-19
+version: 1.4
+updated: 2026-06-20
 language: pt-BR
 tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 ---
@@ -15,9 +15,9 @@ tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 | Campo | Valor |
 |---|---|
 | Documento | Especificação Técnica |
-| Versão | 1.3 |
+| Versão | 1.4 |
 | Status | Aprovado para MVP |
-| Última atualização | 2026-06-19 |
+| Última atualização | 2026-06-20 |
 
 ---
 
@@ -116,7 +116,7 @@ Os contratos são expressos como Value Objects (Pydantic) nas camadas de domíni
 
 | VO | Campos | Descrição |
 |---|---|---|
-| `ForensicsReport` | `anomalies: list[Anomaly]`, `risk_score: float`, `verdict: RiskVerdict` | Laudo forense do documento. |
+| `ForensicsReport` | `anomalies: list[Anomaly]`, `risk_score: float`, `verdict: RiskVerdict`, `image_only_pages: list[int]` | Laudo forense; `image_only_pages` marca páginas sem camada de texto (imagem/escaneado — extração não confiável, requer OCR). |
 | `Anomaly` | `vector: str`, `severity`, `location` (página/coordenadas), `evidence` | Uma ocorrência de vetor de injeção. |
 | `RiskVerdict` | `BLOCK \| WARN \| PASS` | Verdito gradual derivado do `risk_score`. |
 
@@ -177,10 +177,10 @@ LLMProvider.complete(messages, response_schema) -> objeto validado
 | Adapter | Papel |
 |---|---|
 | `gemini.py` | **DEFAULT** — Google Gemini Flash (contexto grande, free tier acadêmico). |
-| `openai_compat.py` *(planejado — Fase 4)* | Maritaca Sabiá / OpenAI / Ollama (API OpenAI-compatível) via `base_url`. Ainda não implementado: a factory levanta erro explícito. |
+| `grok.py` *(planejado)* | **Grok (xAI)** — a API do Grok é OpenAI-compatível, então o adapter usa o SDK `openai` apontando `base_url` para o endpoint da xAI. Ainda não implementado: a factory levanta erro explícito. |
 | `fake.py` | `FakeProvider` determinístico, sem rede, para testes. |
 
-Sobre o provider real aplicam-se dois **decorators** (compostos no wiring): `CircuitBreakerLLMProvider` (corta falhas sustentadas) e `LoggingLLMProvider` (auditoria via structlog).
+Sobre o provider real aplicam-se três **decorators** (compostos no wiring, de dentro para fora): `CircuitBreakerLLMProvider` (corta falhas sustentadas) → `PersistingLLMProvider` (persiste o prompt anonimizado + a resposta de cada chamada, para auditoria) → `LoggingLLMProvider` (log estruturado via structlog).
 
 Trocar de LLM = trocar um adapter via `config.py`, **sem tocar no domínio**. Modelos não são hardcodados; vêm de configuração.
 
@@ -267,7 +267,9 @@ operacionais (`/health`, `/ready`) ficam **sem versão** (padrão de orquestrado
 | `GET` | `/health` | ✅ S1 | Liveness. |
 | `GET` | `/ready` | ✅ S1 | Readiness (checa o DB; 503 se indisponível). |
 | `POST` | `/v1/analyze` | ✅ S2–S4 | Recebe PDF + `rito`; roda o orquestrador; persiste e retorna a análise. **JWT obrigatório.** |
+| `GET` | `/v1/analyses` | ✅ | Lista as análises recentes (histórico), com a decisão de revisão. **JWT obrigatório.** |
 | `GET` | `/v1/analyses/{id}` | ✅ S2–S4 | Retorna a análise persistida. **JWT obrigatório.** |
+| `GET` | `/v1/analyses/{id}/llm-calls` | ✅ | Auditoria das chamadas ao LLM (prompt anonimizado + resposta). **JWT obrigatório.** |
 | `DELETE` | `/v1/analyses/{id}` | ✅ S6 | Remove uma análise. **JWT obrigatório.** |
 | `DELETE` | `/v1/analyses` | ✅ S6 | Remove análises mais antigas que `older_than_days`. **JWT obrigatório.** |
 | `POST` | `/v1/auth/login` | ✅ S4 | OAuth2 password flow; retorna JWT + cookie httpOnly+SameSite=lax. |
@@ -282,7 +284,7 @@ O versionamento `/v1` permite evoluir o contrato sem quebrar clientes. Erros con
 ### 8.1 `POST /v1/analyze`
 
 - **Request**: `multipart/form-data` — campo `file` (PDF) e campo `rito` (`CIVEL` | `TRABALHISTA`; default `CIVEL`; valor inválido → **422**).
-- **200**: `{ id, result: { forensics, summary?, admissibility? } }`. Quando `forensics.verdict = BLOCK`, `summary` e `admissibility` vêm `null` (encerrou antes do LLM).
+- **200**: `{ id, result: { forensics, summary?, admissibility? } }`. Quando `forensics.verdict = BLOCK` — ou quando o PDF não tem camada de texto (`forensics.image_only_pages` não vazio) — `summary` e `admissibility` vêm `null` (encerrou antes do LLM).
 - **413**: arquivo grande demais. **415**: não é PDF. **422**: payload inválido. **502**: falha do LLM.
 
 ### 8.2 `GET /v1/analyses/{id}`
@@ -354,13 +356,13 @@ sequenceDiagram
 |---|---|
 | Backend | Python ≥3.12, FastAPI, uv |
 | Firewall | PyMuPDF |
-| LLM | google-genai (default) + openai (Maritaca/compat); FakeProvider |
+| LLM | google-genai (default); SDK `openai` como base do adapter **Grok/xAI** (OpenAI-compatível — planejado); FakeProvider |
 | Embeddings TPU | sentence-transformers/transformers (JurisBERT) via extra `ml`; FakeEmbeddingModel (sha256, sem ML) |
 | Validação | Pydantic v2, pydantic-settings, validate-docbr |
 | Persistência | PostgreSQL + SQLModel + Alembic + psycopg (dev/test: SQLite via aiosqlite) |
 | Auth | **bcrypt** direto + **pyjwt** (passlib incompatível com bcrypt>=5); OAuth2 password flow; lockout in-memory |
 | Observabilidade | structlog, CorrelationIdMiddleware, sentry-sdk[fastapi] (soft-dep) |
-| Anonimização | RegexAnonymizer (default: CPF/CNPJ/e-mail/telefone/CEP); MappedRegexAnonymizer (reversível, opt-in); PresidioAnonymizer (extra `ner`, lazy import) |
+| Anonimização | RegexAnonymizer (CPF/CNPJ/e-mail/telefone/CEP) + RegexNameAnonymizer (nomes das partes) compostos em CompositeAnonymizer (default p/ LLM externo — ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)); MappedRegexAnonymizer (reversível, opt-in); PresidioAnonymizer (extra `ner`, lazy import) |
 | Integração | asyncio.Queue; SandboxSourceAdapter; PetitionSource port |
 | Frontend | Next.js 16 + React 19 + TypeScript + Tailwind v4; componentes próprios; Playwright (E2E) |
 | Infra | Dockerfile multi-stage (builder uv / runtime python:3.13-slim, non-root); docker-compose.yml (dev: só db) + docker-compose.prod.yml |
