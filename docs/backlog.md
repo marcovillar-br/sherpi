@@ -69,6 +69,10 @@ Estimativa em *story points* (SP, Fibonacci). Recorte: 🔵 Sprint · ⚪ Futuro
 | EP11 — Domínios adicionais | Previdenciário/INSS, execução fiscal, família/JEC (encaixes rito-aware). | C | pós-8 | — |
 | EP12 — Refactor de nomenclatura (en-US compliance) | Renomear identificadores Python pt-BR para en-US nos contextos `petition_analysis` e `review`. Débito técnico; não afeta funcionalidade. | C | 9 | ✅ |
 
+### Limitações conhecidas (medidas, não mascaradas)
+
+- **Extração recupera campos formalmente omitidos.** A extração via LLM pode reconstruir, a partir da narrativa dos fatos, elementos que a peça omite formalmente — ex.: o *rol de pedidos* em `defect_sem_pedidos`. Nesses casos a admissibilidade pode não disparar RED. O *prompt v2* mitiga parte dos casos (valor da causa, fundamentação), mas o rol de pedidos persiste. **Baseline `make e2e-llm`: 9/10.** Mitigação atual: *human-in-the-loop* (toda saída é sugestão revisável; o rótulo do cenário segue RED, sem mascarar). Melhoria futura: extração mais literal / validação cruzada estrutura↔narrativa.
+
 ---
 
 ## Parte 2 — Sprint Backlog (execução)
