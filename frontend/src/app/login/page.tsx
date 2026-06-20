@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { login, ApiError } from "@/lib/api";
 
@@ -8,9 +8,12 @@ const STORAGE_KEY = "sherpi_saved_credentials";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
+  // Campos não-controlados (refs): o prefill do localStorage é feito via DOM no
+  // effect — evita setState pós-mount (SSR-safe, sem hydration mismatch) e mantém
+  // os valores fora do ciclo de render (só são lidos no submit).
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const rememberRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,10 +21,10 @@ export default function LoginPage() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const { email: e, password: p } = JSON.parse(saved) as { email: string; password: string };
-        setEmail(e);
-        setPassword(p);
-        setRemember(true);
+        const { email, password } = JSON.parse(saved) as { email: string; password: string };
+        if (emailRef.current) emailRef.current.value = email;
+        if (passwordRef.current) passwordRef.current.value = password;
+        if (rememberRef.current) rememberRef.current.checked = true;
       }
     } catch {
       // localStorage indisponível ou dados corrompidos — ignorar silenciosamente.
@@ -30,6 +33,9 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const email = emailRef.current?.value ?? "";
+    const password = passwordRef.current?.value ?? "";
+    const remember = rememberRef.current?.checked ?? false;
     setLoading(true);
     setError(null);
     try {
@@ -68,11 +74,10 @@ export default function LoginPage() {
             </label>
             <input
               id="email"
+              ref={emailRef}
               type="email"
               autoComplete="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none"
             />
           </div>
@@ -83,11 +88,10 @@ export default function LoginPage() {
             </label>
             <input
               id="password"
+              ref={passwordRef}
               type="password"
               autoComplete="current-password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-gray-500 focus:outline-none"
             />
           </div>
@@ -95,9 +99,8 @@ export default function LoginPage() {
           <div className="flex items-center gap-2">
             <input
               id="remember"
+              ref={rememberRef}
               type="checkbox"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 accent-gray-900"
             />
             <label htmlFor="remember" className="text-sm text-gray-600">
