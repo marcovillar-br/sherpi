@@ -34,12 +34,18 @@ Domínio com PII jurídica — controle crítico.
   externo): mascara **identificadores estruturados** (CPF, CNPJ, e-mail, telefone, CEP) **antes** do
   envio ao LLM. A validação determinística de CPF/CNPJ roda sobre o **texto original**, então o
   mascaramento **não degrada** a admissibilidade.
+- **`RegexNameAnonymizer`** (flag `anonymize_names`, default on): mascara **nomes das partes** por
+  âncora (antes de "brasileiro/pessoa jurídica/inscrito no CPF" ou após "em face de") → `[NOME]`.
+  Determinístico, O(n), sem dependências. **Best-effort**: pega os nomes da qualificação, mas pode
+  não pegar nomes citados livremente nos fatos (ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)).
 - Invariante de domínio **"nunca decisão automática"** (human-in-the-loop obrigatório).
 - **Sem PII em log**.
 
 **Fase 4**
 
-- **Anonimização de nomes** (NER — Presidio/spaCy): o `RegexAnonymizer` do MVP não cobre nomes.
+- **Anonimização de nomes por NER** (Presidio/spaCy): cobertura **completa** de nomes (inclusive em
+  texto livre), substituindo/complementando a heurística por âncora do MVP. Trade-off em
+  [ADR-0010](adr/0010-name-masking-regex-vs-ner.md).
 - Anonimização reversível (placeholders + restauração) — **base já disponível** no MVP (`MappedRegexAnonymizer`, opt-in); ampliar o wiring onde a utilidade exigir.
 - Criptografia em repouso.
 - Política de **retenção e eliminação** de PDFs/análises (direito ao esquecimento) — **base já disponível** (config `retention_days` + `DELETE /analyses`); ampliar (agendamento, DPIA).

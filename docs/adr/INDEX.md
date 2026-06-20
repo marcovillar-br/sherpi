@@ -27,5 +27,6 @@ que substitua outra cria um novo ADR que marca o anterior como *Substituído*.
 | [0007](0007-auth-jwt-single-profile.md) | Autenticação JWT com perfil único (extensível a RBAC) | ✅ Aceito |
 | [0008](0008-multi-domain-architecture.md) | Arquitetura multi-domínio (rito-aware): estratégias de admissibilidade por rito | ✅ Aceito |
 | [0009](0009-knn-numpy-bytes.md) | k-NN em numpy/bytes (revisa o 0004): embeddings sem extensão pgvector | ✅ Aceito |
+| [0010](0010-name-masking-regex-vs-ner.md) | Mascaramento de nomes por âncora (regex) no MVP; NER (Presidio) na Fase 4 | ✅ Aceito |
 
 > Convenção: arquivos nomeados `NNNN-titulo-em-kebab-case.md`, numeração sequencial.
