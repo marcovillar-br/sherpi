@@ -34,7 +34,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from sherpi.application.analyze_petition import AnalysisResult, AnalyzePetition
-from sherpi.application.persistence import AnalysisRecord, AnalysisRepository
+from sherpi.application.persistence import AnalysisRecord, AnalysisRepository, AnalysisSummary
 from sherpi.config import Settings, get_settings
 from sherpi.contexts.identity.application.authenticate import Authenticate
 from sherpi.contexts.identity.domain.hasher import BcryptHasher
@@ -206,6 +206,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         repository.save(record)
         logger.info("analyze.done", analysis_id=record.id, verdict=result.forensics.verdict)
         return AnalyzeResponse(id=record.id, result=result)
+
+    @v1.get("/analyses", response_model=list[AnalysisSummary])
+    def list_analyses(
+        repository: Annotated[AnalysisRepository, Depends(get_repository)],
+        current_user: Annotated[User, Depends(get_current_user)],
+    ) -> list[AnalysisSummary]:
+        """Histórico: resumos das análises mais recentes (para a tela de consulta)."""
+        return repository.list_recent()
 
     @v1.get("/analyses/{analysis_id}", response_model=AnalyzeResponse)
     def get_analysis(

@@ -1,6 +1,13 @@
 // Cliente tipado da API do SHERPI.
 
-import type { AnalyzeResponse, AuditEvent, ReviewDecision, Rito, TokenResponse } from "./types";
+import type {
+  AnalysisSummary,
+  AnalyzeResponse,
+  AuditEvent,
+  ReviewDecision,
+  Rito,
+  TokenResponse,
+} from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -58,6 +65,18 @@ export async function analyzePetition(
   form.append("file", file);
   form.append("rito", rito);
   const res = await apiFetch("/v1/analyze", { method: "POST", body: form });
+  return (await expectOk(res)).json() as Promise<AnalyzeResponse>;
+}
+
+/** Lista o histórico de análises (resumos, mais recentes primeiro). */
+export async function listAnalyses(): Promise<AnalysisSummary[]> {
+  const res = await apiFetch("/v1/analyses");
+  return (await expectOk(res)).json() as Promise<AnalysisSummary[]>;
+}
+
+/** Recupera uma análise salva pelo id (resultado completo). */
+export async function getAnalysis(id: string): Promise<AnalyzeResponse> {
+  const res = await apiFetch(`/v1/analyses/${id}`);
   return (await expectOk(res)).json() as Promise<AnalyzeResponse>;
 }
 

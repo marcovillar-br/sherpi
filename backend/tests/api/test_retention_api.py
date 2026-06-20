@@ -99,3 +99,38 @@ def test_bulk_delete_future_cutoff_deletes_nothing(client: TestClient) -> None:
     resp = client.delete("/v1/analyses", params={"older_than_days": 9999})
     assert resp.status_code == 200
     assert resp.json()["deleted"] == 0
+
+
+# --- Histórico: GET /v1/analyses (lista resumida) ---
+
+
+def test_list_analyses_empty(client: TestClient) -> None:
+    resp = client.get("/v1/analyses")
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_list_analyses_returns_summaries(client: TestClient) -> None:
+    id1 = _post_analysis(client)
+    id2 = _post_analysis(client)
+    resp = client.get("/v1/analyses")
+    assert resp.status_code == 200
+    items = resp.json()
+    assert len(items) == 2
+    assert {it["id"] for it in items} == {id1, id2}
+    item = items[0]
+    assert item["verdict"] in ("PASS", "WARN", "BLOCK")
+    assert item["rito"] in ("CIVEL", "TRABALHISTA")
+    # PDF limpo → análise cognitiva executada → status presente.
+    assert item["admissibility_status"] in ("GREEN", "YELLOW", "RED")
+    assert item["has_injunction"] is False
+    assert "filename" in item and "created_at" in item
+
+
+def test_list_analyses_requires_auth(client: TestClient) -> None:
+    _post_analysis(client)
+    app = client.app  # type: ignore[union-attr]
+    app.dependency_overrides.pop(get_current_user, None)
+    resp = client.get("/v1/analyses")
+    assert resp.status_code == 401
+    app.dependency_overrides[get_current_user] = lambda: _FAKE_USER

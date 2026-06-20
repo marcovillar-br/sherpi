@@ -3,12 +3,9 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { AdmissibilityPanel } from "@/components/AdmissibilityPanel";
-import { ForensicsBanner } from "@/components/ForensicsBanner";
-import { ReviewPanel } from "@/components/ReviewPanel";
-import { SummaryPanel } from "@/components/SummaryPanel";
-import { TpuPanel } from "@/components/TpuPanel";
-import { analyzePetition, logout, ApiError } from "@/lib/api";
+import { AnalysisResultView } from "@/components/AnalysisResultView";
+import { NavHeader } from "@/components/NavHeader";
+import { analyzePetition, ApiError } from "@/lib/api";
 import type { AnalyzeResponse, Rito } from "@/lib/types";
 
 const RITOS: { value: Rito; label: string }[] = [
@@ -66,30 +63,11 @@ export default function Home() {
     }
   }
 
-  async function handleLogout() {
-    await logout();
-    router.replace("/login");
-  }
-
   const result = response?.result;
 
   return (
     <main className="mx-auto w-[80%] max-w-6xl space-y-6 p-6">
-      <header className="flex items-baseline justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">SHERPI</h1>
-          <p className="text-sm text-gray-500">
-            Triagem assistida de petições iniciais — firewall, resumo e admissibilidade.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="text-sm text-gray-500 hover:text-gray-900"
-        >
-          Sair
-        </button>
-      </header>
+      <NavHeader />
 
       <form
         onSubmit={handleSubmit}
@@ -195,33 +173,8 @@ export default function Home() {
         </div>
       )}
 
-      {result && (
-        <div data-testid="analysis-result" className="animate-result-in space-y-4">
-          <ForensicsBanner report={result.forensics} />
-
-          {result.summary && result.admissibility ? (
-            <>
-              <div className="grid gap-4 md:grid-cols-2">
-                <SummaryPanel summary={result.summary} />
-                <AdmissibilityPanel report={result.admissibility} />
-              </div>
-
-              {result.tpu_suggestions && result.tpu_suggestions.length > 0 && (
-                <TpuPanel suggestions={result.tpu_suggestions} />
-              )}
-
-              <ReviewPanel analysisId={response!.id} />
-            </>
-          ) : (
-            <p className="text-sm text-gray-500">
-              Análise cognitiva não executada — o documento foi bloqueado pelo firewall.
-            </p>
-          )}
-
-          <p className="text-xs text-gray-400">
-            id: {response?.id} · rito: {result.rito?.toLowerCase() ?? "cível"}
-          </p>
-        </div>
+      {result && response && (
+        <AnalysisResultView id={response.id} result={result} testId="analysis-result" />
       )}
     </main>
   );

@@ -83,6 +83,16 @@ export interface AnalyzeResponse {
   result: AnalysisResult;
 }
 
+export interface AnalysisSummary {
+  id: string;
+  created_at: string;
+  filename: string | null;
+  verdict: RiskVerdict;
+  rito: Rito;
+  admissibility_status: AdmissibilityStatus | null;
+  has_injunction: boolean | null;
+}
+
 export interface AuditEvent {
   id: string;
   analysis_id: string;

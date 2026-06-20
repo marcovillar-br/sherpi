@@ -5,10 +5,10 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy import Engine, text
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from sherpi.application.analyze_petition import AnalysisResult
-from sherpi.application.persistence import AnalysisRecord
+from sherpi.application.persistence import AnalysisRecord, AnalysisSummary
 from sherpi.infrastructure.persistence.models import AnalysisRow
 
 
@@ -41,6 +41,29 @@ class SqlAnalysisRepository:
                 filename=row.filename,
                 result=AnalysisResult.model_validate_json(row.result_json),
             )
+
+    def list_recent(self, limit: int = 50) -> list[AnalysisSummary]:
+        with Session(self._engine) as session:
+            rows = session.exec(
+                select(AnalysisRow).order_by(col(AnalysisRow.created_at).desc()).limit(limit)
+            ).all()
+            summaries: list[AnalysisSummary] = []
+            for row in rows:
+                result = AnalysisResult.model_validate_json(row.result_json)
+                summaries.append(
+                    AnalysisSummary(
+                        id=row.id,
+                        created_at=row.created_at,
+                        filename=row.filename,
+                        verdict=row.verdict,
+                        rito=result.rito.value,
+                        admissibility_status=(
+                            result.admissibility.status.value if result.admissibility else None
+                        ),
+                        has_injunction=(result.summary.has_injunction if result.summary else None),
+                    )
+                )
+            return summaries
 
     def delete(self, analysis_id: str) -> bool:
         with Session(self._engine) as session:
