@@ -4,7 +4,7 @@ description: "Controles de segurança e confiabilidade, separados em MVP e Fase 
 doc_type: security
 project: SHERPI
 status: approved
-version: 1.2
+version: 1.3
 updated: 2026-06-20
 language: pt-BR
 tags: [seguranca, confiabilidade, lgpd, observabilidade]
@@ -15,7 +15,7 @@ tags: [seguranca, confiabilidade, lgpd, observabilidade]
 | Campo | Valor |
 |---|---|
 | Documento | Controles de Segurança e Confiabilidade |
-| Versão | 1.1 |
+| Versão | 1.3 |
 | Status | Aprovado |
 | Última atualização | 2026-06-20 |
 
@@ -31,9 +31,12 @@ Domínio com PII jurídica — controle crítico.
 
 - **Synthetic-first**: petições sintéticas evitam que PII real saia para o LLM externo (Gemini/Grok/Anthropic).
 - **`RegexAnonymizer`** (implementa o port `Anonymizer`, ativo via `anonymize_before_llm` + LLM
-  externo): mascara **identificadores estruturados** (CPF, CNPJ, e-mail, telefone, CEP) **antes** do
-  envio ao LLM. A validação determinística de CPF/CNPJ roda sobre o **texto original**, então o
-  mascaramento **não degrada** a admissibilidade.
+  externo): mascara **identificadores estruturados** (CPF, CNPJ, e-mail, telefone, CEP) e
+  **identificadores ancorados por rótulo** — só PII pelo contexto: RG/CNH, nº de benefício do INSS
+  (forma de CPF com 1 dígito verificador, que o regex de CPF não pega), agência/conta bancária e nº
+  de B.O. (preserva o rótulo, mascara só o valor) — **antes** do envio ao LLM. A validação
+  determinística de CPF/CNPJ roda sobre o **texto original**, então o mascaramento **não degrada** a
+  admissibilidade.
 - **`RegexNameAnonymizer`** (flag `anonymize_names`, default on): mascara **nomes das partes** por
   âncora (antes de "brasileiro/pessoa jurídica/inscrito no CPF" ou após "em face de") → `[NOME]`,
   inclusive **listas de nomes** (litisconsórcio). Determinístico, O(n), sem dependências. Robustez

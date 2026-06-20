@@ -4,7 +4,7 @@ description: "Bounded contexts, relações upstream/downstream e glossário da l
 doc_type: context-map
 project: SHERPI
 status: approved
-version: 1.4
+version: 1.5
 updated: 2026-06-20
 language: pt-BR
 tags: [ddd, bounded-context, linguagem-ubiqua]
@@ -15,7 +15,7 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | Campo | Valor |
 |---|---|
 | Documento | Context Map + Glossário |
-| Versão | 1.3 |
+| Versão | 1.5 |
 | Status | Aprovado |
 | Última atualização | 2026-06-20 |
 
@@ -119,7 +119,7 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **LLMProvider** | Port que abstrai o modelo de linguagem. Adapters: **Gemini** (default, SDK google-genai), **Grok (xAI)** e **Anthropic (Sonnet)** — estes via httpx sobre a base `HttpLLMProvider` — e `FakeProvider` (testes). |
 | **HttpLLMProvider** | Base comum dos adapters de LLM sobre HTTP (httpx): guarda de custo, timeout e retry com backoff; cada provider implementa só a montagem do payload/parsing. |
 | **Decorators de LLM** | Encadeados sobre o provider real: `CircuitBreakerLLMProvider` → `PersistingLLMProvider` (persiste prompt anonimizado + resposta p/ auditoria) → `LoggingLLMProvider`. |
-| **Anonymizer / ReversibleAnonymizer** | Port que mascara PII antes do envio ao LLM externo (LGPD): estruturados (CPF/CNPJ/e-mail/telefone/CEP) + nomes das partes. A versão **reversível** (`MappedCompositeAnonymizer`, default) devolve o mapa placeholder→valor para **restaurar** os reais no resumo do revisor (`deanonymize_model`, [ADR-0012](adr/0012-reversible-anonymization-restore.md)). |
+| **Anonymizer / ReversibleAnonymizer** | Port que mascara PII antes do envio ao LLM externo (LGPD): estruturados (CPF/CNPJ/e-mail/telefone/CEP) + ancorados por rótulo (RG/CNH, benefício INSS, dados bancários, B.O.) + nomes das partes. A versão **reversível** (`MappedCompositeAnonymizer`, default) devolve o mapa placeholder→valor para **restaurar** os reais no resumo do revisor (`deanonymize_model`, [ADR-0012](adr/0012-reversible-anonymization-restore.md)). |
 | **RegexNameAnonymizer** | Mascara nomes das partes por âncora (qualificação / "em face de"), inclusive listas (litisconsórcio) → `[NOME]`. Best-effort, sem dependências (ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)). |
 | **MappedRegexAnonymizer** | **Pseudonimizador** (LGPD art. 5º, XI — masking reversível; o nome do código diz "anonimizador") com placeholders numerados (`[CPF_1]`); retorna mapa texto→placeholder para reconstituição posterior. |
 | **PresidioAnonymizer** | Adapter opcional (extra `ner`; lazy import) para NER de nomes com Presidio + spaCy (cobertura completa — Fase 4). |

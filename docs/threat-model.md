@@ -4,7 +4,7 @@ description: "Ativos, atores e mitigações (STRIDE) do SHERPI."
 doc_type: threat-model
 project: SHERPI
 status: approved
-version: 1.3
+version: 1.4
 updated: 2026-06-20
 language: pt-BR
 tags: [seguranca, ameacas, stride, lgpd]
@@ -15,7 +15,7 @@ tags: [seguranca, ameacas, stride, lgpd]
 | Campo | Valor |
 |---|---|
 | Documento | Threat Model |
-| Versão | 1.2 |
+| Versão | 1.4 |
 | Status | Aprovado |
 | Última atualização | 2026-06-20 |
 
@@ -51,7 +51,7 @@ Modelo de ameaças do SHERPI, derivado da seção "Segurança & Confiabilidade" 
 |---|---|---|---|---|
 | **T1** | **Tampering** — prompt injection no PDF/DOCX | Branco-no-branco, fonte <1pt, fora da CropBox, U+200B, OCG oculto, /ActualText, XMP suspeito; **DOCX**: texto oculto `w:vanish`, cor/tamanho, metadados; **evasão por rasterização** (conteúdo em imagem) | Análise de IA | **Firewall determinístico** (PyMuPDF no PDF, python-docx no DOCX) antes do LLM; verdito `BLOCK` encerra sem chamada ao modelo. PDFs **sem camada de texto** (imagem/escaneado) são sinalizados e **não** seguem para o LLM; páginas **mistas** (texto + imagem dominante) são sinalizadas como conteúdo possivelmente não extraído (não há laudo "íntegro" falso). Defesa em profundidade: *defensive prompting* (texto como dado, não instrução). Firewall é heurístico → eval por vetor. |
 | **T2** | **Denial of Service / Elevation** — upload hostil | PDF/DOCX malicioso explorando CVEs do parser; *zip-bomb* (DOCX); arquivo gigante | Documentos, disponibilidade | Validação de **assinatura** (PDF ou OOXML; rejeita o resto) e **tamanho máximo**; **limite de páginas** (PDF) / **teto de parágrafos** (DOCX); **timeout** (best-effort) no parsing; tratar o documento como hostil. Fase 4: sandbox de parsing, antimalware, isolamento de processo/recursos. |
-| **T3** | **Information Disclosure** — vazamento de PII para LLM externo | Texto da petição (com CPF/nomes/endereços) enviado ao LLM externo (Gemini/Grok/Anthropic) | PII (LGPD) | **Synthetic-first** no MVP (garantia real de "sem PII"); port **`Anonymizer`** mascara identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP) **e nomes das partes** (regex ancorado, best-effort — [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)) antes do envio; **sem PII em log**; o prompt persistido para auditoria já é o pseudonimizado. O masking é **reversível e LLM-only** — por reter o mapa de reversão é, sob a LGPD, **pseudonimização** (art. 5º, XI), não anonimização: o resumo do revisor é restaurado com os valores reais ([ADR-0012](adr/0012-reversible-anonymization-restore.md)). Por ser reversível, o texto pseudonimizado **continua sendo dado pessoal** (não sai do escopo da LGPD — art. 12) — reduz a exposição ao LLM, não isenta; e o **resumo persistido contém PII** (protegido por JWT; criptografia em repouso = Fase 4). Fase 4: NER de nomes (cobertura completa), criptografia em repouso, retenção/eliminação, DPIA, LLM local. |
+| **T3** | **Information Disclosure** — vazamento de PII para LLM externo | Texto da petição (com CPF/nomes/endereços) enviado ao LLM externo (Gemini/Grok/Anthropic) | PII (LGPD) | **Synthetic-first** no MVP (garantia real de "sem PII"); port **`Anonymizer`** mascara identificadores estruturados (CPF/CNPJ/e-mail/telefone/CEP), ancorados por rótulo (RG/CNH, benefício INSS, dados bancários, B.O.) **e nomes das partes** (regex ancorado, best-effort — [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)) antes do envio; **sem PII em log**; o prompt persistido para auditoria já é o pseudonimizado. O masking é **reversível e LLM-only** — por reter o mapa de reversão é, sob a LGPD, **pseudonimização** (art. 5º, XI), não anonimização: o resumo do revisor é restaurado com os valores reais ([ADR-0012](adr/0012-reversible-anonymization-restore.md)). Por ser reversível, o texto pseudonimizado **continua sendo dado pessoal** (não sai do escopo da LGPD — art. 12) — reduz a exposição ao LLM, não isenta; e o **resumo persistido contém PII** (protegido por JWT; criptografia em repouso = Fase 4). Fase 4: NER de nomes (cobertura completa), criptografia em repouso, retenção/eliminação, DPIA, LLM local. |
 | **T4** | **Spoofing** — abuso de autenticação | Brute-force/credential stuffing no `/auth/login` | Credenciais | **Rate-limit/lockout** no login; bcrypt com custo adequado; JWT com **expiração**; cookie **httpOnly+Secure+SameSite**; erros sem vazar detalhe. Fase 4: MFA, refresh tokens. |
 | **T5** | **Repudiation** — negação de ação / adulteração de auditoria | Edição/remoção de registros de revisão | Trilha de auditoria | **Auditoria append-only** vinculada a `User` autenticado; cada `/review` grava `AuditEvent` imutável. |
 | **T6** | **Information Disclosure** — vazamento de chave de API/segredos | Segredos no git; em logs | Chaves de LLM | Segredos fora do git (`.gitignore` + só `.env.example`); não logar segredos. Fase 4: secrets manager, secret scanning. |

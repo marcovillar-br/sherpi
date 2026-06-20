@@ -4,7 +4,7 @@ description: "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilida
 doc_type: tech-spec
 project: SHERPI
 status: approved
-version: 1.5
+version: 1.6
 updated: 2026-06-20
 language: pt-BR
 tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
@@ -15,7 +15,7 @@ tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 | Campo | Valor |
 |---|---|
 | Documento | Especificação Técnica |
-| Versão | 1.4 |
+| Versão | 1.6 |
 | Status | Aprovado para MVP |
 | Última atualização | 2026-06-20 |
 
@@ -372,7 +372,7 @@ sequenceDiagram
 | Persistência | PostgreSQL + SQLModel + Alembic + psycopg (dev/test: SQLite via aiosqlite) |
 | Auth | **bcrypt** direto + **pyjwt** (passlib incompatível com bcrypt>=5); OAuth2 password flow; lockout in-memory |
 | Observabilidade | structlog, CorrelationIdMiddleware, sentry-sdk[fastapi] (soft-dep) |
-| Anonimização | RegexAnonymizer (CPF/CNPJ/e-mail/telefone/CEP) + RegexNameAnonymizer (nomes das partes) compostos em CompositeAnonymizer (default p/ LLM externo — ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)); MappedRegexAnonymizer (reversível, opt-in); PresidioAnonymizer (extra `ner`, lazy import) |
+| Anonimização | RegexAnonymizer (estruturados CPF/CNPJ/e-mail/telefone/CEP + ancorados por rótulo RG/CNH, INSS, banco, B.O.) + RegexNameAnonymizer (nomes das partes) compostos em CompositeAnonymizer (default p/ LLM externo — ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)); MappedRegexAnonymizer (reversível, opt-in); PresidioAnonymizer (extra `ner`, lazy import) |
 | Integração | asyncio.Queue; SandboxSourceAdapter; PetitionSource port |
 | Frontend | Next.js 16 + React 19 + TypeScript + Tailwind v4; componentes próprios; Playwright (E2E) |
 | Infra | Dockerfile multi-stage (builder uv / runtime python:3.13-slim, non-root); docker-compose.yml (dev: só db) + docker-compose.prod.yml |

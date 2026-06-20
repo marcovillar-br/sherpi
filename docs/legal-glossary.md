@@ -4,7 +4,7 @@ description: "Primer dos principais conceitos jurídicos do SHERPI, em linguagem
 doc_type: reference
 project: SHERPI
 status: draft
-version: 1.2
+version: 1.3
 updated: 2026-06-20
 language: pt-BR
 tags: [juridico, glossario, cpc, clt, conceitos, validacao]
@@ -101,7 +101,8 @@ tem **regras de admissibilidade próprias**:
   sensíveis) — motiva o uso de dados **sintéticos** no projeto.
 - **LGPD (Lei 13.709/2018):** proteção de dados pessoais (CPF, nomes, endereços das partes) — motiva o
   **masking** antes de enviar texto a um LLM externo: identificadores estruturados
-  (CPF/CNPJ/e-mail/telefone/CEP) via `RegexAnonymizer` **e nomes das partes** via
+  (CPF/CNPJ/e-mail/telefone/CEP) e ancorados por rótulo (RG/CNH, benefício INSS, dados bancários, B.O.)
+  via `RegexAnonymizer` **e nomes das partes** via
   `RegexNameAnonymizer` (regex ancorado, *best-effort*), compostos por padrão em
   `CompositeAnonymizer`. Variante reversível `MappedRegexAnonymizer` e NER (`PresidioAnonymizer`,
   `--extra ner`) ficam como opções/evolução (ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)).
