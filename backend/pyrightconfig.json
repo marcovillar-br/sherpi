@@ -3,5 +3,5 @@
   "venvPath": ".",
   "venv": ".venv",
   "extraPaths": ["src"],
-  "include": ["src", "scripts", "tests", "evals", "synthetic"]
+  "include": ["src", "scripts", "tests", "evals", "synthetic", "alembic"]
 }
