@@ -75,6 +75,10 @@ class ChecklistItem(BaseModel):
     method: CheckMethod
     evidence: str | None = None
     detail: str | None = None
+    # Alerta ao revisor: o campo foi extraído, mas o marcador formal correspondente
+    # não foi localizado no texto bruto — pode ter sido inferido da narrativa pelo LLM.
+    # NÃO altera o veredito; é sinal de "confirme na peça original" (human-in-the-loop).
+    caveat: str | None = None
 
 
 class AdmissibilityReport(BaseModel):

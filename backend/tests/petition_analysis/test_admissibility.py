@@ -7,8 +7,10 @@ from decimal import Decimal
 import pytest
 
 from sherpi.contexts.petition_analysis.domain.admissibility import (
+    AdmissibilityReport,
     AdmissibilityStatus,
     CheckAdmissibility,
+    ChecklistItem,
     Requirement,
     parse_claim_amount,
 )
@@ -183,3 +185,52 @@ def test_trabalhista_cumulacao_liquida_e_verde() -> None:
     report = CheckAdmissibility().run(_summary(claims=claims), Rito.TRABALHISTA)
     assert report.status is AdmissibilityStatus.GREEN
     assert report.requires_amendment is False
+
+
+# --- Caveat de possível inferência (cross-check extração vs texto bruto) ---
+
+# Narrativa SEM marcadores formais de pedido/valor (o campo é extraível, mas o
+# texto não traz a seção formal → sinaliza possível inferência do LLM).
+_RAW_NO_MARKERS = (
+    "As partes celebraram um contrato. A parte ré deixou de efetuar "
+    "o pagamento de R$ 15.000,00 acordado entre elas."
+)
+# Narrativa COM marcadores formais.
+_RAW_WITH_MARKERS = (
+    "Ante o exposto, requer a condenação da ré ao pagamento. Dá-se à causa o valor de R$ 15.000,00."
+)
+
+
+def _item(report: AdmissibilityReport, req: Requirement) -> ChecklistItem:
+    return next(i for i in report.items if i.requirement is req)
+
+
+def test_claims_caveat_when_raw_text_lacks_formal_marker() -> None:
+    report = CheckAdmissibility().run(_summary(), raw_text=_RAW_NO_MARKERS)
+    item = _item(report, Requirement.CLAIMS)
+    assert item.present is True
+    assert item.caveat is not None
+    # Caveat é informativo: não altera o veredito (todos os essenciais presentes).
+    assert report.status is AdmissibilityStatus.GREEN
+
+
+def test_claim_value_caveat_when_raw_text_lacks_formal_marker() -> None:
+    report = CheckAdmissibility().run(_summary(), raw_text=_RAW_NO_MARKERS)
+    assert _item(report, Requirement.CLAIM_VALUE).caveat is not None
+
+
+def test_no_caveat_when_formal_marker_present() -> None:
+    report = CheckAdmissibility().run(_summary(), raw_text=_RAW_WITH_MARKERS)
+    assert _item(report, Requirement.CLAIMS).caveat is None
+    assert _item(report, Requirement.CLAIM_VALUE).caveat is None
+
+
+def test_no_caveat_without_raw_text() -> None:
+    report = CheckAdmissibility().run(_summary())  # raw_text=None → sem cross-check
+    assert _item(report, Requirement.CLAIMS).caveat is None
+
+
+def test_no_caveat_when_field_absent() -> None:
+    # Campo ausente não recebe caveat: nada foi "recuperado" da narrativa.
+    report = CheckAdmissibility().run(_summary(claims=[]), raw_text=_RAW_NO_MARKERS)
+    assert _item(report, Requirement.CLAIMS).caveat is None

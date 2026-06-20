@@ -29,6 +29,48 @@ from sherpi.shared_kernel.value_objects import Rito
 # Documentos essenciais cuja menção é checada semanticamente.
 _ESSENTIAL_DOCS = ("procuração", "procuracao")
 
+# Marcadores formais buscados no TEXTO BRUTO para detectar quando a extração pode ter
+# RECUPERADO da narrativa um elemento que a peça não traz formalmente (limitação
+# conhecida — ver backlog). Basta UM marcador presente (peças BR quase sempre têm
+# "requer"/"ante o exposto"/"valor da causa"), o que mantém o falso-positivo baixo.
+_CLAIMS_MARKERS = (
+    "dos pedidos",
+    "do pedido",
+    "requer",
+    "postula",
+    "pugna",
+    "ante o exposto",
+    "isto posto",
+    "pede deferimento",
+)
+_CLAIM_VALUE_MARKERS = (
+    "valor da causa",
+    "dá-se à causa",
+    "da-se a causa",
+    "dá à causa",
+    "atribui-se à causa",
+    "atribui à causa",
+)
+_CAVEAT_CLAIMS = (
+    "Pedidos possivelmente inferidos da narrativa — seção formal de pedidos não "
+    "localizada no texto. Confirme na peça original."
+)
+_CAVEAT_CLAIM_VALUE = (
+    "Valor da causa possivelmente inferido — declaração formal do valor da causa não "
+    "localizada no texto. Confirme na peça original."
+)
+
+
+def _missing_marker(raw_text: str | None, markers: tuple[str, ...]) -> bool:
+    """True se há texto bruto e NENHUM marcador formal aparece nele (case-insensitive).
+
+    Sem texto bruto, não há como cross-checar → retorna False (sem caveat).
+    """
+    if not raw_text:
+        return False
+    low = raw_text.lower()
+    return not any(m in low for m in markers)
+
 
 @runtime_checkable
 class AdmissibilityStrategy(Protocol):
@@ -57,21 +99,29 @@ class CivelStrategy:
             self._check_qualification(s, raw_text),
             self._check_text(Requirement.FACTS, s.facts),
             self._check_text(Requirement.LEGAL_BASIS, s.legal_basis),
-            self._check_claims(s),
-            self._check_claim_value(s),
+            self._check_claims(s, raw_text),
+            self._check_claim_value(s, raw_text),
             self._check_evidence(s),
             self._check_hearing(s),
             self._check_documents(s),
         ]
 
     @staticmethod
-    def _det(req: Requirement, present: bool, evid: str | None, detail: str) -> ChecklistItem:
+    def _det(
+        req: Requirement,
+        present: bool,
+        evid: str | None,
+        detail: str,
+        *,
+        caveat: str | None = None,
+    ) -> ChecklistItem:
         return ChecklistItem(
             requirement=req,
             present=present,
             method=CheckMethod.DETERMINISTIC,
             evidence=evid,
             detail=detail,
+            caveat=caveat,
         )
 
     def _check_parties(self, s: PetitionSummary) -> ChecklistItem:
@@ -121,23 +171,31 @@ class CivelStrategy:
             req, present, evid=None, detail="Campo presente." if present else "Ausente."
         )
 
-    def _check_claims(self, s: PetitionSummary) -> ChecklistItem:
+    def _check_claims(self, s: PetitionSummary, raw_text: str | None) -> ChecklistItem:
         present = len(s.claims) > 0
+        caveat = _CAVEAT_CLAIMS if present and _missing_marker(raw_text, _CLAIMS_MARKERS) else None
         return self._det(
             Requirement.CLAIMS,
             present,
             evid=f"{len(s.claims)} pedido(s)",
             detail="Pedidos formulados." if present else "Nenhum pedido identificado.",
+            caveat=caveat,
         )
 
-    def _check_claim_value(self, s: PetitionSummary) -> ChecklistItem:
+    def _check_claim_value(self, s: PetitionSummary, raw_text: str | None) -> ChecklistItem:
         valor = parse_claim_amount(s.claim_amount)
         present = valor is not None
+        caveat = (
+            _CAVEAT_CLAIM_VALUE
+            if present and _missing_marker(raw_text, _CLAIM_VALUE_MARKERS)
+            else None
+        )
         return self._det(
             Requirement.CLAIM_VALUE,
             present,
             evid=valor.formatted if valor else s.claim_amount,
             detail="Valor da causa válido." if present else "Valor da causa ausente/ilegível.",
+            caveat=caveat,
         )
 
     @staticmethod

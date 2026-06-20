@@ -54,6 +54,7 @@ export interface ChecklistItem {
   method: CheckMethod;
   evidence: string | null;
   detail: string | null;
+  caveat: string | null;
 }
 
 export interface AdmissibilityReport {

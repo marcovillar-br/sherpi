@@ -25,12 +25,22 @@ export function AdmissibilityPanel({ report }: { report: AdmissibilityReport }) 
             <span className={item.present ? "text-green-600" : "text-red-600"}>
               {item.present ? "✓" : "✗"}
             </span>
-            <span>
-              <span className="font-medium capitalize">{item.requirement}</span>
-              <span className="ml-1 text-xs text-gray-400">[{item.method.toLowerCase()}]</span>
-              {item.detail && <span className="text-gray-600"> — {item.detail}</span>}
-              {item.evidence && (
-                <span className="ml-1 text-xs text-gray-500">({item.evidence})</span>
+            <span className="flex flex-col">
+              <span>
+                <span className="font-medium capitalize">{item.requirement}</span>
+                <span className="ml-1 text-xs text-gray-400">[{item.method.toLowerCase()}]</span>
+                {item.detail && <span className="text-gray-600"> — {item.detail}</span>}
+                {item.evidence && (
+                  <span className="ml-1 text-xs text-gray-500">({item.evidence})</span>
+                )}
+              </span>
+              {item.caveat && (
+                <span
+                  data-testid={`admissibility-caveat-${item.requirement}`}
+                  className="mt-0.5 text-xs text-amber-700"
+                >
+                  ⚠ {item.caveat}
+                </span>
               )}
             </span>
           </li>
