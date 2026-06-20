@@ -74,9 +74,10 @@ for (const [filename, label] of LLM_SCENARIOS) {
     await page.setInputFiles("input[type=file]", pdfPath);
     await page.locator('[data-testid="analyze-btn"]').click();
 
-    // Aguarda o resultado — timeout hard de 90 s (configurado no playwright.llm.config.ts).
-    // Se o LLM não responder em tempo, o teste falha aqui; não entra em loop.
-    await expect(page.locator('[data-testid="analysis-result"]')).toBeVisible();
+    // Aguarda o resultado — o LLM real pode levar dezenas de segundos, então a
+    // asserção precisa de timeout explícito (o default de 5 s do Playwright é curto
+    // demais). 80 s deixa margem dentro do hard-timeout de 90 s do teste — sem loop.
+    await expect(page.locator('[data-testid="analysis-result"]')).toBeVisible({ timeout: 80_000 });
 
     // O painel de admissibilidade deve estar visível (cenário não é injeção nem BLOCK).
     const admPanel = page.locator('[data-testid="admissibility-panel"]');
