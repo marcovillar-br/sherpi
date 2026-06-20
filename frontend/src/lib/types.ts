@@ -91,6 +91,8 @@ export interface AnalysisSummary {
   rito: Rito;
   admissibility_status: AdmissibilityStatus | null;
   has_injunction: boolean | null;
+  review_decision: ReviewDecision | null;
+  review_comment: string | null;
 }
 
 export interface AuditEvent {

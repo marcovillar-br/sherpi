@@ -1,7 +1,20 @@
 // Rótulos pt-BR para os valores de enum vindos da API (que são en-US).
 // Centralizados aqui para manter toda a interface em português.
 
-import type { AdmissibilityStatus, ClaimType, Polo, RiskVerdict, Rito } from "./types";
+import type {
+  AdmissibilityStatus,
+  ClaimType,
+  Polo,
+  ReviewDecision,
+  RiskVerdict,
+  Rito,
+} from "./types";
+
+export const REVIEW_DECISION_LABEL: Record<ReviewDecision, string> = {
+  ACCEPT: "Aceito",
+  AMEND: "Corrigir",
+  REJECT: "Rejeitado",
+};
 
 export const VERDICT_LABEL: Record<RiskVerdict, string> = {
   PASS: "Íntegro",

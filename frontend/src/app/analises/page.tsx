@@ -6,8 +6,14 @@ import { useRouter } from "next/navigation";
 
 import { NavHeader } from "@/components/NavHeader";
 import { ApiError, listAnalyses } from "@/lib/api";
-import { ADMISSIBILITY_LABEL, RITO_LABEL, VERDICT_LABEL } from "@/lib/labels";
-import type { AdmissibilityStatus, AnalysisSummary, RiskVerdict, Rito } from "@/lib/types";
+import { ADMISSIBILITY_LABEL, REVIEW_DECISION_LABEL, RITO_LABEL, VERDICT_LABEL } from "@/lib/labels";
+import type {
+  AdmissibilityStatus,
+  AnalysisSummary,
+  ReviewDecision,
+  RiskVerdict,
+  Rito,
+} from "@/lib/types";
 
 const VERDICT_DOT: Record<RiskVerdict, string> = {
   PASS: "bg-green-500",
@@ -19,6 +25,12 @@ const ADM_DOT: Record<AdmissibilityStatus, string> = {
   GREEN: "bg-green-500",
   YELLOW: "bg-amber-500",
   RED: "bg-red-500",
+};
+
+const DECISION_STYLE: Record<ReviewDecision, string> = {
+  ACCEPT: "text-green-700",
+  AMEND: "text-amber-700",
+  REJECT: "text-red-700",
 };
 
 type VerdictFilter = "ALL" | RiskVerdict;
@@ -43,9 +55,9 @@ export default function HistoryPage() {
   const [items, setItems] = useState<AnalysisSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [verdict, setVerdict] = useState<VerdictFilter>("ALL");
   const [rito, setRito] = useState<RitoFilter>("ALL");
   const [adm, setAdm] = useState<AdmFilter>("ALL");
+  const [verdict, setVerdict] = useState<VerdictFilter>("ALL");
 
   useEffect(() => {
     let active = true;
@@ -68,10 +80,10 @@ export default function HistoryPage() {
 
   const q = query.trim().toLowerCase();
   const filtered = (items ?? []).filter((it) => {
-    if (verdict !== "ALL" && it.verdict !== verdict) return false;
     if (rito !== "ALL" && it.rito !== rito) return false;
     if (adm === "BLOCKED" && it.admissibility_status !== null) return false;
     if (adm !== "ALL" && adm !== "BLOCKED" && it.admissibility_status !== adm) return false;
+    if (verdict !== "ALL" && it.verdict !== verdict) return false;
     if (q && !`${it.filename ?? ""} ${it.id}`.toLowerCase().includes(q)) return false;
     return true;
   });
@@ -106,17 +118,6 @@ export default function HistoryPage() {
             className="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-gray-500 focus:outline-none"
           />
           <select
-            value={verdict}
-            onChange={(e) => setVerdict(e.target.value as VerdictFilter)}
-            className={SELECT_CLASS}
-            aria-label="Filtrar por veredito"
-          >
-            <option value="ALL">Veredito: todos</option>
-            <option value="PASS">{VERDICT_LABEL.PASS}</option>
-            <option value="WARN">{VERDICT_LABEL.WARN}</option>
-            <option value="BLOCK">{VERDICT_LABEL.BLOCK}</option>
-          </select>
-          <select
             value={rito}
             onChange={(e) => setRito(e.target.value as RitoFilter)}
             className={SELECT_CLASS}
@@ -138,6 +139,17 @@ export default function HistoryPage() {
             <option value="RED">{ADMISSIBILITY_LABEL.RED}</option>
             <option value="BLOCKED">Bloqueada (sem análise)</option>
           </select>
+          <select
+            value={verdict}
+            onChange={(e) => setVerdict(e.target.value as VerdictFilter)}
+            className={SELECT_CLASS}
+            aria-label="Filtrar por veredito"
+          >
+            <option value="ALL">Veredito: todos</option>
+            <option value="PASS">{VERDICT_LABEL.PASS}</option>
+            <option value="WARN">{VERDICT_LABEL.WARN}</option>
+            <option value="BLOCK">{VERDICT_LABEL.BLOCK}</option>
+          </select>
         </div>
       )}
 
@@ -158,42 +170,52 @@ export default function HistoryPage() {
       )}
 
       {filtered.length > 0 && (
-        <ul className="space-y-2">
+        <ul className="divide-y divide-gray-100 rounded-md border border-gray-200">
           {filtered.map((item) => {
             const status = item.admissibility_status;
             return (
               <li key={item.id}>
                 <Link
                   href={`/analises/${item.id}`}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-200 px-4 py-3 transition-colors hover:bg-gray-50"
+                  className="block px-4 py-2 transition-colors hover:bg-gray-50"
                 >
-                  <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex items-center gap-3">
                     <span
                       className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${VERDICT_DOT[item.verdict]}`}
                       title={`Firewall: ${VERDICT_LABEL[item.verdict]}`}
                       aria-hidden
                     />
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-gray-800">
-                        {item.filename ?? "(sem nome)"}
-                      </div>
-                      <div className="font-mono text-xs text-gray-400">#{item.id.slice(0, 8)}</div>
-                    </div>
+                    <span className="min-w-0 truncate text-sm font-medium text-gray-800">
+                      {item.filename ?? "(sem nome)"}
+                    </span>
+                    <span className="shrink-0 font-mono text-xs text-gray-400">
+                      #{item.id.slice(0, 8)}
+                    </span>
+                    <span className="ml-auto flex shrink-0 items-center gap-2 text-xs text-gray-500">
+                      <span>{RITO_LABEL[item.rito]}</span>
+                      {status ? (
+                        <span className="flex items-center gap-1">
+                          <span className={`inline-block h-2 w-2 rounded-full ${ADM_DOT[status]}`} aria-hidden />
+                          {ADMISSIBILITY_LABEL[status]}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">bloqueada</span>
+                      )}
+                      {item.has_injunction && <span className="text-amber-700">⚡</span>}
+                      <span className="tabular-nums text-gray-400">{formatDate(item.created_at)}</span>
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
-                    <span>{RITO_LABEL[item.rito]}</span>
-                    {status ? (
-                      <span className="flex items-center gap-1">
-                        <span className={`inline-block h-2 w-2 rounded-full ${ADM_DOT[status]}`} aria-hidden />
-                        {ADMISSIBILITY_LABEL[status]}
+                  {item.review_decision && (
+                    <div className="mt-0.5 flex items-center gap-1.5 pl-[22px] text-xs text-gray-500">
+                      <span className={`font-medium ${DECISION_STYLE[item.review_decision]}`}>
+                        ✓ {REVIEW_DECISION_LABEL[item.review_decision]}
                       </span>
-                    ) : (
-                      <span className="text-gray-400">— (bloqueada)</span>
-                    )}
-                    {item.has_injunction && <span className="text-amber-700">⚡ liminar</span>}
-                    <span className="tabular-nums">{formatDate(item.created_at)}</span>
-                  </div>
+                      {item.review_comment && (
+                        <span className="min-w-0 truncate italic">“{item.review_comment}”</span>
+                      )}
+                    </div>
+                  )}
                 </Link>
               </li>
             );

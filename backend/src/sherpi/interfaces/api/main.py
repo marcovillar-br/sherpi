@@ -73,6 +73,13 @@ class AnalyzeResponse(BaseModel):
     result: AnalysisResult
 
 
+class AnalysisListItem(AnalysisSummary):
+    """Item do histórico: o resumo + a revisão humana mais recente (se houver)."""
+
+    review_decision: str | None = None
+    review_comment: str | None = None
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -207,13 +214,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         logger.info("analyze.done", analysis_id=record.id, verdict=result.forensics.verdict)
         return AnalyzeResponse(id=record.id, result=result)
 
-    @v1.get("/analyses", response_model=list[AnalysisSummary])
+    @v1.get("/analyses", response_model=list[AnalysisListItem])
     def list_analyses(
         repository: Annotated[AnalysisRepository, Depends(get_repository)],
+        audit_repo: Annotated[AuditRepository, Depends(get_audit_repository)],
         current_user: Annotated[User, Depends(get_current_user)],
-    ) -> list[AnalysisSummary]:
-        """Histórico: resumos das análises mais recentes (para a tela de consulta)."""
-        return repository.list_recent()
+    ) -> list[AnalysisListItem]:
+        """Histórico: resumos das análises mais recentes + revisão mais recente de cada."""
+        summaries = repository.list_recent()
+        reviews = audit_repo.latest_by_analyses([s.id for s in summaries])
+        items: list[AnalysisListItem] = []
+        for s in summaries:
+            rev = reviews.get(s.id)
+            items.append(
+                AnalysisListItem(
+                    **s.model_dump(),
+                    review_decision=rev.decision.value if rev else None,
+                    review_comment=rev.comment if rev else None,
+                )
+            )
+        return items
 
     @v1.get("/analyses/{analysis_id}", response_model=AnalyzeResponse)
     def get_analysis(

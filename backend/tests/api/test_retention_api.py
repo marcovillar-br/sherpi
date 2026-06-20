@@ -19,10 +19,16 @@ from sherpi.contexts.petition_analysis.domain.summary import (
     PetitionSummary,
     Polo,
 )
+from sherpi.contexts.review.infrastructure.repository import SqlAuditRepository
 from sherpi.infrastructure.llm.fake import FakeProvider
 from sherpi.infrastructure.persistence.engine import create_all
 from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
-from sherpi.interfaces.api.dependencies import get_current_user, get_orchestrator, get_repository
+from sherpi.interfaces.api.dependencies import (
+    get_audit_repository,
+    get_current_user,
+    get_orchestrator,
+    get_repository,
+)
 from sherpi.interfaces.api.main import create_app
 
 _FAKE_USER = User(id="u-ret", email="ret@sherpi.local", hashed_password="x", role=Role.ADMIN)
@@ -50,8 +56,10 @@ def client() -> Iterator[TestClient]:
     )
     create_all(engine)
     repository = SqlAnalysisRepository(engine)
+    audit_repo = SqlAuditRepository(engine)
     app.dependency_overrides[get_orchestrator] = lambda: orchestrator
     app.dependency_overrides[get_repository] = lambda: repository
+    app.dependency_overrides[get_audit_repository] = lambda: audit_repo
     app.dependency_overrides[get_current_user] = lambda: _FAKE_USER
     yield TestClient(app)
     app.dependency_overrides.clear()
@@ -134,3 +142,22 @@ def test_list_analyses_requires_auth(client: TestClient) -> None:
     resp = client.get("/v1/analyses")
     assert resp.status_code == 401
     app.dependency_overrides[get_current_user] = lambda: _FAKE_USER
+
+
+def test_list_includes_latest_review(client: TestClient) -> None:
+    aid = _post_analysis(client)
+    r = client.post(
+        f"/v1/analyses/{aid}/review",
+        json={"decision": "AMEND", "comment": "Falta procuração."},
+    )
+    assert r.status_code == 200
+    item = next(it for it in client.get("/v1/analyses").json() if it["id"] == aid)
+    assert item["review_decision"] == "AMEND"
+    assert item["review_comment"] == "Falta procuração."
+
+
+def test_list_without_review_has_null_fields(client: TestClient) -> None:
+    _post_analysis(client)
+    item = client.get("/v1/analyses").json()[0]
+    assert item["review_decision"] is None
+    assert item["review_comment"] is None
