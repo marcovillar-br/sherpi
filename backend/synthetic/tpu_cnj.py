@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from sherpi.contexts.taxonomy.domain.tpu import TpuEntry
 from sherpi.shared_kernel.value_objects import Rito
@@ -51,12 +52,12 @@ def _embedding_text(leaf_path: str, nome: str, glossario: str) -> str:
     return f"{base}. {gloss}" if len(gloss) >= _MIN_GLOSS else base
 
 
-def _is_better(cand: dict, cur: dict) -> bool:
+def _is_better(cand: dict[str, Any], cur: dict[str, Any]) -> bool:
     """Ao deduplicar assuntos idênticos (mesmo caminho canônico), escolhe o melhor:
     glossário vence sem-glossário; depois caminho original mais curto (versão plana,
     não a aninhada sob wrapper); por fim menor cod_item (determinístico)."""
-    ck = (len((cand.get("glossario") or "")) >= _MIN_GLOSS, -len(cand["path"]), -cand["cod_item"])
-    rk = (len((cur.get("glossario") or "")) >= _MIN_GLOSS, -len(cur["path"]), -cur["cod_item"])
+    ck = (len(cand.get("glossario") or "") >= _MIN_GLOSS, -len(cand["path"]), -cand["cod_item"])
+    rk = (len(cur.get("glossario") or "") >= _MIN_GLOSS, -len(cur["path"]), -cur["cod_item"])
     return ck > rk
 
 
@@ -73,7 +74,7 @@ def load_cnj_seed(path: str | Path = DEFAULT_CATALOG) -> list[TpuEntry]:
             "Rode antes: PYTHONPATH=. uv run python scripts/fetch_tpu_cnj.py"
         )
     data = json.loads(catalog_path.read_text(encoding="utf-8"))
-    chosen: dict[tuple[str, str], dict] = {}
+    chosen: dict[tuple[str, str], dict[str, Any]] = {}
     for e in data:
         if not e.get("is_leaf") or e.get("rito") not in ("CIVEL", "TRABALHISTA"):
             continue
@@ -86,7 +87,9 @@ def load_cnj_seed(path: str | Path = DEFAULT_CATALOG) -> list[TpuEntry]:
             tpu_code=str(e["cod_item"]),
             description=e["nome"],
             rito=Rito(e["rito"]),
-            text_excerpt=_embedding_text(_canonical_leaf_path(e["path"]), e["nome"], e.get("glossario", "")),
+            text_excerpt=_embedding_text(
+                _canonical_leaf_path(e["path"]), e["nome"], e.get("glossario", "")
+            ),
         )
         for e in chosen.values()
     ]
