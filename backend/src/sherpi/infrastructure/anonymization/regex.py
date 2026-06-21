@@ -76,6 +76,12 @@ _STOPWORDS = (
     r"|DANOS|MORAIS|URG[EÊ]NCIA|TUTELA|PEDIDO|FAZER|CONSUMO|RELA[CÇ][AÃ]O"
     r"|RITO|ORDIN[AÁ]RIO|VERBAS|SUBSIDI[AÁ]RIO|CUMULA[CÇ][AÃ]O|REPARA[CÇ][AÃ]O"
     r"|EXECU[CÇ][AÃ]O|MONIT[OÓ]RIA|DESPEJO"
+    # Rótulos de polo processual — nunca são nomes próprios (impede que "em face da
+    # PARTE REQUERIDA: Fulano" mascare o rótulo em vez do nome). O nome real ainda é
+    # pego pelo anchor de rótulo `_NAME_AFTER_LABEL`.
+    r"|PARTE|REQUERENTES?|REQUERID[OA]S?|RECLAMANTES?|RECLAMAD[OA]S?|AUTOR[AES]?"
+    r"|R[ÉE]US?|RÉS?|EXEQUENTES?|EXECUTAD[OA]S?|IMPETRANTES?|IMPETRAD[OA]S?"
+    r"|EMBARGANTES?|EMBARGAD[OA]S?"
     # UFs — não são nomes próprios. Evitam que o token curto antes de uma deixa de
     # qualificação seja mascarado (ex.: "DF" em "SSP/DF, inscrito no CPF" → [NOME]).
     # Nenhuma colide com sobrenome BR comum ("Sá" é acentuado, não casa com "SA").
@@ -104,6 +110,23 @@ _NAME_LIST_BEFORE_CUE = re.compile(
 )
 # Nome(s) DEPOIS de "em face de/da" ou "em desfavor de" (tipicamente o réu).
 _NAME_AFTER_PARTY = re.compile(r"((?:[Ee]m face d[ea]|[Ee]m desfavor de)\s+)(" + _NAME + r")")
+# Rótulo de polo processual (cível + trabalhista). É a posição MAIS ancorada de um
+# nome na inicial — logo após "REQUERENTE:", "PARTE REQUERIDA :", "AUTOR:",
+# "RECLAMANTE:", "RÉU:"... Pega o nome quando o cue de qualificação ("brasileiro"...)
+# está separado dele por OUTRO rótulo (ex.: "REQUERENTE: Fulano, nacionalidade:
+# brasileiro" — comum nos modelos do TJDFT), caso em que o anchor por cue falha.
+_PARTY_LABEL = (
+    r"(?:PARTE[^\S\n]+)?(?:REQUERENTES?|REQUERID[OA]S?|RECLAMANTES?|RECLAMAD[OA]S?"
+    r"|AUTOR(?:ES|AS|A)?|R[ÉE]US?|RÉS?|EXEQUENTES?|EXECUTAD[OA]S?"
+    r"|IMPETRANTES?|IMPETRAD[OA]S?|EMBARGANTES?|EMBARGAD[OA]S?)"
+)
+# Rótulo (grupo 1, preservado) + ":" + nome(s) no mesmo bloco (grupo 2, mascarado).
+# Suporta litisconsórcio (lista separada por vírgula/"e"). O comma após o nome (antes
+# de "nacionalidade:"/"CPF:") encerra o nome — não há over-mask do rótulo seguinte.
+_NAME_AFTER_LABEL = re.compile(
+    r"(\b(?:" + _PARTY_LABEL + r")[^\S\n]*:[^\S\n]*)"
+    r"(" + _NAME + r"(?:" + _NAME_SEP + _NAME + r")*)"
+)
 # Para remascarar cada nome dentro de uma lista, preservando os separadores.
 _NAME_SOLO = re.compile(_NAME)
 
@@ -131,6 +154,10 @@ class RegexNameAnonymizer:
     """
 
     def anonymize(self, text: str) -> str:
+        # Âncora por rótulo de polo primeiro (mais específica): "REQUERENTE: Fulano".
+        text = _NAME_AFTER_LABEL.sub(
+            lambda m: m.group(1) + _NAME_SOLO.sub("[NOME]", m.group(2)), text
+        )
         # Lista antes do cue: mascara CADA nome, preservando os separadores
         # (ex.: "A, B e C, brasileiros" → "[NOME], [NOME] e [NOME], brasileiros").
         text = _NAME_LIST_BEFORE_CUE.sub(lambda m: _NAME_SOLO.sub("[NOME]", m.group(0)), text)
@@ -213,6 +240,11 @@ class MappedRegexNameAnonymizer:
             mapping[key] = name
             return key
 
+        # Âncora por rótulo de polo primeiro (mais específica): "REQUERENTE: Fulano".
+        text = _NAME_AFTER_LABEL.sub(
+            lambda m: m.group(1) + _NAME_SOLO.sub(lambda mm: _placeholder(mm.group()), m.group(2)),
+            text,
+        )
         # Lista antes do cue: cada nome vira um placeholder numerado distinto.
         text = _NAME_LIST_BEFORE_CUE.sub(
             lambda m: _NAME_SOLO.sub(lambda mm: _placeholder(mm.group()), m.group(0)), text

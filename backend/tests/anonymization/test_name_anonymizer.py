@@ -112,6 +112,34 @@ def test_ainda_mascara_razao_social_com_sufixo_multicaractere() -> None:
     assert "EMPRESA" not in out and out.startswith("[NOME],")
 
 
+def test_masks_party_name_after_label_when_cue_is_separated() -> None:
+    # Regressão (template TJDFT): o cue "brasileiro" fica separado do nome pelo rótulo
+    # "nacionalidade:", então o anchor por cue não pega. O anchor por rótulo de polo sim.
+    out = _NAMER.anonymize("PARTE REQUERENTE :  Daniel Almeida Rocha ,  nacionalidade: brasileiro(a)")
+    assert "Daniel" not in out and "Rocha" not in out
+    assert "[NOME]" in out
+    assert "nacionalidade: brasileiro(a)" in out  # rótulo seguinte preservado
+
+
+def test_masks_reu_after_party_label_with_intervening_label() -> None:
+    out = _NAMER.anonymize("em face da PARTE REQUERIDA :  Igor Lima Costa ,  nacionalidade: brasileiro")
+    assert "Igor" not in out and "Costa" not in out
+    assert "PARTE REQUERIDA :" in out and "[NOME]" in out
+
+
+def test_masks_trabalhista_labels() -> None:
+    out = _NAMER.anonymize("RECLAMANTE: João Pereira, profissão: pedreiro")
+    assert "João" not in out and "Pereira" not in out
+    assert out.startswith("RECLAMANTE: [NOME]")
+
+
+def test_party_label_does_not_match_autoridade() -> None:
+    # "AUTOR" não pode disparar dentro de "AUTORIDADE:" (sem dois-pontos logo após).
+    text = "encaminhado à AUTORIDADE: Delegacia de Polícia"
+    # Não deve mascarar como nome de parte (não há rótulo de polo seguido de pessoa).
+    assert _NAMER.anonymize(text) == text
+
+
 def test_composite_applies_structured_then_names() -> None:
     comp = CompositeAnonymizer([RegexAnonymizer(), RegexNameAnonymizer()])
     out = comp.anonymize("FULANO DE TAL, brasileiro, CPF 529.982.247-25, e-mail a@b.com")
