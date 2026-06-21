@@ -114,4 +114,5 @@ Tudo isso é gate de CI.
 
 Resumo (detalhe no [`AGENTS.md`](AGENTS.md)): **agnóstico a LLM** (acesso só via port `LLMProvider`);
 **domínio puro** (hexagonal); **human-in-the-loop** (nunca decisão automática); **synthetic-first /
-LGPD** (sem PII real; anonimizar antes de LLM externo).
+LGPD** (sem PII real; anonimizar antes de LLM externo); **custo×benefício primeiro** (custo é variável
+de toda decisão — melhor ROI, diagnóstico gratuito antes de gastar; LLM cobra por token, use batch).
