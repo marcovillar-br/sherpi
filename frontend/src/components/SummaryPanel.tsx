@@ -30,8 +30,8 @@ export function SummaryPanel({ summary }: { summary: PetitionSummary }) {
         </ul>
       </Field>
 
-      <Field label="Fatos">{summary.facts}</Field>
-      <Field label="Fundamentação">{summary.legal_basis}</Field>
+      <Field label="Fatos">{summary.facts || "—"}</Field>
+      <Field label="Fundamentação">{summary.legal_basis || "—"}</Field>
 
       <Field label="Pedidos">
         <ul className="list-disc pl-5">

@@ -68,6 +68,30 @@ async def test_temperature_zero_is_passed() -> None:
     assert captured["temperature"] == 0.0
 
 
+async def test_normalizes_placeholder_junk_to_empty_or_none() -> None:
+    # Regressão: o LLM às vezes escreve "null"/"N/A" num campo sem conteúdo em vez de
+    # deixá-lo vazio. A extração sanea isso de forma determinística.
+    junk = PetitionSummary(
+        court="N/A",
+        parties=[Parte(name="[NOME_1]", document="null", pole=Polo.ACTIVE, address="não informado")],
+        facts="Fatos reais da peça.",
+        legal_basis="null",
+        claims=[Pedido(description="Pagamento", amount="N/A")],
+        has_injunction=False,
+        claim_amount="null",
+        cited_documents=["null", "boletim de ocorrência"],
+    )
+    result = await ExtractPetition(FakeProvider(junk)).run("peça")
+    assert result.legal_basis == ""
+    assert result.court is None
+    assert result.claim_amount is None
+    assert result.parties[0].document is None and result.parties[0].address is None
+    assert result.parties[0].name == "[NOME_1]"  # marcador de PII preservado
+    assert result.claims[0].amount is None
+    assert result.cited_documents == ["boletim de ocorrência"]
+    assert result.facts == "Fatos reais da peça."  # conteúdo legítimo intocado
+
+
 async def test_fake_provider_raises_when_exhausted() -> None:
     from sherpi.shared_kernel.errors import LLMProviderError
 
