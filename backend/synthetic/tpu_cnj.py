@@ -26,11 +26,17 @@ _MIN_GLOSS = 15  # glossário curto demais não acrescenta sinal; usa o caminho
 
 
 def _embedding_text(nome: str, path: str, glossario: str) -> str:
+    """Caminho hierárquico SEMPRE + glossário oficial quando houver.
+
+    Combinar (em vez de escolher um ou outro) é melhor que ambas as variantes isoladas:
+    o caminho carrega os tokens discriminativos do assunto (ex.: "Rescisão Indireta",
+    "Bancários > Empréstimo consignado") e o glossário acrescenta a semântica do mérito.
+    Glossário sozinho falha quando é um one-liner fraco (embeda pior que o próprio path);
+    path sozinho falha quando assuntos irmãos compartilham o caminho (precisa da descrição).
+    """
+    leaf_path = " > ".join(path.split(" > ")[1:]) or nome
     gloss = (glossario or "").strip()
-    if len(gloss) >= _MIN_GLOSS:
-        return f"{nome}. {gloss}"
-    # fallback: caminho hierárquico sem o ramo de topo ("DIREITO X > ...").
-    return " > ".join(path.split(" > ")[1:]) or nome
+    return f"{leaf_path}. {gloss}" if len(gloss) >= _MIN_GLOSS else leaf_path
 
 
 def load_cnj_seed(path: str | Path = DEFAULT_CATALOG) -> list[TpuEntry]:
