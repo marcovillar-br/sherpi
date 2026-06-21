@@ -5,7 +5,7 @@
 BACKEND_DIR := backend
 FRONTEND_DIR := frontend
 
-.PHONY: help up down setup migrate seed-tpu synthetic test lint typecheck eval dev-backend dev-backend-fake dev-frontend e2e
+.PHONY: help up down setup migrate seed-tpu tpu-catalog seed-tpu-cnj synthetic test lint typecheck eval dev-backend dev-backend-fake dev-frontend e2e
 
 help:
 	@echo "Comandos disponíveis:"
@@ -13,7 +13,9 @@ help:
 	@echo "  make down          Para o container do banco"
 	@echo "  make setup         Setup completo: banco + migrations + TPU (uso único)"
 	@echo "  make migrate       Roda as migrations Alembic"
-	@echo "  make seed-tpu      Popula o índice TPU no banco"
+	@echo "  make seed-tpu      Popula o índice TPU (seed sintético; Fake se sem extra ml)"
+	@echo "  make tpu-catalog   Baixa a TUA real do CNJ (data/cnj/tpu_assuntos.json)"
+	@echo "  make seed-tpu-cnj  Popula o índice TPU com a TUA real do CNJ (JurisBERT; extra ml)"
 	@echo "  make synthetic     Gera o corpus sintético (data/synthetic/)"
 	@echo "  make synthetic-from-template TEMPLATE=... [N=3]  Petições a partir de um .docx real (requer LibreOffice)"
 	@echo "  make test          Roda a suite de testes"
@@ -49,6 +51,14 @@ migrate:
 
 seed-tpu:
 	cd $(BACKEND_DIR) && PYTHONPATH=. uv run python scripts/seed_tpu.py
+
+# TPU semântica com a tabela real do CNJ (ADR-0016). `uv run` reverte o ambiente, então
+# o `--extra ml` precisa ir em CADA chamada — senão cai no FakeEmbeddingModel (com WARNING).
+tpu-catalog:
+	cd $(BACKEND_DIR) && PYTHONPATH=. uv run python scripts/fetch_tpu_cnj.py
+
+seed-tpu-cnj: tpu-catalog
+	cd $(BACKEND_DIR) && PYTHONPATH=. uv run --extra ml python scripts/seed_tpu.py --source cnj
 
 synthetic:
 	cd $(BACKEND_DIR) && uv run python -m synthetic.generate

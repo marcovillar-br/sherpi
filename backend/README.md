@@ -19,22 +19,32 @@ cp .env.example .env         # configure SHERPI_LLM_API_KEY, SHERPI_JWT_SECRET, 
 docker compose up -d db      # sobe PostgreSQL 16 (a partir da raiz do repo)
 ```
 
-### TPU semântica (opcional — JurisBERT)
+### TPU semântica (opcional — JurisBERT + TUA real do CNJ)
 
 Sem o extra `ml`, a sugestão de TPU usa o `FakeEmbeddingModel` (embeddings por hash,
 **não-semântico**: ranking determinístico porém sem significado — útil só para dev/CI).
 Para sugestões reais, ligue o **JurisBERT** (embeddings jurídicos em PT, ~440 MB, CPU,
-sem custo de API):
+sem custo de API) sobre a **Tabela Única de Assuntos real do CNJ** (ADR-0016):
 
 ```bash
 uv sync --extra ml           # instala torch + transformers (~1,5–3 GB em disco)
-make seed-tpu                # RE-SEMEIA o índice com JurisBERT (768-dim) — a partir da raiz
+make seed-tpu-cnj            # baixa a TUA do CNJ + RE-SEMEIA o índice com JurisBERT — da raiz
+make dev-backend             # ver gotcha abaixo
 ```
+
+> ⚠️ **`uv run` reverte o ambiente para o default** (sem o extra `ml`) a cada chamada — por
+> isso `--extra ml` precisa ir em **cada** comando que usa JurisBERT, senão cai no Fake com
+> WARNING. `make seed-tpu-cnj` já passa `--extra ml`. Para o backend servir a TPU semântica,
+> rode-o com o extra: `cd backend && PYTHONPATH=. uv run --extra ml uvicorn sherpi.interfaces.api.main:app --reload --port 8000`.
 
 O `build_tpu_embedder` (em `taxonomy/infrastructure/embedding.py`) usa JurisBERT quando o
 extra `ml` está presente e cai no Fake com WARNING caso contrário — nunca degrada em
-silêncio. **Build e busca precisam do mesmo embedder**: ao instalar o `ml`, re-semeie
+silêncio. **Build e busca precisam do mesmo embedder**: ao trocar o embedder, re-semeie
 (dimensões diferentes não casam; o `search` retorna `[]` e loga se houver mismatch).
+
+- `make seed-tpu` — seed sintético de 30 entradas (rápido; CI/eval).
+- `make tpu-catalog` — baixa só o catálogo da TUA (`data/cnj/tpu_assuntos.json`).
+- `make seed-tpu-cnj` — TUA real (~1.3k assuntos cível+trabalhista) com JurisBERT.
 
 ## Estrutura (bounded contexts)
 
