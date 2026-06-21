@@ -42,6 +42,22 @@ _CATALOG = [
         "path": "DIREITO PENAL > Algo Penal",
         "glossario": "x",
     },
+    {  # mesmo assunto, ramo PLANO (com glossário) — deve vencer a duplicata
+        "cod_item": 2435,
+        "nome": "Rescisão Indireta",
+        "rito": "TRABALHISTA",
+        "is_leaf": True,
+        "path": "DIREITO DO TRABALHO > Rescisão do Contrato de Trabalho > Rescisão Indireta",
+        "glossario": "Ações com pedido expresso de reconhecimento de rescisão indireta do contrato.",
+    },
+    {  # mesmo assunto, cópia sob wrapper, SEM glossário — deve ser deduplicada
+        "cod_item": 13968,
+        "nome": "Rescisão Indireta",
+        "rito": "TRABALHISTA",
+        "is_leaf": True,
+        "path": "DIREITO DO TRABALHO > Direito Individual do Trabalho > Rescisão do Contrato de Trabalho > Rescisão Indireta",
+        "glossario": "",
+    },
 ]
 
 
@@ -55,7 +71,18 @@ def catalog_file(tmp_path):
 def test_loads_only_leaves_in_scope(catalog_file):
     entries = load_cnj_seed(catalog_file)
     codes = {e.tpu_code for e in entries}
-    assert codes == {"10441", "9999"}  # ramo e fora-de-escopo descartados
+    # ramo e fora-de-escopo descartados; a duplicata sob wrapper (13968) é deduplicada
+    assert codes == {"10441", "9999", "2435"}
+
+
+def test_dedupes_parallel_hierarchy_preferring_glossario(catalog_file):
+    entries = {e.tpu_code: e for e in load_cnj_seed(catalog_file)}
+    # 2435 (plano, com glossário) vence; 13968 (cópia sob wrapper) some
+    assert "2435" in entries and "13968" not in entries
+    txt = entries["2435"].text_excerpt
+    assert "Direito Individual do Trabalho" not in txt  # segmento wrapper removido
+    assert txt.startswith("Rescisão do Contrato de Trabalho > Rescisão Indireta")
+    assert "rescisão indireta" in txt.lower()  # glossário presente
 
 
 def test_embedding_text_combines_path_and_glossario(catalog_file):
