@@ -29,13 +29,15 @@ sem custo de API) sobre a **Tabela Única de Assuntos real do CNJ** (ADR-0016):
 ```bash
 uv sync --extra ml           # instala torch + transformers (~1,5–3 GB em disco)
 make seed-tpu-cnj            # baixa a TUA do CNJ + RE-SEMEIA o índice com JurisBERT — da raiz
-make dev-backend             # ver gotcha abaixo
+make dev-backend             # já sobe com --extra ml (TPU semântica)
 ```
 
 > ⚠️ **`uv run` reverte o ambiente para o default** (sem o extra `ml`) a cada chamada — por
-> isso `--extra ml` precisa ir em **cada** comando que usa JurisBERT, senão cai no Fake com
-> WARNING. `make seed-tpu-cnj` já passa `--extra ml`. Para o backend servir a TPU semântica,
-> rode-o com o extra: `cd backend && PYTHONPATH=. uv run --extra ml uvicorn sherpi.interfaces.api.main:app --reload --port 8000`.
+> isso `--extra ml` precisa ir em **cada** comando que usa JurisBERT. `make seed-tpu-cnj` e
+> `make dev-backend` já passam o extra. Se subir o backend manualmente, inclua-o:
+> `PYTHONPATH=. uv run --extra ml uvicorn sherpi.interfaces.api.main:app --reload --port 8000`.
+> Sem o extra, o embedder cai no Fake (64-dim) ≠ índice JurisBERT (768) e a TPU é desabilitada
+> (com erro claro no log, graças ao `SHERPI_TPU_EMBEDDER` — ver ADR-0016).
 
 O `build_tpu_embedder` (em `taxonomy/infrastructure/embedding.py`) usa JurisBERT quando o
 extra `ml` está presente e cai no Fake com WARNING caso contrário — nunca degrada em
