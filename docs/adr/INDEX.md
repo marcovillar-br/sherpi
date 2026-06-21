@@ -4,7 +4,7 @@ description: "Lista das decisões de arquitetura (Architecture Decision Records)
 doc_type: adr-index
 project: SHERPI
 status: reference
-version: 1.4
+version: 1.5
 updated: 2026-06-20
 language: pt-BR
 tags: [adr, arquitetura, index]
@@ -32,5 +32,6 @@ que substitua outra cria um novo ADR que marca o anterior como *Substituído*.
 | [0012](0012-reversible-anonymization-restore.md) | Anonimização reversível: restaurar PII real no resumo do revisor (LLM externo só vê o anonimizado) | ✅ Aceito |
 | [0013](0013-docx-support-native-firewall.md) | Suporte a .docx com firewall nativo (OOXML via python-docx; reusa o `DetectInjection`) | ✅ Aceito |
 | [0014](0014-rito-neutral-extraction-prompt.md) | Prompt de extração rito-neutro (reforça o 0008): CPC 319 + CLT 840 num só prompt, sem ramificar por rito | ✅ Aceito |
+| [0015](0015-merit-only-claims-extraction.md) | claims restritos ao mérito (refina o 0014): exclui pedidos procedimentais (citação, audiência, gratuidade), que já têm campo próprio — limpa o sinal da TPU | ✅ Aceito |
 
 > Convenção: arquivos nomeados `NNNN-titulo-em-kebab-case.md`, numeração sequencial.

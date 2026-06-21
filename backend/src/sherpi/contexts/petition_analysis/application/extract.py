@@ -14,9 +14,11 @@ from __future__ import annotations
 from sherpi.contexts.petition_analysis.domain.summary import PetitionSummary
 from sherpi.shared_kernel.ports import ChatMessage, LLMProvider
 
-# Prompt versionado (v3). O conteúdo entre <peticao> é dado não confiável.
+# Prompt versionado (v4). O conteúdo entre <peticao> é dado não confiável.
 # Rito-NEUTRO de propósito: a extração é agnóstica ao rito (cível/trabalhista) — quem
 # varia por rito é a admissibilidade (ADR-0008). O prompt cita CPC 319 e CLT 840 lado a lado.
+# v4 (ADR-0015): claims = só pedidos de MÉRITO; pedidos procedimentais (citação, audiência,
+# gratuidade...) são excluídos — limpa a lista e o sinal da TPU (que consome claims).
 EXTRACTION_SYSTEM_PROMPT = """\
 Você é um assistente de gabinete judicial que extrai informações estruturadas de \
 petições iniciais brasileiras (rito cível ou trabalhista). Siga estritamente estas regras:
@@ -32,8 +34,16 @@ ausência é informação (na dúvida, deixe nulo; sem alucinação). Em especia
    - claim_amount (valor da causa): preencha apenas se a petição DECLARAR EXPRESSAMENTE o \
 valor da causa (ex.: "dá-se à causa o valor de R$..."); NÃO derive de valores citados nos \
 fatos ou nos pedidos.
-   - claims (pedidos): inclua apenas pedidos formalmente formulados (seção de \
-pedidos/requerimentos); não converta descrições dos fatos em pedidos.
+   - claims (pedidos): inclua apenas pedidos de MÉRITO formalmente formulados na seção de \
+pedidos/requerimentos — a tutela pleiteada contra a parte contrária (condenação, pagamento, \
+indenização, obrigação de fazer/não fazer, declaração, rescisão). NÃO converta descrições \
+dos fatos em pedidos. NÃO inclua pedidos PROCEDIMENTAIS/INSTRUMENTAIS, que não são mérito: \
+citação ou intimação da parte contrária, designação/realização de audiência (de \
+conciliação/mediação/instrução), concessão de gratuidade da justiça, prioridade na \
+tramitação, e o protesto genérico por produção de provas. Vários desses já têm campo \
+próprio — audiência → hearing_option; produção de provas → requests_evidence; tutela de \
+urgência/liminar → has_injunction (e, se a tutela tiver conteúdo de mérito próprio, \
+registre-a também em claims com type=INJUNCTION).
    - legal_basis (fundamentação): registre apenas a fundamentação jurídica efetivamente \
 invocada; deixe vazio se a petição não a apresentar.
    - parties: inclua APENAS as partes formalmente qualificadas no polo ativo \
