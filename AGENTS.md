@@ -27,6 +27,11 @@ Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/IND
    Texto enviado a LLM externo passa pelo port `Anonymizer`. Nunca logar PII.
 5. **Métrica medida, nunca prometida.** Acurácia (ex.: TPU, extração) é reportada pelo eval, não afirmada.
 6. **Segredos fora do git.** Apenas `.env.example` é versionado; `.env` é local e ignorado.
+7. **Custo×benefício primeiro.** Custo (tokens de LLM, tempo, memória, complexidade, manutenção) é
+   variável de toda decisão — escolha o **melhor ROI**, não a opção mais "robusta" por reflexo. Antes de
+   uma ação cara (muitas chamadas de LLM, jobs longos, refactors amplos), exponha o trade-off e a
+   alternativa mais barata; faça o **diagnóstico gratuito primeiro**. LLM cobra **por token** (não por
+   chamada) — em escala, use **batch** e o modelo mais barato que resolve.
 
 ## Escopo atual (Sprints 1–9 entregues — backend + frontend completo)
 
