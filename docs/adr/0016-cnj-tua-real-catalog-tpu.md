@@ -97,14 +97,16 @@ cível+trabalhista, mantendo a arquitetura de ports (não há mudança no orques
   termo distintivo ("consignado", "indireta") aparece na query mas perde no cosseno puro.
   Consignado e rescisão indireta destravados, sem regressão. Sem custo de LLM (re-ranking em
   tempo de query).
-- ✅ Conjunto rotulado ampliado para **n=15** (incl. 4 trabalhistas só-path). **Baseline atual:
-  top-1 0.800, top-3 0.933, top-5 1.000.** Os só-path (periculosidade, adicional noturno, intervalo)
-  acertam em #1 — valida o híbrido onde não há glossário. A ampliação também pegou um rótulo errado
-  (equiparação apontava p/ nicho "Digitadores"; o assunto real é "Salário por Equiparação/Isonomia").
+- ✅ Conjunto rotulado ampliado para **n=15** (incl. 4 trabalhistas só-path). Os só-path
+  (periculosidade, adicional noturno, intervalo) acertam em #1 — valida o híbrido sem glossário.
+  A ampliação pegou um rótulo errado (equiparação apontava p/ nicho "Digitadores").
+- ✅ **Dedup por chave normalizada** (`_dedup_key`: minúsculo/sem acento/espaços/pontuação): colapsa
+  pares "Salário / Diferença" vs "Salário/Diferença" que escapavam da dedup e ocupavam slots do
+  top-k. Índice 1135→**1007**. **Baseline atual: top-1 0.800, top-3 1.000, top-5 1.000** (equiparação
+  #5→#3, rescisão indireta #3→#2).
 
 ## Itens pendentes (ordem sugerida)
-1. **Normalizar espaços/pontuação na dedup canônica** (`_canonical_leaf_path`): pares como
-   "Salário / Diferença Salarial" (plano) vs "Salário/Diferença Salarial" (DIT) escapam da dedup e
-   ocupam slots do top-k (empurram equiparação p/ #5). Normalizar destrava e melhora o ranking. (Requer re-seed.)
-2. UX de confiança/rejeição (limiar + "nenhuma classe próxima").
+1. UX de confiança/rejeição (limiar + "nenhuma classe próxima").
+2. Normalizar o texto da petição ANTES do LLM (colapsar espaços/quebras excedentes da extração
+   PDF/DOCX) — reduz tokens e ruído; medir economia e impacto.
 3. (Baixa prioridade) Enriquecimento por LLM das folhas trabalhistas só-path (em batch).

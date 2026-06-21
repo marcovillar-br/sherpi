@@ -16,6 +16,8 @@ Indexamos apenas **folhas** (assuntos classificáveis). `tpu_code` = `cod_item` 
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -32,10 +34,24 @@ _WRAPPER_SEGMENTS = frozenset({"Direito Individual do Trabalho", "Direito Coleti
 
 
 def _canonical_leaf_path(path: str) -> str:
-    """Caminho sem o ramo de topo ("DIREITO X >") e sem os segmentos wrapper."""
+    """Caminho sem o ramo de topo ("DIREITO X >") e sem os segmentos wrapper.
+
+    Preserva a formatação original (caixa/acentos) — é o texto de embedding."""
     segs = path.split(" > ")[1:]  # tira o ramo de topo
     segs = [s for s in segs if s not in _WRAPPER_SEGMENTS]
     return " > ".join(segs)
+
+
+def _dedup_key(path: str) -> str:
+    """Chave de deduplicação: caminho canônico normalizado (minúsculo, sem acento,
+    espaços/pontuação colapsados). Colapsa duplicatas que diferem só por formatação —
+    ex.: "Salário / Diferença Salarial" (ramo plano) vs "Salário/Diferença Salarial"
+    (cópia sob wrapper) — que de outro modo ocupariam dois slots do top-k.
+    NÃO afeta o texto de embedding (esse usa `_canonical_leaf_path`)."""
+    canon = _canonical_leaf_path(path).lower()
+    canon = "".join(c for c in unicodedata.normalize("NFKD", canon) if not unicodedata.combining(c))
+    canon = re.sub(r"\s*/\s*", "/", canon)  # "a / b" → "a/b"
+    return re.sub(r"\s+", " ", canon).strip()
 
 
 def _embedding_text(leaf_path: str, nome: str, glossario: str) -> str:
@@ -78,7 +94,7 @@ def load_cnj_seed(path: str | Path = DEFAULT_CATALOG) -> list[TpuEntry]:
     for e in data:
         if not e.get("is_leaf") or e.get("rito") not in ("CIVEL", "TRABALHISTA"):
             continue
-        key = (e["rito"], _canonical_leaf_path(e["path"]))
+        key = (e["rito"], _dedup_key(e["path"]))
         if key not in chosen or _is_better(e, chosen[key]):
             chosen[key] = e
     return [
