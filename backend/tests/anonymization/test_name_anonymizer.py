@@ -115,14 +115,18 @@ def test_ainda_mascara_razao_social_com_sufixo_multicaractere() -> None:
 def test_masks_party_name_after_label_when_cue_is_separated() -> None:
     # Regressão (template TJDFT): o cue "brasileiro" fica separado do nome pelo rótulo
     # "nacionalidade:", então o anchor por cue não pega. O anchor por rótulo de polo sim.
-    out = _NAMER.anonymize("PARTE REQUERENTE :  Daniel Almeida Rocha ,  nacionalidade: brasileiro(a)")
+    out = _NAMER.anonymize(
+        "PARTE REQUERENTE :  Daniel Almeida Rocha ,  nacionalidade: brasileiro(a)"
+    )
     assert "Daniel" not in out and "Rocha" not in out
     assert "[NOME]" in out
     assert "nacionalidade: brasileiro(a)" in out  # rótulo seguinte preservado
 
 
 def test_masks_reu_after_party_label_with_intervening_label() -> None:
-    out = _NAMER.anonymize("em face da PARTE REQUERIDA :  Igor Lima Costa ,  nacionalidade: brasileiro")
+    out = _NAMER.anonymize(
+        "em face da PARTE REQUERIDA :  Igor Lima Costa ,  nacionalidade: brasileiro"
+    )
     assert "Igor" not in out and "Costa" not in out
     assert "PARTE REQUERIDA :" in out and "[NOME]" in out
 

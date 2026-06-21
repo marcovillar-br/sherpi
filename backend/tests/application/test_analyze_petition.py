@@ -144,7 +144,7 @@ class _RecordingSuggestTpu:
     def __init__(self) -> None:
         self.text: str | None = None
 
-    def run(self, text, *, rito):  # noqa: ANN001 - assinatura espelha SuggestTpu.run
+    def run(self, text, *, rito):  # assinatura espelha SuggestTpu.run
         self.text = text
         return []
 

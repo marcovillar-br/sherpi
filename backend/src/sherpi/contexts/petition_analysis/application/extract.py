@@ -88,10 +88,30 @@ DEFAULT_MAX_INPUT_CHARS = 600_000
 # de PII pseudonimizada ("[NOME_1]"), que são valores legítimos a preservar verbatim.
 _PLACEHOLDER_JUNK = frozenset(
     {
-        "null", "none", "nil", "n/a", "n.a.", "na", "nan", "-", "--", "—", "–", ".",
-        "não informado", "nao informado", "não informada", "nao informada",
-        "não há", "nao ha", "nenhum", "nenhuma", "sem informação", "sem informacao",
-        "indisponível", "indisponivel",
+        "null",
+        "none",
+        "nil",
+        "n/a",
+        "n.a.",
+        "na",
+        "nan",
+        "-",
+        "--",
+        "—",
+        "–",  # noqa: RUF001 — en-dash é dado intencional (placeholder-lixo a higienizar)
+        ".",
+        "não informado",
+        "nao informado",
+        "não informada",
+        "nao informada",
+        "não há",
+        "nao ha",
+        "nenhum",
+        "nenhuma",
+        "sem informação",
+        "sem informacao",
+        "indisponível",
+        "indisponivel",
     }
 )
 
@@ -152,9 +172,7 @@ class ExtractPetition:
             ChatMessage(role="system", content=EXTRACTION_SYSTEM_PROMPT),
             ChatMessage(role="user", content=f"<peticao>\n{prepared}\n</peticao>"),
         ]
-        summary = await self._llm.complete(
-            messages, PetitionSummary, temperature=self._temperature
-        )
+        summary = await self._llm.complete(messages, PetitionSummary, temperature=self._temperature)
         return _normalize_summary(summary)
 
     def _prepare(self, text: str) -> str:
