@@ -25,8 +25,8 @@ help:
 	@echo "  make typecheck     mypy strict"
 	@echo "  make eval          Eval harness (gate de CI; sai != 0 abaixo do limiar)"
 	@echo "  make eval-tpu      Eval rotulado da TPU sobre a TUA real (JurisBERT; extra ml)"
-	@echo "  make dev-backend       Inicia o backend (hot reload, LLM real)"
-	@echo "  make dev-backend-fake  Inicia o backend com FakeProvider (sem tokens)"
+	@echo "  make dev-backend       Inicia o backend (hot reload, LLM real + TPU JurisBERT)"
+	@echo "  make dev-backend-fake  Inicia o backend com FakeProvider (sem tokens, sem ML)"
 	@echo "  make dev-frontend      Inicia o frontend (hot reload)"
 	@echo "  make e2e               Roda testes E2E Playwright (requer dev-backend-fake)"
 	@echo "  make e2e-llm           Roda testes de admissibilidade com LLM real (requer dev-backend)"
@@ -104,10 +104,14 @@ eval-tpu: tpu-catalog
 
 # --- Servidores ---
 
+# `--extra ml` para a TPU semântica (JurisBERT): `uv run` reverte o ambiente, então o
+# extra precisa ir AQUI — senão o embedder cai no Fake (64-dim), não casa com o índice
+# JurisBERT (768) e a TPU é desabilitada. Veja backend/README (TPU semântica).
 dev-backend:
-	cd $(BACKEND_DIR) && uv run uvicorn sherpi.interfaces.api.main:app --reload --port 8000
+	cd $(BACKEND_DIR) && PYTHONPATH=. uv run --extra ml uvicorn sherpi.interfaces.api.main:app --reload --port 8000
 
-# Backend sem LLM real — obrigatório para `make e2e` (zero custo de token)
+# Backend sem LLM real — obrigatório para `make e2e` (zero custo de token). SEM `--extra ml`:
+# o e2e valida o firewall, não a TPU; evita carregar torch (~2 GB) à toa.
 dev-backend-fake:
 	cd $(BACKEND_DIR) && SHERPI_LLM_BACKEND=fake uv run uvicorn sherpi.interfaces.api.main:app --reload --port 8000
 
