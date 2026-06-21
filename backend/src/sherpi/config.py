@@ -14,6 +14,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 LLMBackend = Literal["gemini", "grok", "anthropic", "fake"]
+TpuEmbedder = Literal["auto", "jurisbert", "fake"]
 
 
 class Settings(BaseSettings):
@@ -63,6 +64,11 @@ class Settings(BaseSettings):
     # --- Taxonomia (TPU) ---
     tpu_embedding_model: str = "juridics/jurisbert-base-portuguese-sts"
     tpu_top_k: int = 3
+    # Embedder da TPU (escolha explícita, evita "fake silencioso"):
+    #   jurisbert  semântico (requer extra `ml`); falha alto se indisponível
+    #   fake       hash, NÃO-semântico (dev/CI sem ML)
+    #   auto       tenta JurisBERT, cai no fake com WARNING
+    tpu_embedder: TpuEmbedder = "auto"
 
     # --- Auth ---
     jwt_secret: str = Field(default="change-me-in-dev-only")

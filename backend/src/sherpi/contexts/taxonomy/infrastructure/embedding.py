@@ -46,20 +46,29 @@ class JurisbertEmbeddingModel:
 
 def build_tpu_embedder(
     model_name: str = "juridics/jurisbert-base-portuguese-sts",
+    *,
+    prefer: str = "auto",
 ) -> JurisbertEmbeddingModel | FakeEmbeddingModel:
-    """Embedder da TPU: JurisBERT (semântico) quando o extra `ml` está instalado.
+    """Embedder da TPU, conforme a escolha explícita `prefer` (`SHERPI_TPU_EMBEDDER`):
 
-    Cai no `FakeEmbeddingModel` (hash, NÃO-semântico) com WARNING explícito se o
-    sentence-transformers não estiver disponível — para nunca degradar em silêncio
-    (o Fake produz ranking determinístico porém sem significado). Use o MESMO embedder
-    no seed e na busca: dimensões diferentes (Fake=64, JurisBERT=768) não casam — após
-    `uv sync --extra ml`, RE-SEMEAR o índice (scripts/seed_tpu.py).
+    - `"fake"`: `FakeEmbeddingModel` (hash, NÃO-semântico) — dev/CI sem ML.
+    - `"jurisbert"`: exige o JurisBERT; se faltar o extra `ml`, **propaga o ImportError**
+      (falha alto, em vez de cair no fake e zerar as sugestões em silêncio).
+    - `"auto"` (default): tenta JurisBERT e cai no fake com WARNING.
+
+    Use o MESMO embedder no seed e na busca: dimensões diferentes (Fake=64, JurisBERT=768)
+    não casam — após trocar, RE-SEMEAR o índice (`scripts/seed_tpu.py`).
     """
+    if prefer == "fake":
+        return FakeEmbeddingModel()
+    if prefer == "jurisbert":
+        return JurisbertEmbeddingModel(model_name)  # ImportError sobe → falha explícita
     try:
         return JurisbertEmbeddingModel(model_name)
     except ImportError:
         logger.warning(
-            "JurisBERT indisponível (instale `uv sync --extra ml`); TPU usando "
-            "FakeEmbeddingModel (hash, NÃO-semântico) — sugestões não são confiáveis."
+            "JurisBERT indisponível (instale `uv sync --extra ml` ou rode com `--extra ml`); "
+            "TPU usando FakeEmbeddingModel (hash, NÃO-semântico) — sugestões não confiáveis. "
+            "Para falhar alto em vez de degradar, defina SHERPI_TPU_EMBEDDER=jurisbert."
         )
         return FakeEmbeddingModel()

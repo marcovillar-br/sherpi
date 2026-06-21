@@ -6,6 +6,7 @@ Monta o orquestrador a partir da configuração. É sobreposto nos testes
 
 from __future__ import annotations
 
+import logging
 from functools import lru_cache
 from typing import Annotated
 
@@ -51,6 +52,7 @@ from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository, 
 from sherpi.shared_kernel.ports import LLMProvider
 
 _bearer = HTTPBearer(auto_error=False)
+_log = logging.getLogger(__name__)
 
 # Resumo canônico devolvido pelo backend fake (sem rede). Stub schema-válido: o
 # e2e valida o veredito do firewall, não o conteúdo da extração.
@@ -75,14 +77,28 @@ def _build_tpu_index() -> SqlTpuIndex:
 
 
 def _build_suggest_tpu() -> SuggestTpu | None:
+    settings = get_settings()
     try:
         index = _build_tpu_index()
         if index.count() == 0:
             return None
     except Exception:
+        _log.warning("Índice TPU indisponível; sugestões desabilitadas.")
         return None
-    settings = get_settings()
-    embedder = build_tpu_embedder(settings.tpu_embedding_model)
+    # `prefer="jurisbert"` propaga ImportError de propósito (falha alto na inicialização
+    # em vez de cair no fake e zerar as sugestões em silêncio).
+    embedder = build_tpu_embedder(settings.tpu_embedding_model, prefer=settings.tpu_embedder)
+    probe_dim = int(embedder.embed(["x"]).shape[1])
+    index_dim = index.embedding_dim()
+    if index_dim is not None and index_dim != probe_dim:
+        _log.error(
+            "TPU desabilitada: dimensão do índice (%d) ≠ do embedder (%d). "
+            "Re-semeie com o mesmo embedder (`make seed-tpu-cnj`) ou ajuste "
+            "SHERPI_TPU_EMBEDDER / rode com `--extra ml`.",
+            index_dim,
+            probe_dim,
+        )
+        return None
     return SuggestTpu(embedder, index, top_k=settings.tpu_top_k)
 
 
