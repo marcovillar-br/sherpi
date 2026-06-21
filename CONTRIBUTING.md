@@ -47,11 +47,22 @@ Convenção de nome de arquivo: `<categoria>_<cenario>.pdf`
 
 ## Fluxo de Git
 
-- Entregue sempre na branch **`development`** (commit + push).
+- **Nunca** commite nem dê push **direto na `development`**. Toda mudança vai em um **feature-branch**
+  (`feat/…`, `fix/…`, `docs/…`, `chore/…`) e entra na `development` **via Pull Request**.
 - O **merge `development → main`** é feito pelo **mantenedor (usuário)** — não mergeie nem abra PR
   para `main` por conta própria, salvo pedido explícito.
 - Commits no estilo *conventional* (`feat:`, `fix:`, `docs:`, `chore:`, `test:`…), mensagem em pt-BR,
   escopados por assunto.
+
+**Por que PR (e não push direto):** o CI roda em `pull_request` — sem PR, nada é validado antes de
+entrar na `development`. O PR é o portão onde lint/type/test/eval rodam.
+
+**Enforcement (o "nunca" é técnico, não só convenção):**
+
+- **Branch protection** na `development` no GitHub: exige PR, bloqueia push direto (inclusive de
+  admin) e force-push/deleção. Em emergência, o mantenedor desabilita a proteção temporariamente.
+- **Hook local** (`.claude/hooks/block-direct-development.sh`, ligado em `.claude/settings.json`):
+  recusa `git commit`/`git push` direto na `development` já no agente, antes de chegar ao GitHub.
 
 ## Qualidade (Definition of Done)
 
