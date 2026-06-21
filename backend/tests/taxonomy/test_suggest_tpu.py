@@ -101,6 +101,27 @@ def test_own_text_returns_highest_confidence(populated_index):
     assert results[0].tpu_code == target.tpu_code
 
 
+def test_build_tpu_embedder_falls_back_to_fake_without_ml():
+    # Sem o extra `ml` (caso da CI/dev), a factory cai no FakeEmbeddingModel — nunca
+    # quebra o import; o WARNING avisa que as sugestões não são semânticas.
+    from sherpi.contexts.taxonomy.infrastructure.embedding import build_tpu_embedder
+
+    try:
+        import sentence_transformers  # noqa: F401
+    except ImportError:
+        assert isinstance(build_tpu_embedder(), FakeEmbeddingModel)
+
+
+def test_search_returns_empty_on_dimension_mismatch(populated_index):
+    # Índice em DIM=64 (Fake) consultado com query de outra dimensão → não casa, não
+    # quebra: retorna [] (sinaliza re-seed necessário).
+    import numpy as np
+
+    _, idx = populated_index
+    bad_query = np.ones(768, dtype=np.float32)
+    assert idx.search(bad_query, k=3, rito=Rito.CIVEL) == []
+
+
 def test_dedupes_repeated_tpu_code_in_top_k():
     # O índice tem 2 entradas (âncoras distintas) do MESMO código: o top-k não deve
     # repetir o código — uma sugestão por código, a de maior confiança.

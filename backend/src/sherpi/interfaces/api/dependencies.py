@@ -38,7 +38,7 @@ from sherpi.contexts.review.application.record_review import RecordReview
 from sherpi.contexts.review.domain.ports import AuditRepository
 from sherpi.contexts.review.infrastructure.repository import SqlAuditRepository
 from sherpi.contexts.taxonomy.application.suggest_tpu import SuggestTpu
-from sherpi.contexts.taxonomy.infrastructure.embedding import FakeEmbeddingModel
+from sherpi.contexts.taxonomy.infrastructure.embedding import build_tpu_embedder
 from sherpi.contexts.taxonomy.infrastructure.sql_index import SqlTpuIndex
 from sherpi.infrastructure.anonymization.factory import build_anonymizer
 from sherpi.infrastructure.llm.audit import LoggingLLMProvider
@@ -81,8 +81,9 @@ def _build_suggest_tpu() -> SuggestTpu | None:
             return None
     except Exception:
         return None
-    embedder = FakeEmbeddingModel()
-    return SuggestTpu(embedder, index, top_k=get_settings().tpu_top_k)
+    settings = get_settings()
+    embedder = build_tpu_embedder(settings.tpu_embedding_model)
+    return SuggestTpu(embedder, index, top_k=settings.tpu_top_k)
 
 
 @lru_cache

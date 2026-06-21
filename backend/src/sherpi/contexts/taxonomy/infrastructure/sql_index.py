@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 from sqlalchemy import Engine
 from sqlmodel import Session, select
@@ -7,6 +9,8 @@ from sqlmodel import Session, select
 from sherpi.contexts.taxonomy.domain.tpu import TpuEntry, TpuSuggestion
 from sherpi.infrastructure.persistence.models import TpuEntryRow
 from sherpi.shared_kernel.value_objects import Rito
+
+logger = logging.getLogger(__name__)
 
 
 class SqlTpuIndex:
@@ -43,6 +47,16 @@ class SqlTpuIndex:
             [np.frombuffer(r.embedding, dtype=np.float32).reshape(r.embedding_dim) for r in rows]
         )
         q = query_embedding.astype(np.float32)
+        if matrix.shape[1] != q.shape[0]:
+            # Índice e query em dimensões diferentes → embedders distintos no seed e na
+            # busca (ex.: trocou para JurisBERT sem re-semear). Não casa; re-semeie.
+            logger.warning(
+                "Dimensão do índice TPU (%d) ≠ da query (%d) — re-semeie o índice com o "
+                "mesmo embedder (scripts/seed_tpu.py).",
+                matrix.shape[1],
+                q.shape[0],
+            )
+            return []
         scores: np.ndarray = matrix @ q
         # Top-k por CÓDIGO distinto: o índice tem várias entradas por tpu_code (âncoras
         # diferentes do mesmo assunto); sem dedupe, o mesmo código repetiria no top-k.
