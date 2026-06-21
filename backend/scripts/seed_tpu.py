@@ -39,7 +39,7 @@ def main() -> None:
         s.exec(delete(TpuEntryRow))
         s.commit()
 
-    embedder = build_tpu_embedder(cfg.tpu_embedding_model)
+    embedder = build_tpu_embedder(cfg.tpu_embedding_model, prefer=cfg.tpu_embedder)
     n = BuildTpuIndex(embedder, SqlTpuIndex(engine)).run(entries)
     print(f"Índice TPU populado: {n} entradas ({args.source}) via {type(embedder).__name__}.")
 

@@ -46,7 +46,8 @@ def run(catalog_path: str | Path = DEFAULT_CATALOG) -> int:
         print("  (pulado — catálogo da TUA ausente: rode `make tpu-catalog`)")
         return 0
 
-    embedder = build_tpu_embedder(get_settings().tpu_embedding_model)
+    _settings = get_settings()
+    embedder = build_tpu_embedder(_settings.tpu_embedding_model, prefer=_settings.tpu_embedder)
     if type(embedder).__name__ == "FakeEmbeddingModel":
         print("  (pulado — JurisBERT indisponível; rode com `uv run --extra ml`)")
         return 0

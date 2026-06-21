@@ -83,3 +83,12 @@ class SqlTpuIndex:
     def count(self) -> int:
         with Session(self._engine) as s:
             return len(list(s.exec(select(TpuEntryRow)).all()))
+
+    def embedding_dim(self) -> int | None:
+        """Dimensão dos vetores indexados (de uma linha qualquer); None se vazio.
+
+        Usado para validar, no startup, que o embedder da busca casa com o índice —
+        caso contrário a busca zeraria silenciosamente (Fake=64 vs JurisBERT=768)."""
+        with Session(self._engine) as s:
+            row = s.exec(select(TpuEntryRow)).first()
+        return int(row.embedding_dim) if row else None
