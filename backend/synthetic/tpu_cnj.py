@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from sherpi.contexts.taxonomy.domain.tpu import TpuEntry
 from sherpi.shared_kernel.value_objects import Rito
@@ -24,9 +25,21 @@ from sherpi.shared_kernel.value_objects import Rito
 DEFAULT_CATALOG = "data/cnj/tpu_assuntos.json"
 _MIN_GLOSS = 15  # glossário curto demais não acrescenta sinal; usa o caminho
 
+# Segmentos "wrapper" que RE-ANINHAM o ramo trabalhista (TUA tem a árvore plana E uma cópia
+# sob estes nós). Removê-los do caminho (a) encurta paths longos demais que dominavam o
+# ranking por mero volume de tokens, e (b) colapsa as duplicatas para deduplicação.
+_WRAPPER_SEGMENTS = frozenset({"Direito Individual do Trabalho", "Direito Coletivo do Trabalho"})
 
-def _embedding_text(nome: str, path: str, glossario: str) -> str:
-    """Caminho hierárquico SEMPRE + glossário oficial quando houver.
+
+def _canonical_leaf_path(path: str) -> str:
+    """Caminho sem o ramo de topo ("DIREITO X >") e sem os segmentos wrapper."""
+    segs = path.split(" > ")[1:]  # tira o ramo de topo
+    segs = [s for s in segs if s not in _WRAPPER_SEGMENTS]
+    return " > ".join(segs)
+
+
+def _embedding_text(leaf_path: str, nome: str, glossario: str) -> str:
+    """Caminho canônico SEMPRE + glossário oficial quando houver.
 
     Combinar (em vez de escolher um ou outro) é melhor que ambas as variantes isoladas:
     o caminho carrega os tokens discriminativos do assunto (ex.: "Rescisão Indireta",
@@ -34,13 +47,26 @@ def _embedding_text(nome: str, path: str, glossario: str) -> str:
     Glossário sozinho falha quando é um one-liner fraco (embeda pior que o próprio path);
     path sozinho falha quando assuntos irmãos compartilham o caminho (precisa da descrição).
     """
-    leaf_path = " > ".join(path.split(" > ")[1:]) or nome
+    base = leaf_path or nome
     gloss = (glossario or "").strip()
-    return f"{leaf_path}. {gloss}" if len(gloss) >= _MIN_GLOSS else leaf_path
+    return f"{base}. {gloss}" if len(gloss) >= _MIN_GLOSS else base
+
+
+def _is_better(cand: dict[str, Any], cur: dict[str, Any]) -> bool:
+    """Ao deduplicar assuntos idênticos (mesmo caminho canônico), escolhe o melhor:
+    glossário vence sem-glossário; depois caminho original mais curto (versão plana,
+    não a aninhada sob wrapper); por fim menor cod_item (determinístico)."""
+    ck = (len(cand.get("glossario") or "") >= _MIN_GLOSS, -len(cand["path"]), -cand["cod_item"])
+    rk = (len(cur.get("glossario") or "") >= _MIN_GLOSS, -len(cur["path"]), -cur["cod_item"])
+    return ck > rk
 
 
 def load_cnj_seed(path: str | Path = DEFAULT_CATALOG) -> list[TpuEntry]:
-    """Lê o catálogo da TUA e retorna as folhas cível/trabalhista como `TpuEntry`."""
+    """Lê o catálogo da TUA e retorna as folhas cível/trabalhista como `TpuEntry`.
+
+    Deduplica assuntos que aparecem em dois caminhos (árvore plana + cópia sob os wrappers
+    "Direito Individual/Coletivo do Trabalho"): mantém um por caminho canônico.
+    """
     catalog_path = Path(path)
     if not catalog_path.exists():
         raise FileNotFoundError(
@@ -48,17 +74,22 @@ def load_cnj_seed(path: str | Path = DEFAULT_CATALOG) -> list[TpuEntry]:
             "Rode antes: PYTHONPATH=. uv run python scripts/fetch_tpu_cnj.py"
         )
     data = json.loads(catalog_path.read_text(encoding="utf-8"))
-    entries: list[TpuEntry] = []
+    chosen: dict[tuple[str, str], dict[str, Any]] = {}
     for e in data:
         if not e.get("is_leaf") or e.get("rito") not in ("CIVEL", "TRABALHISTA"):
             continue
-        entries.append(
-            TpuEntry(
-                id=f"cnj-{e['cod_item']}",
-                tpu_code=str(e["cod_item"]),
-                description=e["nome"],
-                rito=Rito(e["rito"]),
-                text_excerpt=_embedding_text(e["nome"], e["path"], e.get("glossario", "")),
-            )
+        key = (e["rito"], _canonical_leaf_path(e["path"]))
+        if key not in chosen or _is_better(e, chosen[key]):
+            chosen[key] = e
+    return [
+        TpuEntry(
+            id=f"cnj-{e['cod_item']}",
+            tpu_code=str(e["cod_item"]),
+            description=e["nome"],
+            rito=Rito(e["rito"]),
+            text_excerpt=_embedding_text(
+                _canonical_leaf_path(e["path"]), e["nome"], e.get("glossario", "")
+            ),
         )
-    return entries
+        for e in chosen.values()
+    ]
