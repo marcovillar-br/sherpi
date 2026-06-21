@@ -58,6 +58,22 @@ _CATALOG = [
         "path": "DIREITO DO TRABALHO > Direito Individual do Trabalho > Rescisão do Contrato de Trabalho > Rescisão Indireta",
         "glossario": "",
     },
+    {  # par que difere SÓ por espaços/pontuação: ramo plano "Salário / Diferença Salarial"
+        "cod_item": 13405,
+        "nome": "Diferenças por Desvio de Função",
+        "rito": "TRABALHISTA",
+        "is_leaf": True,
+        "path": "DIREITO DO TRABALHO > Salário / Diferença Salarial > Diferenças por Desvio de Função",
+        "glossario": "",
+    },
+    {  # ...vs cópia sob wrapper "Salário/Diferença Salarial" (sem espaços) — deve deduplicar
+        "cod_item": 13922,
+        "nome": "Diferenças por Desvio de Função",
+        "rito": "TRABALHISTA",
+        "is_leaf": True,
+        "path": "DIREITO DO TRABALHO > Direito Individual do Trabalho > Salário/Diferença Salarial > Diferenças por Desvio de Função",
+        "glossario": "",
+    },
 ]
 
 
@@ -71,8 +87,16 @@ def catalog_file(tmp_path):
 def test_loads_only_leaves_in_scope(catalog_file):
     entries = load_cnj_seed(catalog_file)
     codes = {e.tpu_code for e in entries}
-    # ramo e fora-de-escopo descartados; a duplicata sob wrapper (13968) é deduplicada
-    assert codes == {"10441", "9999", "2435"}
+    # ramo e fora-de-escopo descartados; duplicatas (13968 sob wrapper; 13922 por
+    # formatação) são deduplicadas → sobram 13405 (flat) e os demais
+    assert codes == {"10441", "9999", "2435", "13405"}
+
+
+def test_dedupes_pairs_differing_only_by_whitespace_punctuation(catalog_file):
+    entries = {e.tpu_code: e for e in load_cnj_seed(catalog_file)}
+    # "Salário / Diferença Salarial" (plano, 13405) e "Salário/Diferença Salarial"
+    # (sob wrapper, 13922) são o MESMO assunto → uma só entrada (a plana vence).
+    assert "13405" in entries and "13922" not in entries
 
 
 def test_dedupes_parallel_hierarchy_preferring_glossario(catalog_file):
