@@ -90,13 +90,16 @@ cível+trabalhista, mantendo a arquitetura de ports (não há mudança no orques
 
 - ✅ Ingestão da TUA + escopo (`scripts/fetch_tpu_cnj.py`).
 - ✅ Texto de embedding híbrido (caminho + glossário) + re-seed (`synthetic/tpu_cnj.py`).
-- ✅ Eval rotulado (`evals/tpu_labeled.py`). **Baseline:** combine elevou top-1 0.500→**0.625**
-  e top-3 0.625→**0.750** (n=8) sem custo de LLM.
+- ✅ Eval rotulado (`evals/tpu_labeled.py`). Combine elevou top-1 0.500→0.625 e top-3 0.625→0.750.
+- ✅ Dedup da hierarquia paralela trabalhista + caminho canônico (1326→1135 folhas).
+- ✅ Embedder explícito (`SHERPI_TPU_EMBEDDER`) + check de dimensão (fim do "sumiço silencioso").
+- ✅ **Ranking híbrido denso + léxico/IDF** (`sql_index._lexical_scores`): resgata o assunto cujo
+  termo distintivo ("consignado", "indireta") aparece na query mas perde no cosseno puro.
+  **Baseline atual (n=8): top-1 0.750, top-3 1.000, top-5 1.000** — consignado e rescisão indireta
+  destravados, sem regressão. Sem custo de LLM (re-ranking em tempo de query).
 
 ## Itens pendentes (ordem sugerida)
-1. Casos duros que ainda erram apesar do glossário (consignado, rescisão indireta): tratar a
-   **hierarquia paralela** do trabalhista ("Direito Individual do Trabalho > …" duplica a árvore
-   e domina o ranking) — dedup/canonicalização — e avaliar re-ranking.
-2. Ampliar o conjunto rotulado (hoje 8), incluindo alvos trabalhistas só-path.
-3. UX de confiança/rejeição.
-4. (Baixa prioridade) Enriquecimento por LLM das folhas trabalhistas só-path (em batch).
+1. Ampliar o conjunto rotulado (hoje 8, top-3 saturou em 1.0): incluir alvos trabalhistas só-path
+   e medir numa amostra maior (evita overfit do híbrido a 8 casos; permite tunar `_LEXICAL_WEIGHT`).
+2. UX de confiança/rejeição (limiar + "nenhuma classe próxima").
+3. (Baixa prioridade) Enriquecimento por LLM das folhas trabalhistas só-path (em batch).
