@@ -147,13 +147,21 @@ def test_login_sets_cookie(client: TestClient) -> None:
 
 
 def test_analyze_without_token_returns_401() -> None:
-    """Endpoint protegido — sem override de get_current_user → 401."""
+    """Endpoint protegido — sem override de get_current_user → 401.
+
+    Sobrescreve apenas as dependências pesadas (orquestrador/repositório): elas não
+    têm relação com auth e, sem credenciais de LLM nem DB (como no CI), falhariam ao
+    ser construídas, mascarando o 401 com um 500. get_current_user fica real.
+    """
     app = create_app()
+    app.dependency_overrides[get_orchestrator] = lambda: None
+    app.dependency_overrides[get_repository] = lambda: None
     unauth_client = TestClient(app, raise_server_exceptions=False)
     resp = unauth_client.post(
         "/v1/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")}
     )
     assert resp.status_code == 401
+    app.dependency_overrides.clear()
 
 
 def test_analyze_with_auth_returns_200(client: TestClient) -> None:
