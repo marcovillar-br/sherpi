@@ -53,6 +53,9 @@ Convenção de nome de arquivo: `<categoria>_<cenario>.pdf`
   para `main` por conta própria, salvo pedido explícito.
 - Commits no estilo *conventional* (`feat:`, `fix:`, `docs:`, `chore:`, `test:`…), mensagem em pt-BR,
   escopados por assunto.
+- **Nome do branch**: `<tipo>/<descrição-curta>` em kebab-case. Tipos válidos: `feat`, `fix`, `docs`,
+  `refactor`, `test`, `chore` (os mesmos do conventional commit). Ex.: `fix/ci-ruff-baseline`,
+  `docs/git-conventions-pr-template`.
 
 **Por que PR (e não push direto):** o CI roda em `pull_request` — sem PR, nada é validado antes de
 entrar na `development`. O PR é o portão onde lint/type/test/eval rodam.
@@ -63,6 +66,16 @@ entrar na `development`. O PR é o portão onde lint/type/test/eval rodam.
   admin) e force-push/deleção. Em emergência, o mantenedor desabilita a proteção temporariamente.
 - **Hook local** (`.claude/hooks/block-direct-development.sh`, ligado em `.claude/settings.json`):
   recusa `git commit`/`git push` direto na `development` já no agente, antes de chegar ao GitHub.
+
+**Antes de abrir o PR:**
+
+- **Audite o stage** — confirme que nenhum segredo, chave de API ou `.env` entrou (revise
+  `git diff --cached`). Segredos só em `.env` local (ignorado); apenas `.env.example` é versionado.
+- **Rode os gates localmente** (`ruff` check+format, `mypy`, `pytest`) — o CI repete, mas falhar local
+  poupa um ciclo.
+- **Não misture** mudanças não relacionadas no mesmo PR: um PR, um assunto.
+- O corpo do PR segue [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) — o GitHub
+  o injeta automaticamente; via `gh pr create`, **omita `--body`** para puxá-lo.
 
 ## Qualidade (Definition of Done)
 
