@@ -99,3 +99,29 @@ def test_own_text_returns_highest_confidence(populated_index):
     suggest = SuggestTpu(embedder, idx, top_k=4)
     results = suggest.run(target.text_excerpt)
     assert results[0].tpu_code == target.tpu_code
+
+
+def test_dedupes_repeated_tpu_code_in_top_k():
+    # O índice tem 2 entradas (âncoras distintas) do MESMO código: o top-k não deve
+    # repetir o código — uma sugestão por código, a de maior confiança.
+    from sqlalchemy import StaticPool, create_engine
+
+    eng = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    create_all(eng)
+    embedder = FakeEmbeddingModel()
+    idx = SqlTpuIndex(eng)
+    BuildTpuIndex(embedder, idx).run(
+        [
+            TpuEntry(id="a1", tpu_code="10674", description="Obrigação de Fazer",
+                     rito=Rito.CIVEL, text_excerpt="obrigação de fazer concluir obras de reforma"),
+            TpuEntry(id="a2", tpu_code="10674", description="Obrigação de Fazer",
+                     rito=Rito.CIVEL, text_excerpt="obrigação de fazer entrega de documentos do veículo"),
+            TpuEntry(id="b1", tpu_code="1116", description="Indenização por Dano Moral",
+                     rito=Rito.CIVEL, text_excerpt="dano moral inscrição indevida no SPC"),
+        ]
+    )
+    results = SuggestTpu(embedder, idx, top_k=3).run("obrigação de fazer obras reforma")
+    codes = [r.tpu_code for r in results]
+    assert len(codes) == len(set(codes)), f"código repetido no top-k: {codes}"

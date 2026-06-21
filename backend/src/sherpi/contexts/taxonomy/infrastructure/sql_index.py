@@ -44,14 +44,24 @@ class SqlTpuIndex:
         )
         q = query_embedding.astype(np.float32)
         scores: np.ndarray = matrix @ q
-        top_k = min(k, len(rows))
-        idxs: list[int] = list(np.argsort(scores)[::-1][:top_k])
+        # Top-k por CÓDIGO distinto: o índice tem várias entradas por tpu_code (âncoras
+        # diferentes do mesmo assunto); sem dedupe, o mesmo código repetiria no top-k.
+        # Mantém a entrada de maior confiança de cada código, na ordem de score.
+        idxs: list[int] = []
+        seen: set[str] = set()
+        for i in (int(j) for j in np.argsort(scores)[::-1]):
+            if rows[i].tpu_code in seen:
+                continue
+            seen.add(rows[i].tpu_code)
+            idxs.append(i)
+            if len(idxs) == k:
+                break
         return [
             TpuSuggestion(
                 tpu_code=rows[i].tpu_code,
                 description=rows[i].description,
                 confidence=float(scores[i]),
-                anchor_excerpt=rows[i].text_excerpt[:200],
+                anchor_excerpt=rows[i].text_excerpt,
             )
             for i in idxs
         ]
