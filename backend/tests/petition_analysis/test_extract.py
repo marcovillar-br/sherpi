@@ -73,7 +73,9 @@ async def test_normalizes_placeholder_junk_to_empty_or_none() -> None:
     # deixá-lo vazio. A extração sanea isso de forma determinística.
     junk = PetitionSummary(
         court="N/A",
-        parties=[Parte(name="[NOME_1]", document="null", pole=Polo.ACTIVE, address="não informado")],
+        parties=[
+            Parte(name="[NOME_1]", document="null", pole=Polo.ACTIVE, address="não informado")
+        ],
         facts="Fatos reais da peça.",
         legal_basis="null",
         claims=[Pedido(description="Pagamento", amount="N/A")],

@@ -135,12 +135,27 @@ def test_dedupes_repeated_tpu_code_in_top_k():
     idx = SqlTpuIndex(eng)
     BuildTpuIndex(embedder, idx).run(
         [
-            TpuEntry(id="a1", tpu_code="10674", description="Obrigação de Fazer",
-                     rito=Rito.CIVEL, text_excerpt="obrigação de fazer concluir obras de reforma"),
-            TpuEntry(id="a2", tpu_code="10674", description="Obrigação de Fazer",
-                     rito=Rito.CIVEL, text_excerpt="obrigação de fazer entrega de documentos do veículo"),
-            TpuEntry(id="b1", tpu_code="1116", description="Indenização por Dano Moral",
-                     rito=Rito.CIVEL, text_excerpt="dano moral inscrição indevida no SPC"),
+            TpuEntry(
+                id="a1",
+                tpu_code="10674",
+                description="Obrigação de Fazer",
+                rito=Rito.CIVEL,
+                text_excerpt="obrigação de fazer concluir obras de reforma",
+            ),
+            TpuEntry(
+                id="a2",
+                tpu_code="10674",
+                description="Obrigação de Fazer",
+                rito=Rito.CIVEL,
+                text_excerpt="obrigação de fazer entrega de documentos do veículo",
+            ),
+            TpuEntry(
+                id="b1",
+                tpu_code="1116",
+                description="Indenização por Dano Moral",
+                rito=Rito.CIVEL,
+                text_excerpt="dano moral inscrição indevida no SPC",
+            ),
         ]
     )
     results = SuggestTpu(embedder, idx, top_k=3).run("obrigação de fazer obras reforma")

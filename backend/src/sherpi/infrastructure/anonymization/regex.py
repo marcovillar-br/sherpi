@@ -58,7 +58,9 @@ _ANCHORED_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     # Nº de boletim/registro de ocorrência policial (B.O.).
     (
         "[OCORRENCIA]",
-        re.compile(r"((?:[Oo]corr[êe]ncia|boletim de ocorr[êe]ncia|B\.?O\.?)[^\n\d]{0,15}?)(\d{4,})\b"),
+        re.compile(
+            r"((?:[Oo]corr[êe]ncia|boletim de ocorr[êe]ncia|B\.?O\.?)[^\n\d]{0,15}?)(\d{4,})\b"
+        ),
     ),
 )
 
@@ -259,7 +261,9 @@ class MappedRegexNameAnonymizer:
 class MappedCompositeAnonymizer:
     """Encadeia anonimizadores **reversíveis** acumulando o mapa combinado."""
 
-    def __init__(self, anonymizers: list[MappedRegexAnonymizer | MappedRegexNameAnonymizer]) -> None:
+    def __init__(
+        self, anonymizers: list[MappedRegexAnonymizer | MappedRegexNameAnonymizer]
+    ) -> None:
         self._anonymizers = anonymizers
 
     def anonymize(self, text: str) -> str:
