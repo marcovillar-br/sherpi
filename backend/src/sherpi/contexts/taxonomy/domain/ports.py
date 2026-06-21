@@ -28,7 +28,12 @@ class TpuIndex(Protocol):
     def add(self, entry: TpuEntry, embedding: np.ndarray) -> None: ...
 
     def search(
-        self, query_embedding: np.ndarray, k: int, rito: Rito | None = None
+        self,
+        query_embedding: np.ndarray,
+        k: int,
+        rito: Rito | None = None,
+        *,
+        query_text: str | None = None,
     ) -> list[TpuSuggestion]: ...
 
     def count(self) -> int: ...
