@@ -88,8 +88,10 @@ Convenções completas e agnósticas a ferramenta em [`CONTRIBUTING.md`](CONTRIB
   **en-US** (PEP 8); saída ao usuário, comentários Python e conteúdo de docs em **pt-BR**.
   Nomes de arquivo em `docs/` em **en-US** kebab-case. `trabalhista` é exceção de domínio (sem
   equivalente en-US limpo). Siglas: PMP (não PGP), WBS (não EAP). Detalhes em `CONTRIBUTING.md`.
-- **Git**: entregue na branch **`development`**; o **merge para `main` é do mantenedor** (não mergeie
-  nem abra PR para `main` sem pedido). Commits *conventional*, em pt-BR.
+- **Git**: **nunca** commite/push direto na **`development`** — toda mudança vai em **feature-branch**
+  e entra na `development` **via PR** (onde o CI roda). O **merge `development → main` é do mantenedor**
+  (não mergeie nem abra PR para `main` sem pedido). Push direto é bloqueado por *branch protection* +
+  hook local (`.claude/hooks/`). Commits *conventional*, em pt-BR.
 - **Definition of Done**: código + testes passando, `ruff`/`mypy` limpos, docs atualizadas; para
   modelos, métrica medida no eval. Tudo isso é gate de CI.
 - **mypy strict.** PyMuPDF é sem tipos: relaxe apenas no adapter/ferramenta (override em `pyproject.toml`),
