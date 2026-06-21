@@ -136,3 +136,29 @@ async def test_summary_restores_real_pii_for_human_reviewer() -> None:
         i for i in result.admissibility.items if i.requirement.value == "qualification"
     )
     assert qualification.present is True
+
+
+class _RecordingSuggestTpu:
+    """Espião que captura o texto recebido pela TPU (interface de SuggestTpu.run)."""
+
+    def __init__(self) -> None:
+        self.text: str | None = None
+
+    def run(self, text, *, rito):  # noqa: ANN001 - assinatura espelha SuggestTpu.run
+        self.text = text
+        return []
+
+
+async def test_tpu_query_comes_from_summary_not_raw_text() -> None:
+    # A TPU classifica o mérito: a query deve ser composta do resumo extraído
+    # (fatos + fundamentação + pedidos), não do texto bruto cheio de boilerplate.
+    spy = _RecordingSuggestTpu()
+    orchestrator = AnalyzePetition(
+        PyMuPDFParser(), ExtractPetition(FakeProvider(_SUMMARY)), suggest_tpu=spy
+    )
+    result = await orchestrator.run(build_clean(), max_pages=300)
+
+    assert result.summary is not None
+    assert spy.text == "Contrato inadimplido.\nCPC.\nPagamento"
+    # Nada de cabeçalho/rodapé do modelo nem endereçamento da petição.
+    assert "AVISO" not in spy.text and "PETIÇÃO INICIAL" not in spy.text

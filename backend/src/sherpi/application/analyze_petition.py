@@ -50,6 +50,23 @@ class AnalysisResult(BaseModel):
         return self.forensics.blocked
 
 
+def _tpu_query_text(summary: PetitionSummary) -> str:
+    """Compõe a query da TPU a partir do mérito extraído (fatos + fundamentação + pedidos).
+
+    O índice da TPU é construído sobre resumos de mérito (ver `synthetic.tpu_seed`):
+    prosa limpa de fato/fundamento/pedido, sem endereçamento, qualificação das partes,
+    cabeçalho/rodapé ou disclaimers de modelo. Usar o texto bruto (`visible_text`) como
+    query coloca-a numa distribuição diferente da do índice — e ainda fica refém de
+    boilerplate que varia por formato (.pdf repete cabeçalho/rodapé por página; .docx
+    joga header/footer para o fim), produzindo embeddings distintos para a mesma peça.
+
+    Compor a query a partir do `PetitionSummary` alinha query e índice, melhora a
+    aderência semântica e equaliza o resultado entre .pdf e .docx.
+    """
+    parts = [summary.facts, summary.legal_basis, *(c.description for c in summary.claims)]
+    return "\n".join(p for p in parts if p and p.strip())
+
+
 class AnalyzePetition:
     def __init__(
         self,
@@ -94,7 +111,9 @@ class AnalyzePetition:
         admissibility = self._admissibility.run(summary, rito, raw_text=original_text)
         tpu_suggestions: list[TpuSuggestion] | None = None
         if self._suggest_tpu is not None:
-            tpu_suggestions = self._suggest_tpu.run(original_text, rito=rito)
+            # A TPU classifica o mérito; a query vem do resumo extraído, não do texto
+            # bruto — alinha com a distribuição do índice e equaliza .pdf/.docx.
+            tpu_suggestions = self._suggest_tpu.run(_tpu_query_text(summary), rito=rito)
         return AnalysisResult(
             rito=rito,
             forensics=forensics,
