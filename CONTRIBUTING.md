@@ -56,6 +56,12 @@ Convenção de nome de arquivo: `<categoria>_<cenario>.pdf`
 - **Nome do branch**: `<tipo>/<descrição-curta>` em kebab-case. Tipos válidos: `feat`, `fix`, `docs`,
   `refactor`, `test`, `chore` (os mesmos do conventional commit). Ex.: `fix/ci-ruff-baseline`,
   `docs/git-conventions-pr-template`.
+- **Base do PR**: sempre `development` — **nunca empilhe** um PR sobre outro feature-branch. Se um
+  trabalho depende de mudança ainda não mesclada, **serialize**: mescle o pai, atualize a `development`
+  (`git pull`), rebaseie o filho e só então abra o PR. *(PR empilhado é frágil: ao mesclar o pai com
+  `--delete-branch`, o GitHub pode não re-apontar a base do filho — que acaba mesclado no branch órfão
+  e não chega à `development`. Após cadeias de merge, confirme que o conteúdo está na `development` e
+  remova branches órfãos.)*
 
 **Por que PR (e não push direto):** o CI roda em `pull_request` — sem PR, nada é validado antes de
 entrar na `development`. O PR é o portão onde lint/type/test/eval rodam.
