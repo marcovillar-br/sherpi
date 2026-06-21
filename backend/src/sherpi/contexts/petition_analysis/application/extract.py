@@ -11,8 +11,42 @@ instrução) — defesa em profundidade além do firewall.
 
 from __future__ import annotations
 
+import re
+import unicodedata
+from collections import Counter
+
 from sherpi.contexts.petition_analysis.domain.summary import PetitionSummary
 from sherpi.shared_kernel.ports import ChatMessage, LLMProvider
+
+# Nº mínimo de repetições (por página) para uma linha ser tratada como boilerplate
+# (cabeçalho/rodapé/disclaimer de modelo). Conta por forma com dígitos normalizados,
+# então "Página 1 de 5"/"Página 2 de 5" agrupam.
+_BOILERPLATE_MIN_REPEAT = 3
+
+
+def _normalize_input(text: str) -> str:
+    """Reduz tokens e ruído do texto antes do LLM, SEM perder conteúdo jurídico.
+
+    (a) colapsa espaços/tabs e quebras excedentes; (b) remove linhas que se repetem em
+    ≥3 páginas (disclaimer "MODELO AVISO…", rodapés "Página X de Y", "@ANO SEAJ…") —
+    detecção genérica por repetição (dígitos normalizados), não por marcadores de um
+    tribunal específico. Roda DEPOIS do firewall (que inspeciona os spans originais) e
+    sobre o texto já anonimizado — não afeta a admissibilidade (usa o texto original).
+    """
+    def key(line: str) -> str:
+        # Chave robusta p/ AGRUPAR repetições (não afeta o texto mantido): minúsculo, sem
+        # acento, pontuação/hífen/espaços → espaço, números → "#". Assim o disclaimer e os
+        # rodapés agrupam mesmo com variações de hifenização/espaçamento da extração PDF.
+        k = unicodedata.normalize("NFKD", line.lower())
+        k = "".join(c for c in k if not unicodedata.combining(c))
+        return re.sub(r"\d+", "#", re.sub(r"[^a-z0-9]+", " ", k)).strip()
+
+    lines = [re.sub(r"[^\S\n]+", " ", ln).strip() for ln in text.split("\n")]
+    repeats = Counter(key(ln) for ln in lines if ln)
+    boilerplate = {k for k, c in repeats.items() if c >= _BOILERPLATE_MIN_REPEAT}
+    kept = [ln for ln in lines if not ln or key(ln) not in boilerplate]
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(kept)).strip()
+
 
 # Prompt versionado (v5). O conteúdo entre <peticao> é dado não confiável.
 # Rito-NEUTRO de propósito: a extração é agnóstica ao rito (cível/trabalhista) — quem
@@ -181,7 +215,7 @@ class ExtractPetition:
         Mantém o início (qualificação/fatos/pedidos costumam estar no começo) e
         sinaliza o corte. Fatiamento semântico completo fica para a Fase 4.
         """
-        clean = text.strip()
+        clean = _normalize_input(text)
         if len(clean) <= self._max_input_chars:
             return clean
         return clean[: self._max_input_chars] + "\n\n[...documento truncado para análise...]"
