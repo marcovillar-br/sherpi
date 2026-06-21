@@ -19,6 +19,23 @@ cp .env.example .env         # configure SHERPI_LLM_API_KEY, SHERPI_JWT_SECRET, 
 docker compose up -d db      # sobe PostgreSQL 16 (a partir da raiz do repo)
 ```
 
+### TPU semântica (opcional — JurisBERT)
+
+Sem o extra `ml`, a sugestão de TPU usa o `FakeEmbeddingModel` (embeddings por hash,
+**não-semântico**: ranking determinístico porém sem significado — útil só para dev/CI).
+Para sugestões reais, ligue o **JurisBERT** (embeddings jurídicos em PT, ~440 MB, CPU,
+sem custo de API):
+
+```bash
+uv sync --extra ml           # instala torch + transformers (~1,5–3 GB em disco)
+make seed-tpu                # RE-SEMEIA o índice com JurisBERT (768-dim) — a partir da raiz
+```
+
+O `build_tpu_embedder` (em `taxonomy/infrastructure/embedding.py`) usa JurisBERT quando o
+extra `ml` está presente e cai no Fake com WARNING caso contrário — nunca degrada em
+silêncio. **Build e busca precisam do mesmo embedder**: ao instalar o `ml`, re-semeie
+(dimensões diferentes não casam; o `search` retorna `[]` e loga se houver mismatch).
+
 ## Estrutura (bounded contexts)
 
 ```
