@@ -58,6 +58,7 @@ dev = [
     "mypy>=1.13",
     "pre-commit>=4.0",
     "pip-audit>=2.7",
+    "pytest-timeout>=2.3",
 ]
 
 [build-system]
@@ -114,3 +115,7 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 # Torna os pacotes de dev de nível raiz (synthetic, evals) importáveis nos testes.
 pythonpath = ["."]
+# Timeout POR TESTE (pytest-timeout): nenhum teste pode pendurar e travar a sessão/WSL.
+# 60s é folgado (a maioria roda <1s); método `thread` não exige sinais POSIX.
+timeout = 60
+timeout_method = "thread"

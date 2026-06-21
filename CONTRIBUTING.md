@@ -78,7 +78,9 @@ entrar na `development`. O PR é o portão onde lint/type/test/eval rodam.
 - **Audite o stage** — confirme que nenhum segredo, chave de API ou `.env` entrou (revise
   `git diff --cached`). Segredos só em `.env` local (ignorado); apenas `.env.example` é versionado.
 - **Rode os gates localmente** (`ruff` check+format, `mypy`, `pytest`) — o CI repete, mas falhar local
-  poupa um ciclo.
+  poupa um ciclo. **Em dev/WSL, prefira `make test-sliced`** (suíte fatiada por domínio) a `make test`:
+  rodar tudo de uma vez pode esgotar recursos e derrubar a sessão. Use `make test-domain D=<dir>` para
+  um domínio. O `pytest-timeout` (config no `pyproject`) corta qualquer teste pendurado.
 - **Não misture** mudanças não relacionadas no mesmo PR: um PR, um assunto.
 - O corpo do PR segue [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) — o GitHub
   o injeta automaticamente; via `gh pr create`, **omita `--body`** para puxá-lo.
