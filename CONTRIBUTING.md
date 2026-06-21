@@ -56,6 +56,12 @@ Convenção de nome de arquivo: `<categoria>_<cenario>.pdf`
 - **Nome do branch**: `<tipo>/<descrição-curta>` em kebab-case. Tipos válidos: `feat`, `fix`, `docs`,
   `refactor`, `test`, `chore` (os mesmos do conventional commit). Ex.: `fix/ci-ruff-baseline`,
   `docs/git-conventions-pr-template`.
+- **Uma PR por vez (serial por padrão)**: não abra uma nova branch enquanto houver PR aberto — espere o
+  merge e parta da `development` atualizada. Conflito só ocorre quando duas branches tocam o mesmo
+  arquivo, mas **arquivos de cruzamento** (`Makefile`, `pyproject.toml`, `docs/adr/INDEX.md`,
+  `docs/INDEX.md`) são mexidos por quase tudo — então, na prática, branches paralelas colidem.
+  Trabalho paralelo só quando os arquivos forem **disjuntos**; se for inevitável, **rebaseie na
+  `development` antes de abrir/atualizar o PR**.
 - **Base do PR**: sempre `development` — **nunca empilhe** um PR sobre outro feature-branch. Se um
   trabalho depende de mudança ainda não mesclada, **serialize**: mescle o pai, atualize a `development`
   (`git pull`), rebaseie o filho e só então abra o PR. *(PR empilhado é frágil: ao mesclar o pai com

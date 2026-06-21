@@ -96,6 +96,10 @@ Convenções completas e agnósticas a ferramenta em [`CONTRIBUTING.md`](CONTRIB
   filho, abra o PR). O **merge `development → main` é do mantenedor** (não mergeie nem abra PR para
   `main` sem pedido). Push direto é bloqueado por *branch protection* + hook local (`.claude/hooks/`).
   Commits *conventional*, em pt-BR.
+- **Uma PR por vez (serial por padrão).** NÃO abra nova branch enquanto houver PR aberto — espere o
+  merge e parta da `development` atualizada. Arquivos de cruzamento (`Makefile`, `pyproject.toml`,
+  `docs/adr/INDEX.md`, índices) são tocados por quase tudo, então branches paralelas colidem; só
+  paralelize em arquivos disjuntos e, se inevitável, rebaseie na `development` antes do PR.
 - **Definition of Done**: código + testes passando, `ruff`/`mypy` limpos, docs atualizadas; para
   modelos, métrica medida no eval. Tudo isso é gate de CI.
 - **mypy strict.** PyMuPDF é sem tipos: relaxe apenas no adapter/ferramenta (override em `pyproject.toml`),
