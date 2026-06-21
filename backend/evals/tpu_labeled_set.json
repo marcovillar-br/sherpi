@@ -1,0 +1,50 @@
+[
+  {
+    "name": "acidente_transito_dano_material",
+    "rito": "CIVEL",
+    "expect": "Acidente de Trânsito",
+    "query": "Ação de reparação de danos por acidente de trânsito. Colisão traseira provocada pelo requerido, que não observou a distância de segurança. Pede condenação ao pagamento dos danos materiais do veículo, gastos extras e lucros cessantes."
+  },
+  {
+    "name": "emprestimo_consignado_fraude",
+    "rito": "CIVEL",
+    "expect": "Empréstimo consignado",
+    "query": "Empréstimo consignado bancário fraudulento contra aposentada do INSS, por golpe de falsa portabilidade. Pede a nulidade do contrato, a restituição em dobro das parcelas descontadas do benefício e a cessação dos descontos."
+  },
+  {
+    "name": "cobranca_mutuo_entre_pessoas",
+    "rito": "CIVEL",
+    "expect": "Mútuo",
+    "query": "Cobrança de empréstimo de dinheiro (mútuo) entre particulares por falta de pagamento. O autor entregou a quantia ajustada e o réu não restituiu o valor devido; pede a condenação ao pagamento do saldo com juros e correção."
+  },
+  {
+    "name": "dano_moral_inscricao_indevida",
+    "rito": "CIVEL",
+    "expect": "Indenização por Dano Moral",
+    "query": "Indenização por dano moral decorrente de inscrição indevida do nome do autor nos cadastros de inadimplentes (SPC/Serasa) sem débito legítimo, causando abalo de crédito. Pede a condenação ao pagamento de indenização por danos morais."
+  },
+  {
+    "name": "horas_extras_trabalhista",
+    "rito": "TRABALHISTA",
+    "expect": "Horas Extras",
+    "query": "Reclamação trabalhista pelo pagamento de horas extras laboradas habitualmente além da jornada de 8 horas diárias e 44 semanais, sem a devida contraprestação, com adicional de 50% e reflexos em DSR, férias, 13º e FGTS."
+  },
+  {
+    "name": "verbas_rescisorias_trabalhista",
+    "rito": "TRABALHISTA",
+    "expect": "Verbas Rescisórias",
+    "query": "Reclamação pelo pagamento das verbas rescisórias não quitadas após dispensa sem justa causa: saldo de salário, aviso prévio, férias proporcionais com 1/3, décimo terceiro proporcional e multa de 40% do FGTS."
+  },
+  {
+    "name": "rescisao_indireta_trabalhista",
+    "rito": "TRABALHISTA",
+    "expect": "Rescisão Indireta",
+    "query": "Reclamação para reconhecimento da rescisão indireta do contrato de trabalho por falta grave do empregador, consistente em atraso reiterado no pagamento dos salários, com pagamento de todas as verbas como se dispensa sem justa causa fosse."
+  },
+  {
+    "name": "adicional_insalubridade_trabalhista",
+    "rito": "TRABALHISTA",
+    "expect": "Insalubridade",
+    "query": "Reclamação pelo pagamento de adicional de insalubridade em grau máximo, por exposição habitual a agentes biológicos sem fornecimento de EPIs adequados, com reflexos nas demais verbas, conforme NR-15."
+  }
+]

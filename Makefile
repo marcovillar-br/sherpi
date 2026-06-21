@@ -5,7 +5,7 @@
 BACKEND_DIR := backend
 FRONTEND_DIR := frontend
 
-.PHONY: help up down setup migrate seed-tpu tpu-catalog seed-tpu-cnj synthetic test lint typecheck eval dev-backend dev-backend-fake dev-frontend e2e
+.PHONY: help up down setup migrate seed-tpu tpu-catalog seed-tpu-cnj synthetic test lint typecheck eval eval-tpu dev-backend dev-backend-fake dev-frontend e2e
 
 help:
 	@echo "Comandos disponíveis:"
@@ -22,6 +22,7 @@ help:
 	@echo "  make lint          ruff check + format --check"
 	@echo "  make typecheck     mypy strict"
 	@echo "  make eval          Eval harness (gate de CI; sai != 0 abaixo do limiar)"
+	@echo "  make eval-tpu      Eval rotulado da TPU sobre a TUA real (JurisBERT; extra ml)"
 	@echo "  make dev-backend       Inicia o backend (hot reload, LLM real)"
 	@echo "  make dev-backend-fake  Inicia o backend com FakeProvider (sem tokens)"
 	@echo "  make dev-frontend      Inicia o frontend (hot reload)"
@@ -82,6 +83,11 @@ typecheck:
 # Eval harness — gate de CI; sai com código != 0 se abaixo do limiar.
 eval:
 	cd $(BACKEND_DIR) && PYTHONPATH=. uv run python -m evals.run --ci
+
+# Eval rotulado da TPU sobre a TUA real do CNJ (ADR-0016) — requer extra ml + catálogo.
+# Não é gate de CI (precisa de JurisBERT); use para medir acurácia top-1/3/5.
+eval-tpu: tpu-catalog
+	cd $(BACKEND_DIR) && PYTHONPATH=. uv run --extra ml python -m evals.tpu_labeled
 
 # --- Servidores ---
 
