@@ -33,6 +33,7 @@ def _normalize_input(text: str) -> str:
     tribunal específico. Roda DEPOIS do firewall (que inspeciona os spans originais) e
     sobre o texto já anonimizado — não afeta a admissibilidade (usa o texto original).
     """
+
     def key(line: str) -> str:
         # Chave robusta p/ AGRUPAR repetições (não afeta o texto mantido): minúsculo, sem
         # acento, pontuação/hífen/espaços → espaço, números → "#". Assim o disclaimer e os
