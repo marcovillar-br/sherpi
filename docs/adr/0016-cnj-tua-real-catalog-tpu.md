@@ -52,10 +52,14 @@ cível+trabalhista, mantendo a arquitetura de ports (não há mudança no orques
 1. **Ingestão** (feito — protótipo): `scripts/fetch_tpu_cnj.py` baixa a TUA via SGT,
    reconstrói a árvore, filtra o escopo e emite catálogo (`cod_item`, `nome`, `rito`,
    `is_leaf`, `path`, `glossario`). Re-sync manual (a TUA é versionada pelo CNJ).
-2. **Texto de embedding híbrido** (pendente): `glossario` quando houver (37%, alta
-   qualidade); senão o `path` hierárquico (baseline); descrição gerada por **LLM** para as
-   folhas de **alta frequência** sem glossário (custo de geração modesto, revisão por
-   amostragem). O texto é o que mais move a acurácia — não o motor.
+2. **Texto de embedding híbrido** (feito): **caminho hierárquico SEMPRE + glossário oficial
+   quando houver** (combinados, não um ou outro). Diagnóstico mostrou que glossário sozinho
+   embeda pior quando é um one-liner fraco, e path sozinho confunde irmãos do mesmo caminho;
+   combinar resolveu os dois. Cobertura de glossário é desigual: **cível ~96%**, **trabalhista
+   ~4%** (811 folhas só-path). Enriquecimento por **LLM** das folhas trabalhistas só-path fica
+   como melhoria **futura e de baixa prioridade** (custo×benefício: o combine grátis já entregou
+   o maior ganho; LLM em escala = batch, cobrança por token). O texto é o que mais move a
+   acurácia — não o motor.
 3. **Motor k-NN inalterado** (revisita o ADR-0009 e confirma): brute-force numpy/bytes
    aguenta 1.326×768 com folga (<10 ms, poucos MB). FAISS/pgvector só se um dia indexar a
    TUA inteira (~5,6k) ou múltiplos ramos — desnecessário agora.
@@ -82,7 +86,17 @@ cível+trabalhista, mantendo a arquitetura de ports (não há mudança no orques
 - Multi-assunto: a TPU admite vários assuntos por processo — a v1 fica em top-k simples;
   multi-label fica para depois (registrar se mudar).
 
+## Progresso
+
+- ✅ Ingestão da TUA + escopo (`scripts/fetch_tpu_cnj.py`).
+- ✅ Texto de embedding híbrido (caminho + glossário) + re-seed (`synthetic/tpu_cnj.py`).
+- ✅ Eval rotulado (`evals/tpu_labeled.py`). **Baseline:** combine elevou top-1 0.500→**0.625**
+  e top-3 0.625→**0.750** (n=8) sem custo de LLM.
+
 ## Itens pendentes (ordem sugerida)
-1. Texto de embedding híbrido + re-seed a partir do catálogo real.
-2. Eval rotulado petição→assunto (top-1/top-3/top-5).
+1. Casos duros que ainda erram apesar do glossário (consignado, rescisão indireta): tratar a
+   **hierarquia paralela** do trabalhista ("Direito Individual do Trabalho > …" duplica a árvore
+   e domina o ranking) — dedup/canonicalização — e avaliar re-ranking.
+2. Ampliar o conjunto rotulado (hoje 8), incluindo alvos trabalhistas só-path.
 3. UX de confiança/rejeição.
+4. (Baixa prioridade) Enriquecimento por LLM das folhas trabalhistas só-path (em batch).

@@ -58,10 +58,15 @@ def test_loads_only_leaves_in_scope(catalog_file):
     assert codes == {"10441", "9999"}  # ramo e fora-de-escopo descartados
 
 
-def test_glossario_becomes_embedding_text(catalog_file):
+def test_embedding_text_combines_path_and_glossario(catalog_file):
     e = next(x for x in load_cnj_seed(catalog_file) if x.tpu_code == "10441")
-    assert e.text_excerpt.startswith("Acidente de Trânsito. ")
-    assert "danos materiais" in e.text_excerpt
+    # caminho (sem o ramo de topo) SEMPRE + glossário oficial ao final
+    assert (
+        "Responsabilidade Civil > Indenização por Dano Material > Acidente de Trânsito"
+        in e.text_excerpt
+    )
+    assert "DIREITO CIVIL" not in e.text_excerpt  # ramo de topo removido
+    assert "danos materiais" in e.text_excerpt  # glossário presente
     assert e.rito is Rito.CIVEL
     assert e.id == "cnj-10441"
 
