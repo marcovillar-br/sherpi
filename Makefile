@@ -5,7 +5,7 @@
 BACKEND_DIR := backend
 FRONTEND_DIR := frontend
 
-.PHONY: help up down setup migrate seed-tpu tpu-catalog seed-tpu-cnj synthetic test lint typecheck eval eval-tpu dev-backend dev-backend-fake dev-frontend e2e
+.PHONY: help up down setup migrate seed-tpu tpu-catalog seed-tpu-cnj synthetic test test-sliced test-domain lint typecheck eval eval-tpu dev-backend dev-backend-fake dev-frontend e2e
 
 help:
 	@echo "Comandos disponíveis:"
@@ -18,7 +18,9 @@ help:
 	@echo "  make seed-tpu-cnj  Popula o índice TPU com a TUA real do CNJ (JurisBERT; extra ml)"
 	@echo "  make synthetic     Gera o corpus sintético (data/synthetic/)"
 	@echo "  make synthetic-from-template TEMPLATE=... [N=3]  Petições a partir de um .docx real (requer LibreOffice)"
-	@echo "  make test          Roda a suite de testes"
+	@echo "  make test          Roda a suite completa (CI; pesada — evite no WSL)"
+	@echo "  make test-sliced   Suíte fatiada por domínio (recomendada em dev/WSL)"
+	@echo "  make test-domain D=taxonomy   Roda só um domínio (tests/<D>)"
 	@echo "  make lint          ruff check + format --check"
 	@echo "  make typecheck     mypy strict"
 	@echo "  make eval          Eval harness (gate de CI; sai != 0 abaixo do limiar)"
@@ -73,6 +75,17 @@ synthetic-from-template:
 
 test:
 	cd $(BACKEND_DIR) && uv run pytest
+
+# Suíte FATIADA por domínio — recomendada em dev/WSL: cada domínio roda num processo
+# pytest separado (memória liberada entre fatias) com guarda de wall-clock por fatia.
+# Evita o pico de recursos que derruba a sessão ao rodar tudo de uma vez.
+#   make test-sliced                 # todas as fatias
+#   make test-domain D=taxonomy      # apenas um domínio
+test-sliced:
+	cd $(BACKEND_DIR) && bash scripts/run_tests_sliced.sh
+
+test-domain:
+	cd $(BACKEND_DIR) && timeout 180 uv run pytest tests/$(D) -q
 
 lint:
 	cd $(BACKEND_DIR) && uv run ruff check . && uv run ruff format --check .

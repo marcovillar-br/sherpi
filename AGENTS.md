@@ -72,7 +72,9 @@ Next.js + TS (frontend) · Dockerfile multi-stage · pip-audit gate CI.
 
 ```bash
 uv sync                                # instala deps
-uv run pytest                          # testes (sem rede — usa FakeProvider)
+uv run pytest                          # suíte completa (CI; pesada — evite no WSL)
+make test-sliced                       # dev/WSL: fatiado por domínio (não derruba a sessão)
+make test-domain D=taxonomy            # um domínio só
 uv run ruff check . && uv run ruff format --check .
 uv run mypy src/ evals/                # type check strict
 uv run python -m evals.run --ci        # eval gate (firewall)
@@ -94,11 +96,20 @@ Convenções completas e agnósticas a ferramenta em [`CONTRIBUTING.md`](CONTRIB
   filho, abra o PR). O **merge `development → main` é do mantenedor** (não mergeie nem abra PR para
   `main` sem pedido). Push direto é bloqueado por *branch protection* + hook local (`.claude/hooks/`).
   Commits *conventional*, em pt-BR.
+- **Uma PR por vez (serial por padrão).** NÃO abra nova branch enquanto houver PR aberto — espere o
+  merge e parta da `development` atualizada. Arquivos de cruzamento (`Makefile`, `pyproject.toml`,
+  `docs/adr/INDEX.md`, índices) são tocados por quase tudo, então branches paralelas colidem; só
+  paralelize em arquivos disjuntos e, se inevitável, rebaseie na `development` antes do PR.
 - **Definition of Done**: código + testes passando, `ruff`/`mypy` limpos, docs atualizadas; para
   modelos, métrica medida no eval. Tudo isso é gate de CI.
 - **mypy strict.** PyMuPDF é sem tipos: relaxe apenas no adapter/ferramenta (override em `pyproject.toml`),
   nunca no domínio. Pacote `sherpi` tem `py.typed`.
 - **Testes**: domínio puro e firewall sem rede; use `FakeProvider` para qualquer caminho com LLM.
   `synthetic`/`evals` são importáveis via `pythonpath = ["."]` (pytest).
+- **Em dev/WSL, NÃO rode a suíte inteira** (`make test`/`uv run pytest`): o pico de recursos derruba a
+  sessão. Use **`make test-sliced`** (um processo por domínio, com guarda de wall-clock) ou
+  **`make test-domain D=<dir>`**. `pytest-timeout` (60s/teste, em `pyproject.toml`) corta testes
+  pendurados. Não rode `make eval-tpu`/seed JurisBERT junto com pytest (torch disputa memória). O CI
+  roda a suíte completa em infra própria.
 - **Docs**: cada `.md` em `docs/` tem frontmatter YAML padronizado — gere/atualize via
   `scripts/add_frontmatter.py` (fonte de verdade dos metadados; rode após criar um doc novo).

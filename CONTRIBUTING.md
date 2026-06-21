@@ -56,6 +56,12 @@ Convenção de nome de arquivo: `<categoria>_<cenario>.pdf`
 - **Nome do branch**: `<tipo>/<descrição-curta>` em kebab-case. Tipos válidos: `feat`, `fix`, `docs`,
   `refactor`, `test`, `chore` (os mesmos do conventional commit). Ex.: `fix/ci-ruff-baseline`,
   `docs/git-conventions-pr-template`.
+- **Uma PR por vez (serial por padrão)**: não abra uma nova branch enquanto houver PR aberto — espere o
+  merge e parta da `development` atualizada. Conflito só ocorre quando duas branches tocam o mesmo
+  arquivo, mas **arquivos de cruzamento** (`Makefile`, `pyproject.toml`, `docs/adr/INDEX.md`,
+  `docs/INDEX.md`) são mexidos por quase tudo — então, na prática, branches paralelas colidem.
+  Trabalho paralelo só quando os arquivos forem **disjuntos**; se for inevitável, **rebaseie na
+  `development` antes de abrir/atualizar o PR**.
 - **Base do PR**: sempre `development` — **nunca empilhe** um PR sobre outro feature-branch. Se um
   trabalho depende de mudança ainda não mesclada, **serialize**: mescle o pai, atualize a `development`
   (`git pull`), rebaseie o filho e só então abra o PR. *(PR empilhado é frágil: ao mesclar o pai com
@@ -78,7 +84,9 @@ entrar na `development`. O PR é o portão onde lint/type/test/eval rodam.
 - **Audite o stage** — confirme que nenhum segredo, chave de API ou `.env` entrou (revise
   `git diff --cached`). Segredos só em `.env` local (ignorado); apenas `.env.example` é versionado.
 - **Rode os gates localmente** (`ruff` check+format, `mypy`, `pytest`) — o CI repete, mas falhar local
-  poupa um ciclo.
+  poupa um ciclo. **Em dev/WSL, prefira `make test-sliced`** (suíte fatiada por domínio) a `make test`:
+  rodar tudo de uma vez pode esgotar recursos e derrubar a sessão. Use `make test-domain D=<dir>` para
+  um domínio. O `pytest-timeout` (config no `pyproject`) corta qualquer teste pendurado.
 - **Não misture** mudanças não relacionadas no mesmo PR: um PR, um assunto.
 - O corpo do PR segue [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) — o GitHub
   o injeta automaticamente; via `gh pr create`, **omita `--body`** para puxá-lo.
