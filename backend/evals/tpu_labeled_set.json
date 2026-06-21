@@ -46,5 +46,47 @@
     "rito": "TRABALHISTA",
     "expect": "Insalubridade",
     "query": "Reclamação pelo pagamento de adicional de insalubridade em grau máximo, por exposição habitual a agentes biológicos sem fornecimento de EPIs adequados, com reflexos nas demais verbas, conforme NR-15."
+  },
+  {
+    "name": "despejo_falta_pagamento",
+    "rito": "CIVEL",
+    "expect": "Despejo",
+    "query": "Ação de despejo de imóvel locado: o locatário deixou de pagar os aluguéis e encargos; pede a desocupação do imóvel e a cobrança dos valores em atraso."
+  },
+  {
+    "name": "usucapiao_imovel_urbano",
+    "rito": "CIVEL",
+    "expect": "Usucapião",
+    "query": "Ação de usucapião de imóvel urbano: posse mansa, pacífica e ininterrupta por mais de quinze anos, com animus domini; pede a declaração da aquisição da propriedade por usucapião."
+  },
+  {
+    "name": "revisao_alimentos",
+    "rito": "CIVEL",
+    "expect": "Alimentos",
+    "query": "Ação de revisão de alimentos: pedido de redução do valor da pensão alimentícia em razão da alteração da capacidade financeira do alimentante e das necessidades do alimentando."
+  },
+  {
+    "name": "adicional_periculosidade_trabalhista",
+    "rito": "TRABALHISTA",
+    "expect": "Periculosidade",
+    "query": "Reclamação pelo pagamento de adicional de periculosidade por exposição habitual a risco (eletricidade/inflamáveis), no percentual de 30% sobre o salário base, com reflexos nas demais verbas."
+  },
+  {
+    "name": "equiparacao_salarial_trabalhista",
+    "rito": "TRABALHISTA",
+    "expect": "Equiparação",
+    "query": "Reclamação de equiparação salarial: o reclamante exerce função idêntica à do paradigma, com a mesma produtividade e perfeição técnica, e pede as diferenças salariais por todo o período."
+  },
+  {
+    "name": "adicional_noturno_trabalhista",
+    "rito": "TRABALHISTA",
+    "expect": "Adicional Noturno",
+    "query": "Reclamação pelo pagamento do adicional noturno: trabalho habitual em horário noturno sem o acréscimo legal, com reflexos; inclui a prorrogação da jornada noturna."
+  },
+  {
+    "name": "intervalo_intrajornada_trabalhista",
+    "rito": "TRABALHISTA",
+    "expect": "Intervalo Intrajornada",
+    "query": "Reclamação pela supressão do intervalo intrajornada: o reclamante fazia as refeições no posto de trabalho; pede o pagamento do período suprimido acrescido do adicional, com natureza salarial."
   }
 ]
