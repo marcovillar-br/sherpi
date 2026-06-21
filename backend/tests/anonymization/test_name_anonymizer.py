@@ -90,6 +90,28 @@ def test_name_does_not_cross_block_boundary() -> None:
     assert out == "RELATÓRIO FINAL\n[NOME], brasileiro"
 
 
+def test_nao_mascara_uf_como_nome() -> None:
+    # Regressão: "DF" (UF) logo antes da deixa "inscrito no CPF" virava [NOME],
+    # corrompendo o órgão expedidor "SSP/DF".
+    out = _NAMER.anonymize("portador do RG 4.338.617 SSP/DF, inscrito no CPF sob o nº X")
+    assert "SSP/DF" in out
+    assert "[NOME]" not in out
+
+
+def test_nao_mascara_letra_isolada_em_forma_societaria() -> None:
+    # Regressão: o "A" de "S/A" (1 letra) antes de "pessoa jurídica" virava [NOME],
+    # partindo a razão social em "... S/[NOME]".
+    out = _NAMER.anonymize("em desfavor de DELTA COMUNICAÇÕES S/A, pessoa jurídica de direito")
+    assert "S/A" in out
+    assert "S/[NOME]" not in out
+
+
+def test_ainda_mascara_razao_social_com_sufixo_multicaractere() -> None:
+    # Garante que o ajuste de precisão não regrediu o masking de razão social legítima.
+    out = _NAMER.anonymize("EMPRESA EXEMPLO LTDA., pessoa jurídica inscrita no CNPJ")
+    assert "EMPRESA" not in out and out.startswith("[NOME],")
+
+
 def test_composite_applies_structured_then_names() -> None:
     comp = CompositeAnonymizer([RegexAnonymizer(), RegexNameAnonymizer()])
     out = comp.anonymize("FULANO DE TAL, brasileiro, CPF 529.982.247-25, e-mail a@b.com")

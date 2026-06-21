@@ -76,10 +76,16 @@ _STOPWORDS = (
     r"|DANOS|MORAIS|URG[EÊ]NCIA|TUTELA|PEDIDO|FAZER|CONSUMO|RELA[CÇ][AÃ]O"
     r"|RITO|ORDIN[AÁ]RIO|VERBAS|SUBSIDI[AÁ]RIO|CUMULA[CÇ][AÃ]O|REPARA[CÇ][AÃ]O"
     r"|EXECU[CÇ][AÃ]O|MONIT[OÓ]RIA|DESPEJO"
+    # UFs — não são nomes próprios. Evitam que o token curto antes de uma deixa de
+    # qualificação seja mascarado (ex.: "DF" em "SSP/DF, inscrito no CPF" → [NOME]).
+    # Nenhuma colide com sobrenome BR comum ("Sá" é acentuado, não casa com "SA").
+    r"|AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO"
 )
 # Token de nome: início de palavra (\b evita começar no meio, ex.: o "Í" de
-# "CÍVEL") + maiúscula inicial, exceto se for um stopword.
-_TOKEN = r"\b(?!(?:" + _STOPWORDS + r")\b)[A-ZÀ-Ý][A-Za-zÀ-ÿ&.'-]*"
+# "CÍVEL") + maiúscula inicial, exceto se for um stopword. Exige **2+ caracteres**
+# (`+`): um token de 1 letra nunca é nome e gerava falso-positivo (o "A" de "S/A"
+# logo antes de "pessoa jurídica" virava [NOME], partindo a razão social).
+_TOKEN = r"\b(?!(?:" + _STOPWORDS + r")\b)[A-ZÀ-Ý][A-Za-zÀ-ÿ&.'-]+"
 # Sequência de nome próprio: token + conectivos (da/de/dos/e) ou mais tokens.
 # `[^\S\n]` = espaço/tab mas NÃO quebra de linha: o nome não cruza fronteira de
 # bloco/parágrafo (o visible_text separa blocos por \n). Cap alto p/ nomes longos
@@ -109,8 +115,8 @@ class RegexAnonymizer:
         for placeholder, pattern in _PATTERNS:
             text = pattern.sub(placeholder, text)
         for placeholder, pattern in _ANCHORED_PATTERNS:
-            # Preserva o rótulo (grupo 1) e mascara só o valor (grupo 2).
-            text = pattern.sub(lambda m, ph=placeholder: m.group(1) + ph, text)
+            # Preserva o rótulo (grupo 1, via \g<1>) e mascara só o valor (grupo 2).
+            text = pattern.sub(r"\g<1>" + placeholder, text)
         return text
 
 
