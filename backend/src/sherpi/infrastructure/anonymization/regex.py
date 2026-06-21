@@ -123,8 +123,10 @@ _PARTY_LABEL = (
 # Rótulo (grupo 1, preservado) + ":" + nome(s) no mesmo bloco (grupo 2, mascarado).
 # Suporta litisconsórcio (lista separada por vírgula/"e"). O comma após o nome (antes
 # de "nacionalidade:"/"CPF:") encerra o nome — não há over-mask do rótulo seguinte.
+# Tolera um parêntese de papel entre o rótulo e os ":" (ex.: "REQUERENTE (proprietário):",
+# "REQUERIDA (condutor) :"), comum nos modelos do TJDFT com duas partes por polo.
 _NAME_AFTER_LABEL = re.compile(
-    r"(\b(?:" + _PARTY_LABEL + r")[^\S\n]*:[^\S\n]*)"
+    r"(\b(?:" + _PARTY_LABEL + r")[^\S\n]*(?:\([^)\n]{0,40}\)[^\S\n]*)?:[^\S\n]*)"
     r"(" + _NAME + r"(?:" + _NAME_SEP + _NAME + r")*)"
 )
 # Para remascarar cada nome dentro de uma lista, preservando os separadores.

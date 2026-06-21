@@ -127,6 +127,24 @@ def test_masks_reu_after_party_label_with_intervening_label() -> None:
     assert "PARTE REQUERIDA :" in out and "[NOME]" in out
 
 
+def test_masks_party_name_with_parenthetical_role_before_colon() -> None:
+    # Regressão (template acidente, 2 partes/polo): o rótulo traz um parêntese de papel
+    # entre o rótulo e os ":" — "1º REQUERENTE (proprietário) : Fulano".
+    out = _NAMER.anonymize(
+        "1º REQUERENTE (proprietário) :  Daniel Almeida Rocha ,  nacionalidade: brasileiro(a)"
+    )
+    assert "Daniel" not in out and "Rocha" not in out
+    assert "[NOME]" in out and "(proprietário)" in out
+
+
+def test_masks_reu_with_parenthetical_role() -> None:
+    out = _NAMER.anonymize(
+        "em face da 1ª REQUERIDA (condutor):  Helena Costa Ribeiro ,  nacionalidade: brasileiro"
+    )
+    assert "Helena" not in out and "Ribeiro" not in out
+    assert "[NOME]" in out
+
+
 def test_masks_trabalhista_labels() -> None:
     out = _NAMER.anonymize("RECLAMANTE: João Pereira, profissão: pedreiro")
     assert "João" not in out and "Pereira" not in out
