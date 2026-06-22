@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
-from synthetic.tpu_cnj import load_cnj_seed
+from synthetic.tpu_cnj import DEFAULT_CATALOG, load_cnj_seed
 
 from sherpi.shared_kernel.value_objects import Rito
 
@@ -131,3 +132,25 @@ def test_fallback_to_path_without_top_branch(catalog_file):
 def test_missing_catalog_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         load_cnj_seed(tmp_path / "inexistente.json")
+
+
+def test_real_catalog_leaf_count_within_expected_band():
+    """Guarda de regressão sobre o catálogo real da TUA (data/cnj/tpu_assuntos.json).
+
+    O número de folhas pós-dedup é calculado em runtime (não fica gravado no código),
+    então uma quebra silenciosa no escopo/dedup passaria despercebida: se o dedup
+    parar de colapsar a hierarquia paralela trabalhista, salta para ~1326; se o filtro
+    de escopo vazar, dispara. Baseline documentado no ADR-0016: **1007 folhas**
+    (de 1326 brutas / 1569 nós). A banda 950-1100 tolera re-sync da TUA pelo CNJ mas
+    pega regressão real. Se a TUA mudar de fato, ajuste a banda *e* o ADR-0016 juntos.
+
+    Pulado quando o catálogo não foi baixado (ex.: ambiente sem `make tpu-catalog`).
+    """
+    catalog = Path(DEFAULT_CATALOG)
+    if not catalog.exists():
+        pytest.skip(f"catálogo da TUA ausente ({DEFAULT_CATALOG}); rode `make tpu-catalog`")
+    n = len(load_cnj_seed(catalog))
+    assert 950 <= n <= 1100, (
+        f"folhas pós-dedup = {n}, fora da banda 950-1100 (baseline ADR-0016: 1007). "
+        "Escopo/dedup pode ter regredido — ou a TUA do CNJ mudou (ajuste a banda e o ADR)."
+    )
