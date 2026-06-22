@@ -52,7 +52,7 @@ silêncio. **Build e busca precisam do mesmo embedder**: ao trocar o embedder, r
 
 ```
 src/sherpi/
-  shared_kernel/        # VOs e ports transversais (CPF, CNPJ, ValorCausa, RiskVerdict, LLMProvider...)
+  shared_kernel/        # VOs e ports transversais (CPF, CNPJ, ClaimAmount, RiskVerdict, LLMProvider...)
   contexts/
     document_integrity/ # ✅ firewall anti prompt-injection (domain puro + PyMuPDF adapter)
     petition_analysis/  # ✅ extração + admissibilidade rito-aware (core domain)

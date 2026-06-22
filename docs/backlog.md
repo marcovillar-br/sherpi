@@ -91,7 +91,7 @@ concluídas (MVP + multi-domínio + Fase 4 backend + UI frontend S4–S7 + en-US
 | História | Task | SP | Status |
 |---|---|---|---|
 | — | Scaffold DDD + tooling + CI + docker-compose | 5 | ✅ |
-| US1.1/1.2 | Detector puro (7 vetores) + `ForensicsReport` | 5 | ✅ |
+| US1.1/1.2 | Detector puro (8 vetores) + `ForensicsReport` | 5 | ✅ |
 | US1.1 | Adapter PyMuPDF (CropBox→MediaBox) | 3 | ✅ |
 | US1.3 | Guarda de upload (tipo/tamanho/páginas) | 2 | ✅ |
 | — | Gerador de dados sintéticos + corpus rotulado | 3 | ✅ |

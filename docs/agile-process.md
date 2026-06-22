@@ -138,7 +138,7 @@ de projetos de IA/Mineração de Dados.
 ### Sprint 1 — Fundações + Firewall + Dados
 
 **Review (incremento demonstrável):**
-- Firewall `document_integrity` detecta 7 vetores de injeção; veredito `BLOCK` encerra o fluxo
+- Firewall `document_integrity` detecta 8 vetores de injeção; veredito `BLOCK` encerra o fluxo
   **sem gastar token** de LLM.
 - Gerador de petições sintéticas rotuladas + corpus em `data/synthetic/`.
 - 24 testes passando (domínio puro + integração PDF→parser→laudo); `ruff` e `mypy` limpos.
