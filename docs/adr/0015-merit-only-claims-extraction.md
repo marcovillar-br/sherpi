@@ -4,8 +4,8 @@ description: "Restringir o campo claims do PetitionSummary aos pedidos de mérit
 doc_type: adr
 project: SHERPI
 status: accepted
-version: 1.0
-updated: 2026-06-20
+version: 1.1
+updated: 2026-06-22
 language: pt-BR
 tags: [adr, extracao, prompt, claims, tpu, llm]
 ---
@@ -58,6 +58,11 @@ Restringir `claims` aos **pedidos de mérito**. No prompt (v4), a regra de `clai
 Mudança **só de prompt** — o schema `PetitionSummary` e o `ClaimType` permanecem intactos.
 A extração segue **rito-neutra** (ADR-0014): a distinção mérito × procedimento é comum a
 cível e trabalhista, não ramifica por rito.
+
+> **Nota (evolução posterior).** A decisão acima firmou a versão **v4** do prompt. O prompt
+> seguiu evoluindo de forma ortogonal a esta decisão — hoje em **v5** (`extract.py`: proíbe
+> placeholders-lixo como "null"/"N/A"). É refinamento de robustez, não muda o critério
+> mérito-only aqui registrado; por isso não há novo ADR. A versão corrente vive no código.
 
 ## Consequências
 

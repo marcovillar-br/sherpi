@@ -1,11 +1,11 @@
 ---
-title: "ADR-0016: TPU 1.0 sobre a TUA real do CNJ (substitui o seed sintético)"
+title: "ADR-0016: TPU 1.0 sobre a TUA real do CNJ (opt-in; sintético no CI/eval)"
 description: "Adotar a Tabela Única de Assuntos oficial do CNJ (escopo cível+trabalhista) como catálogo da classificação TPU, com texto de embedding híbrido (caminho + glossário), ranking denso + léxico/IDF e eval rotulado; mantém o k-NN numpy."
 doc_type: adr
 project: SHERPI
 status: accepted
-version: 1.1
-updated: 2026-06-21
+version: 1.2
+updated: 2026-06-22
 language: pt-BR
 tags: [adr, tpu, taxonomy, cnj, embeddings, jurisbert]
 ---
@@ -46,8 +46,10 @@ do SGT/CNJ (`pesquisarItemPublicoWS`) e mediu:
 
 ## Decisão
 
-Para a 1.0 mini, **substituir o seed sintético pela TUA real do CNJ**, escopada a
-cível+trabalhista, mantendo a arquitetura de ports (não há mudança no orquestrador):
+Para a 1.0 mini, **disponibilizar a TUA real do CNJ como fonte do catálogo** (escopada a
+cível+trabalhista), via `seed_tpu.py --source cnj`, mantendo o **seed sintético como default**
+do script (usado por CI/eval, sem rede). Não há mudança no orquestrador nem na arquitetura de
+ports:
 
 1. **Ingestão** (feito — protótipo): `scripts/fetch_tpu_cnj.py` baixa a TUA via SGT,
    reconstrói a árvore, filtra o escopo e emite catálogo (`cod_item`, `nome`, `rito`,

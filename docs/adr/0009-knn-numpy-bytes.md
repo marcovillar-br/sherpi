@@ -4,8 +4,8 @@ description: "Embeddings TPU como bytes (numpy/float32) + k-NN em Python, sem a 
 doc_type: adr
 project: SHERPI
 status: accepted
-version: 1.0
-updated: 2026-06-20
+version: 1.1
+updated: 2026-06-22
 language: pt-BR
 tags: [adr, arquitetura, decisao, tpu]
 ---
@@ -21,7 +21,7 @@ O [ADR-0004](0004-postgres-pgvector.md) previu a extensão **pgvector** para cob
 ## Decisão
 
 - Embeddings persistidos como **bytes** (`numpy.float32` via `tobytes()` / `np.frombuffer`) em coluna binária comum, em SQLite (test) e PostgreSQL (dev/prod).
-- **k-NN em Python/numpy** (produto matriz × vetor de consulta, `argsort`) dentro do adapter `SqlTpuIndex`.
+- **k-NN em Python/numpy** dentro do adapter `SqlTpuIndex`: busca linear exata em memória (produto matriz × vetor de consulta), com **ranking híbrido** — similaridade densa (cosseno) combinada a um sinal **léxico/IDF** (peso `_LEXICAL_WEIGHT`) e **dedupe por `tpu_code`** antes do top-k (ver [ADR-0016](0016-cnj-tua-real-catalog-tpu.md)).
 - **Sem** a extensão pgvector e **sem** a dependência Python `pgvector`.
 - O **PostgreSQL** segue como sistema relacional único (a parte do ADR-0004 que continua valendo).
 
