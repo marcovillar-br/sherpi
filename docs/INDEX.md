@@ -4,7 +4,7 @@ description: "Ponto de entrada da documentação do SHERPI, organizado por categ
 doc_type: index
 project: SHERPI
 status: reference
-version: 1.2
+version: 1.3
 updated: 2026-06-22
 language: pt-BR
 tags: [index, navegacao]
@@ -58,6 +58,7 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 |---|---|
 | [threat-model.md](threat-model.md) | Modelo de ameaças (STRIDE): ativos, atores e mitigações. |
 | [security.md](security.md) | Controles de segurança e confiabilidade (MVP vs. Fase 4). |
+| [dpia.md](dpia.md) | RIPD/DPIA (LGPD art. 38): impacto à proteção de dados, riscos aos titulares, mitigações e riscos residuais. |
 
 ## Pesquisa de origem
 
