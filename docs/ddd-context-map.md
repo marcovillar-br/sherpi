@@ -4,7 +4,7 @@ description: "Bounded contexts, relações upstream/downstream e glossário da l
 doc_type: context-map
 project: SHERPI
 status: approved
-version: 1.7
+version: 1.8
 updated: 2026-06-22
 language: pt-BR
 tags: [ddd, bounded-context, linguagem-ubiqua]
@@ -15,7 +15,7 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | Campo | Valor |
 |---|---|
 | Documento | Context Map + Glossário |
-| Versão | 1.7 |
+| Versão | 1.8 |
 | Status | Aprovado |
 | Última atualização | 2026-06-22 |
 
@@ -31,7 +31,7 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | **review** | Supporting | Human-in-the-loop e auditoria append-only (Res. CNJ 615/2025): `ReviewDecision`, `AuditEvent`. |
 | **identity** | Supporting | Autenticação (perfil único, extensível a RBAC): `User`, `Role`, `BcryptHasher`, `JwtIssuer`, OAuth2/JWT. |
 | **integration** | Supporting | Ingestão processual: `PetitionSource` port; `SandboxSourceAdapter`; `IngestPetitions`; `IngestQueue` (asyncio). Enfileira petições de sistemas externos (PJe/E-Proc/sandbox) para análise assíncrona. |
-| **shared_kernel** | Kernel compartilhado | VOs e ports usados por mais de um contexto (CPF, CNPJ, ValorCausa, RiskVerdict, Documento, Rito, Role; LLMProvider, BlobStorage, Anonymizer). |
+| **shared_kernel** | Kernel compartilhado | VOs e ports usados por mais de um contexto (CPF, CNPJ, ClaimAmount, RiskVerdict, Rito; LLMProvider, BlobStorage, Anonymizer). `Role` pertence ao `identity`, não ao kernel. |
 
 > O `document_integrity` é o **diferencial** do produto, mas tecnicamente é supporting: o **core** é `petition_analysis`, pois é onde mora o juízo de admissibilidade e o resumo estruturado — a razão de ser do SHERPI.
 

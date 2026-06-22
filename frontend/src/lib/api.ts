@@ -57,7 +57,7 @@ export async function login(email: string, password: string): Promise<TokenRespo
   return (await expectOk(res)).json() as Promise<TokenResponse>;
 }
 
-/** Envia o PDF para análise e retorna o resultado consolidado. */
+/** Envia o PDF/DOCX para análise e retorna o resultado consolidado. */
 export async function analyzePetition(
   file: File,
   rito: Rito = "CIVEL",

@@ -4,8 +4,8 @@ description: "Lista das decisões de arquitetura (Architecture Decision Records)
 doc_type: adr-index
 project: SHERPI
 status: reference
-version: 1.7
-updated: 2026-06-21
+version: 1.8
+updated: 2026-06-22
 language: pt-BR
 tags: [adr, arquitetura, index]
 ---
@@ -34,5 +34,6 @@ que substitua outra cria um novo ADR que marca o anterior como *Substituído*.
 | [0014](0014-rito-neutral-extraction-prompt.md) | Prompt de extração rito-neutro (reforça o 0008): CPC 319 + CLT 840 num só prompt, sem ramificar por rito | ✅ Aceito |
 | [0015](0015-merit-only-claims-extraction.md) | claims restritos ao mérito (refina o 0014): exclui pedidos procedimentais (citação, audiência, gratuidade), que já têm campo próprio — limpa o sinal da TPU | ✅ Aceito |
 | [0016](0016-cnj-tua-real-catalog-tpu.md) | TPU 1.0 sobre a TUA real do CNJ (escopo cível+trabalhista): ingestão via SGT, texto de embedding híbrido (caminho + glossário), ranking denso + léxico/IDF, eval rotulado; k-NN numpy mantido | ✅ Aceito |
+| [0017](0017-frontend-decoupled-spa.md) | Frontend desacoplado: cliente direto à API + cookie httpOnly + guarda de rota via Proxy do Next (proxy.ts, ex-middleware); não é BFF | ✅ Aceito |
 
 > Convenção: arquivos nomeados `NNNN-titulo-em-kebab-case.md`, numeração sequencial.

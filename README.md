@@ -86,6 +86,7 @@ Lista completa de alvos: `make help`. Detalhes do backend: [`backend/README.md`]
 |---|---|
 | [`docs/prd-sherpi.md`](docs/prd-sherpi.md) | Requisitos de produto, personas, métricas |
 | [`docs/tech-spec-sherpi.md`](docs/tech-spec-sherpi.md) | Arquitetura, contratos, API, diagramas |
+| [`docs/c4-model.md`](docs/c4-model.md) | Modelo C4 (Contexto → Contêineres → Componentes → Código) |
 | [`docs/roadmap.md`](docs/roadmap.md) | Sprints (MVP + Fase 4), *Definition of Done*, visão de futuro |
 | [`docs/pmp.md`](docs/pmp.md) · [`docs/wbs.md`](docs/wbs.md) · [`docs/backlog.md`](docs/backlog.md) | Gerenciamento de projeto: PGP, EAP/WBS e backlog (produto + sprints) |
 | [`docs/agile-process.md`](docs/agile-process.md) | Papéis, Design Sprint, Kanban, cerimônias, retrospectivas |
@@ -107,4 +108,8 @@ Lista completa de alvos: `make help`. Detalhes do backend: [`backend/README.md`]
 - **Refinamentos contínuos** ✅ — TPU 1.0 sobre a TUA real do CNJ (ranking híbrido + limiar de confiança, [ADR-0016](docs/adr/0016-cnj-tua-real-catalog-tpu.md)); anonimização de nomes por default; detecção de PDF imagem/escaneado; adapters Grok/Anthropic
 - **Domínios adicionais** (pós rito-aware) — previdenciário/INSS, execução fiscal, família/JEC
 
-Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pmp.md`](docs/pmp.md), [`docs/wbs.md`](docs/wbs.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).
+Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pmp.md`](docs/pmp.md), [`docs/wbs.md`](docs/wbs.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md). Mudanças notáveis: [`CHANGELOG.md`](CHANGELOG.md).
+
+## Licença
+
+Distribuído sob a licença **Apache-2.0** — ver [`LICENSE`](LICENSE).

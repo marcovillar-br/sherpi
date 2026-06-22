@@ -17,9 +17,10 @@ Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/IND
 
 1. **Agnóstico a LLM.** Nunca chame um SDK de LLM diretamente nem faça hardcode de provider/modelo.
    Todo acesso a LLM passa pelo **port `LLMProvider`** (`shared_kernel/ports.py`); o provider vem da
-   **config** (`SHERPI_LLM_BACKEND`). Default **Gemini Flash**; adapters: Maritaca Sabiá / OpenAI /
-   Ollama (`infrastructure/llm/`). Em testes, use **`FakeProvider`** (sem rede). Trocar de modelo =
-   trocar um adapter, sem tocar no domínio.
+   **config** (`SHERPI_LLM_BACKEND`). Default **Gemini Flash** (`google-genai`); adapters trocáveis
+   **Grok (xAI)** e **Claude Sonnet (Anthropic)** — ambos via httpx, sem SDK (`infrastructure/llm/`,
+   ADR-0011). Em testes, use **`FakeProvider`** (sem rede). Trocar de modelo = trocar um adapter, sem
+   tocar no domínio.
 2. **Domínio puro.** `domain/` não importa FastAPI, SQL, PyMuPDF nem SDK de LLM. Dependência externa =
    **port** (camada interna) + **adapter** (infraestrutura). Hexagonal/DDD.
 3. **Human-in-the-loop.** Toda saída é sugestão auditável; jamais decisão automática (Res. CNJ 615/2025).
@@ -36,7 +37,7 @@ Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/IND
 ## Escopo atual (Sprints 1–9 entregues — backend + frontend completo)
 
 Entregue:
-- `document_integrity` — firewall anti prompt-injection (PyMuPDF, 7 vetores)
+- `document_integrity` — firewall anti prompt-injection (PyMuPDF, 8 vetores)
 - `petition_analysis` — extração + admissibilidade **rito-aware** (cível + trabalhista, CLT 840 §1º, ADR-0008)
 - `identity` — auth JWT+bcrypt (pyjwt direto; passlib incompatível com bcrypt>=5), lockout, seed user
 - `review` — AuditEvent append-only, RecordReview, GetCurrentUser dependency
@@ -55,7 +56,7 @@ Monólito modular DDD + hexagonal. Backend é o projeto Python (uv); frontend em
 
 ```
 backend/src/sherpi/
-  shared_kernel/        # Value Objects (CPF, CNPJ, ValorCausa, RiskVerdict, Rito) + ports transversais
+  shared_kernel/        # Value Objects (CPF, CNPJ, ClaimAmount, RiskVerdict, Rito) + ports transversais
   contexts/<ctx>/{domain,application,infrastructure}   # bounded contexts
   application/          # orquestrador cross-context (analyze_petition)
   infrastructure/{llm,persistence,storage}             # adapters
@@ -70,7 +71,7 @@ docs/                   # PRD, spec, roadmap, PGP, EAP, backlog, ADRs, seguranç
 
 Python ≥3.12 · FastAPI · uv · PyMuPDF · Pydantic v2 · SQLModel + Alembic · PostgreSQL ·
 bcrypt + pyjwt (auth; **passlib não compatível com bcrypt>=5**) · structlog · sentry-sdk[fastapi] ·
-google-genai (default) / openai (compat) · sentence-transformers (extra `ml`) · presidio (extra `ner`) ·
+google-genai (Gemini default) · Grok/Anthropic via httpx (sem SDK) · sentence-transformers (extra `ml`) · presidio (extra `ner`) ·
 Next.js + TS (frontend) · Dockerfile multi-stage · pip-audit gate CI.
 
 ## Comandos (rodar em `backend/`)
@@ -105,8 +106,9 @@ Convenções completas e agnósticas a ferramenta em [`CONTRIBUTING.md`](CONTRIB
   merge e parta da `development` atualizada. Arquivos de cruzamento (`Makefile`, `pyproject.toml`,
   `docs/adr/INDEX.md`, índices) são tocados por quase tudo, então branches paralelas colidem; só
   paralelize em arquivos disjuntos e, se inevitável, rebaseie na `development` antes do PR.
-- **Definition of Done**: código + testes passando, `ruff`/`mypy` limpos, docs atualizadas; para
-  modelos, métrica medida no eval. Tudo isso é gate de CI.
+- **Definition of Done**: código + testes passando, `ruff`/`mypy` limpos, docs atualizadas, seção
+  `[Não publicado]` do `CHANGELOG.md` atualizada (mudança notável); para modelos, métrica medida no
+  eval. Tudo isso é gate de CI.
 - **mypy strict.** PyMuPDF é sem tipos: relaxe apenas no adapter/ferramenta (override em `pyproject.toml`),
   nunca no domínio. Pacote `sherpi` tem `py.typed`.
 - **Testes**: domínio puro e firewall sem rede; use `FakeProvider` para qualquer caminho com LLM.
@@ -118,3 +120,10 @@ Convenções completas e agnósticas a ferramenta em [`CONTRIBUTING.md`](CONTRIB
   roda a suíte completa em infra própria.
 - **Docs**: cada `.md` em `docs/` tem frontmatter YAML padronizado — gere/atualize via
   `scripts/add_frontmatter.py` (fonte de verdade dos metadados; rode após criar um doc novo).
+- **Frontend (Next.js 16)**: a guarda de rota no edge usa a convenção **`proxy.ts`** (função `proxy`) —
+  no Next 16 o antigo *Middleware* (`middleware.ts`/`middleware`) foi **renomeado para *Proxy*** e está
+  **deprecado**. **NÃO** renomeie `frontend/src/proxy.ts` de volta para `middleware.ts`. O frontend é
+  **desacoplado** (chama a API direto, cookie httpOnly) — **não é BFF**. Ver
+  [`docs/adr/0017-frontend-decoupled-spa.md`](docs/adr/0017-frontend-decoupled-spa.md). Regra geral:
+  antes de afirmar convenção de framework recente, confira a **versão instalada** + doc oficial (não
+  decida por memória pré-cutoff).

@@ -25,8 +25,9 @@ class ChatMessage(BaseModel):
 class LLMProvider(Protocol):
     """Port agnóstico de LLM.
 
-    O adapter default é Gemini Flash; Maritaca Sabiá/OpenAI/Ollama são adapters
-    alternativos; `FakeProvider` é usado em testes (sem rede). Implementações
+    O adapter default é Gemini Flash; Grok (xAI) e Claude Sonnet (Anthropic) são
+    adapters alternativos (ambos via httpx, sem SDK — ver ADR-0011); `FakeProvider`
+    é usado em testes (sem rede). Implementações
     DEVEM forçar saída estruturada validada contra `response_schema` e aplicar
     timeout/retry (ver resiliência no plano).
     """
@@ -47,8 +48,8 @@ class LLMProvider(Protocol):
 class BlobStorage(Protocol):
     """Port de armazenamento de blobs (PDFs originais).
 
-    Adapter LocalFS no MVP; S3/MinIO na Fase 4. A chave é o hash de conteúdo
-    (deduplicação/idempotência).
+    Port declarado; **sem adapter no MVP** — LocalFS/S3 previstos para a Fase 4.
+    A chave seria o hash de conteúdo (deduplicação/idempotência).
     """
 
     def put(self, content: bytes, *, content_hash: str) -> str:

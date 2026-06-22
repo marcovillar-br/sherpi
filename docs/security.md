@@ -4,8 +4,8 @@ description: "Controles de segurança e confiabilidade, separados em MVP e Fase 
 doc_type: security
 project: SHERPI
 status: approved
-version: 1.3
-updated: 2026-06-20
+version: 1.4
+updated: 2026-06-22
 language: pt-BR
 tags: [seguranca, confiabilidade, lgpd, observabilidade]
 ---
@@ -30,14 +30,16 @@ Domínio com PII jurídica — controle crítico.
 **MVP**
 
 - **Synthetic-first**: petições sintéticas evitam que PII real saia para o LLM externo (Gemini/Grok/Anthropic).
-- **`RegexAnonymizer`** (implementa o port `Anonymizer`, ativo via `anonymize_before_llm` + LLM
-  externo): mascara **identificadores estruturados** (CPF, CNPJ, e-mail, telefone, CEP) e
+- **`MappedRegexAnonymizer`** (adapter de fato injetado pela factory quando `anonymize_before_llm`
+  + LLM externo; a base `RegexAnonymizer` define a mesma regra de masking, sem o mapa reversível, e
+  é usada em testes): mascara **identificadores estruturados** (CPF, CNPJ, e-mail, telefone, CEP) e
   **identificadores ancorados por rótulo** — só PII pelo contexto: RG/CNH, nº de benefício do INSS
   (forma de CPF com 1 dígito verificador, que o regex de CPF não pega), agência/conta bancária e nº
   de B.O. (preserva o rótulo, mascara só o valor) — **antes** do envio ao LLM. A validação
   determinística de CPF/CNPJ roda sobre o **texto original**, então o mascaramento **não degrada** a
   admissibilidade.
-- **`RegexNameAnonymizer`** (flag `anonymize_names`, default on): mascara **nomes das partes** por
+- **`MappedRegexNameAnonymizer`** (flag `anonymize_names`, default on; compostos via
+  `MappedCompositeAnonymizer`): mascara **nomes das partes** por
   âncora (antes de "brasileiro/pessoa jurídica/inscrito no CPF" ou após "em face de") → `[NOME]`,
   inclusive **listas de nomes** (litisconsórcio). Determinístico, O(n), sem dependências. Robustez
   estrutural: o `visible_text` agrupa o texto **por bloco/parágrafo**, evitando que o nome "atravesse"
@@ -131,10 +133,11 @@ Domínio com PII jurídica — controle crítico.
 - Endpoints **`/health`** e **`/ready`** (este checa o DB).
 - **Auditoria append-only** das revisões humanas (integridade para fins legais — CNJ 615/2025).
 - **Auditoria das chamadas ao LLM**: prompt **já anonimizado** + resposta persistidos por análise (`PersistingLLMProvider`), consultáveis na UI — transparência do que de fato foi enviado ao modelo.
+- **Error tracking (Sentry)**: opcional, **soft-dependency** ativada por `SHERPI_SENTRY_DSN` (`sentry-sdk[fastapi]`); inicializa só quando o DSN está configurado — degradação graciosa sem ele.
 
 **Fase 4**
 
-- Tracing distribuído, métricas/dashboards, error tracking (Sentry), tracing de LLM.
+- Tracing distribuído, métricas/dashboards, tracing de LLM (o Sentry de erros já existe no MVP).
 
 ---
 
@@ -163,5 +166,5 @@ Domínio com PII jurídica — controle crítico.
 | Upload | assinatura/tamanho/páginas, timeout (best-effort), content hash | Sandbox, antimalware, isolamento de recursos |
 | Auth/API | JWT+exp, cookie httpOnly+Secure+SameSite, lockout, CORS, CSRF | RBAC, MFA, refresh, secrets manager, TLS/WAF |
 | LLM | Adapters Gemini/Grok/Sonnet, timeout/retry/backoff, guarda de custo, circuit breaker, defensive prompting | Tracing de LLM, monitoramento de custo |
-| Observabilidade | Logs estruturados+correlation IDs, /health, /ready, auditoria append-only (revisões + chamadas ao LLM) | Tracing distribuído, dashboards, Sentry |
+| Observabilidade | Logs estruturados+correlation IDs, /health, /ready, auditoria append-only (revisões + chamadas ao LLM), error tracking Sentry (opcional via DSN) | Tracing distribuído, dashboards, tracing de LLM |
 | Supply chain | Segredos fora do git, lock, pip-audit, ruff/mypy gate | SBOM, Dependabot, pentest, backups/DR |

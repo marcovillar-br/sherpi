@@ -1,0 +1,1759 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SHERPI API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "summary": "Ready",
+        "operationId": "ready_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Ready Ready Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "summary": "Login",
+        "operationId": "login_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_v1_auth_login_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analyze": {
+      "post": {
+        "summary": "Analyze",
+        "operationId": "analyze_v1_analyze_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_analyze_v1_analyze_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analyses": {
+      "get": {
+        "summary": "List Analyses",
+        "description": "Histórico: resumos das análises mais recentes + revisão mais recente de cada.",
+        "operationId": "list_analyses_v1_analyses_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalysisListItem"
+                  },
+                  "title": "Response List Analyses V1 Analyses Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Old Analyses",
+        "operationId": "delete_old_analyses_v1_analyses_delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "older_than_days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 90,
+              "title": "Older Than Days"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Delete Old Analyses V1 Analyses Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analyses/{analysis_id}": {
+      "get": {
+        "summary": "Get Analysis",
+        "operationId": "get_analysis_v1_analyses__analysis_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Analysis",
+        "operationId": "delete_analysis_v1_analyses__analysis_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analyses/{analysis_id}/llm-calls": {
+      "get": {
+        "summary": "List Llm Calls",
+        "description": "Auditoria: prompt + resposta de cada chamada ao LLM desta análise.",
+        "operationId": "list_llm_calls_v1_analyses__analysis_id__llm_calls_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LLMCall"
+                  },
+                  "title": "Response List Llm Calls V1 Analyses  Analysis Id  Llm Calls Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analyses/{analysis_id}/review": {
+      "post": {
+        "summary": "Create Review",
+        "operationId": "create_review_v1_analyses__analysis_id__review_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditEvent"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analyses/{analysis_id}/reviews": {
+      "get": {
+        "summary": "List Reviews",
+        "operationId": "list_reviews_v1_analyses__analysis_id__reviews_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "analysis_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Analysis Id"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEvent"
+                  },
+                  "title": "Response List Reviews V1 Analyses  Analysis Id  Reviews Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ingestion/jobs": {
+      "post": {
+        "summary": "Create Ingest Job",
+        "operationId": "create_ingest_job_v1_ingestion_jobs_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestJobRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestJob"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List Ingest Jobs",
+        "operationId": "list_ingest_jobs_v1_ingestion_jobs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IngestJob"
+                  },
+                  "title": "Response List Ingest Jobs V1 Ingestion Jobs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ingestion/jobs/{job_id}": {
+      "get": {
+        "summary": "Get Ingest Job",
+        "operationId": "get_ingest_job_v1_ingestion_jobs__job_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestJob"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdmissibilityReport": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AdmissibilityStatus"
+          },
+          "requires_amendment": {
+            "type": "boolean",
+            "title": "Requires Amendment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "status",
+          "requires_amendment"
+        ],
+        "title": "AdmissibilityReport"
+      },
+      "AdmissibilityStatus": {
+        "type": "string",
+        "enum": [
+          "GREEN",
+          "YELLOW",
+          "RED"
+        ],
+        "title": "AdmissibilityStatus"
+      },
+      "AnalysisListItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "verdict": {
+            "type": "string",
+            "title": "Verdict"
+          },
+          "rito": {
+            "type": "string",
+            "title": "Rito"
+          },
+          "admissibility_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admissibility Status"
+          },
+          "has_injunction": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Has Injunction"
+          },
+          "review_decision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Decision"
+          },
+          "review_comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Comment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "created_at",
+          "filename",
+          "verdict",
+          "rito",
+          "admissibility_status",
+          "has_injunction"
+        ],
+        "title": "AnalysisListItem",
+        "description": "Item do histórico: o resumo + a revisão humana mais recente (se houver)."
+      },
+      "AnalysisResult": {
+        "properties": {
+          "rito": {
+            "$ref": "#/components/schemas/Rito",
+            "default": "CIVEL"
+          },
+          "forensics": {
+            "$ref": "#/components/schemas/ForensicsReport"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PetitionSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "admissibility": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdmissibilityReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tpu_suggestions": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TpuSuggestion"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tpu Suggestions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "forensics"
+        ],
+        "title": "AnalysisResult",
+        "description": "Resultado consolidado da análise de uma petição.\n\nQuando `forensics.verdict == BLOCK`, `summary` e `admissibility` são None\n(o fluxo encerrou antes do LLM)."
+      },
+      "AnalyzeResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "result": {
+            "$ref": "#/components/schemas/AnalysisResult"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "result"
+        ],
+        "title": "AnalyzeResponse"
+      },
+      "Anomaly": {
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/AnomalyType"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "severity",
+          "detail"
+        ],
+        "title": "Anomaly",
+        "description": "Uma evidência de manipulação encontrada no documento."
+      },
+      "AnomalyType": {
+        "type": "string",
+        "enum": [
+          "WHITE_ON_WHITE",
+          "TINY_FONT",
+          "OFF_CROPBOX",
+          "ZERO_WIDTH_UNICODE",
+          "HIDDEN_OCG_LAYER",
+          "ACTUALTEXT_DIVERGENCE",
+          "SUSPICIOUS_METADATA",
+          "INJECTION_KEYWORDS"
+        ],
+        "title": "AnomalyType",
+        "description": "Vetores de manipulação mapeados na pesquisa (seção 2.3)."
+      },
+      "AuditEvent": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "analysis_id": {
+            "type": "string",
+            "title": "Analysis Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "user_email": {
+            "type": "string",
+            "title": "User Email"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/ReviewDecision"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "analysis_id",
+          "user_id",
+          "user_email",
+          "decision",
+          "created_at"
+        ],
+        "title": "AuditEvent"
+      },
+      "Body_analyze_v1_analyze_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "PDF ou DOCX da petição inicial"
+          },
+          "rito": {
+            "$ref": "#/components/schemas/Rito",
+            "description": "Rito processual (default cível)",
+            "default": "CIVEL"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_analyze_v1_analyze_post"
+      },
+      "Body_login_v1_auth_login_post": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_v1_auth_login_post"
+      },
+      "CheckMethod": {
+        "type": "string",
+        "enum": [
+          "DETERMINISTIC",
+          "SEMANTIC"
+        ],
+        "title": "CheckMethod"
+      },
+      "ChecklistItem": {
+        "properties": {
+          "requirement": {
+            "$ref": "#/components/schemas/Requirement"
+          },
+          "present": {
+            "type": "boolean",
+            "title": "Present"
+          },
+          "method": {
+            "$ref": "#/components/schemas/CheckMethod"
+          },
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "caveat": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caveat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "requirement",
+          "present",
+          "method"
+        ],
+        "title": "ChecklistItem"
+      },
+      "ClaimType": {
+        "type": "string",
+        "enum": [
+          "MAIN",
+          "INJUNCTION",
+          "SUBSIDIARY"
+        ],
+        "title": "ClaimType"
+      },
+      "ForensicsReport": {
+        "properties": {
+          "verdict": {
+            "$ref": "#/components/schemas/RiskVerdict"
+          },
+          "risk_score": {
+            "type": "number",
+            "title": "Risk Score"
+          },
+          "anomalies": {
+            "items": {
+              "$ref": "#/components/schemas/Anomaly"
+            },
+            "type": "array",
+            "title": "Anomalies"
+          },
+          "image_only_pages": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Image Only Pages",
+            "default": []
+          },
+          "image_heavy_pages": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Image Heavy Pages",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "verdict",
+          "risk_score",
+          "anomalies"
+        ],
+        "title": "ForensicsReport",
+        "description": "Laudo consolidado do firewall.\n\n`verdict` governa o orquestrador: BLOCK interrompe ANTES de qualquer LLM."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IngestJob": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "tribunal": {
+            "type": "string",
+            "title": "Tribunal"
+          },
+          "date_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Date From"
+          },
+          "date_to": {
+            "type": "string",
+            "format": "date",
+            "title": "Date To"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IngestStatus",
+            "default": "QUEUED"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "processed": {
+            "type": "integer",
+            "title": "Processed",
+            "default": 0
+          },
+          "failed": {
+            "type": "integer",
+            "title": "Failed",
+            "default": 0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "tribunal",
+          "date_from",
+          "date_to",
+          "created_at"
+        ],
+        "title": "IngestJob"
+      },
+      "IngestJobRequest": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "SANDBOX"
+          },
+          "tribunal": {
+            "type": "string",
+            "title": "Tribunal"
+          },
+          "date_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Date From"
+          },
+          "date_to": {
+            "type": "string",
+            "format": "date",
+            "title": "Date To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tribunal",
+          "date_from",
+          "date_to"
+        ],
+        "title": "IngestJobRequest"
+      },
+      "IngestStatus": {
+        "type": "string",
+        "enum": [
+          "QUEUED",
+          "RUNNING",
+          "DONE",
+          "FAILED"
+        ],
+        "title": "IngestStatus"
+      },
+      "LLMCall": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "analysis_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Id"
+          },
+          "call_type": {
+            "type": "string",
+            "title": "Call Type"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "response": {
+            "type": "string",
+            "title": "Response"
+          },
+          "prompt_chars": {
+            "type": "integer",
+            "title": "Prompt Chars"
+          },
+          "response_chars": {
+            "type": "integer",
+            "title": "Response Chars"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "title": "Duration Ms"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "analysis_id",
+          "call_type",
+          "model",
+          "prompt",
+          "response",
+          "prompt_chars",
+          "response_chars",
+          "duration_ms",
+          "created_at"
+        ],
+        "title": "LLMCall",
+        "description": "Registro durável de uma chamada ao LLM."
+      },
+      "Parte": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "document": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document",
+            "description": "CPF ou CNPJ como aparece no texto"
+          },
+          "pole": {
+            "$ref": "#/components/schemas/Polo"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "pole"
+        ],
+        "title": "Parte",
+        "description": "Uma parte do processo (polo ativo ou passivo)."
+      },
+      "Pedido": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ClaimType",
+            "default": "MAIN"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount",
+            "description": "Valor do pedido como texto (ex.: 'R$ 5.000,00'), quando informado. Relevante para o pedido líquido do rito trabalhista (CLT 840 §1º)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "title": "Pedido",
+        "description": "Um pedido formulado na petição."
+      },
+      "PetitionSummary": {
+        "properties": {
+          "court": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Court",
+            "description": "Juízo a que é dirigida / endereçamento (art. 319, I)"
+          },
+          "parties": {
+            "items": {
+              "$ref": "#/components/schemas/Parte"
+            },
+            "type": "array",
+            "title": "Parties"
+          },
+          "facts": {
+            "type": "string",
+            "title": "Facts",
+            "description": "Síntese objetiva dos fatos em um parágrafo (art. 319, III)"
+          },
+          "legal_basis": {
+            "type": "string",
+            "title": "Legal Basis",
+            "description": "Fundamentação jurídica invocada, sem cópia de jurisprudência (art. 319, III)"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/Pedido"
+            },
+            "type": "array",
+            "title": "Claims"
+          },
+          "has_injunction": {
+            "type": "boolean",
+            "title": "Has Injunction",
+            "description": "Há pedido de tutela de urgência/liminar?"
+          },
+          "claim_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Amount",
+            "description": "Valor da causa como texto (ex.: 'R$ 15.000,00') (art. 319, V)"
+          },
+          "requests_evidence": {
+            "type": "boolean",
+            "title": "Requests Evidence",
+            "description": "O autor indica/protesta provar os fatos? (art. 319, VI)",
+            "default": false
+          },
+          "hearing_option": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hearing Option",
+            "description": "Manifestou opção por audiência de conciliação/mediação? (art. 319, VII)"
+          },
+          "cited_documents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cited Documents",
+            "description": "Documentos citados/anexados (ex.: 'procuração', 'comprovante de residência')"
+          }
+        },
+        "type": "object",
+        "required": [
+          "facts",
+          "legal_basis",
+          "has_injunction"
+        ],
+        "title": "PetitionSummary",
+        "description": "Sumário executivo estruturado da petição inicial (art. 319 do CPC)."
+      },
+      "Polo": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "PASSIVE"
+        ],
+        "title": "Polo"
+      },
+      "Requirement": {
+        "type": "string",
+        "enum": [
+          "court",
+          "parties",
+          "qualification",
+          "facts",
+          "legal_basis",
+          "claims",
+          "claim_value",
+          "evidence",
+          "hearing",
+          "documents",
+          "liquid_claim"
+        ],
+        "title": "Requirement"
+      },
+      "ReviewDecision": {
+        "type": "string",
+        "enum": [
+          "ACCEPT",
+          "REJECT",
+          "AMEND"
+        ],
+        "title": "ReviewDecision"
+      },
+      "ReviewRequest": {
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/ReviewDecision"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "ReviewRequest"
+      },
+      "RiskVerdict": {
+        "type": "string",
+        "enum": [
+          "PASS",
+          "WARN",
+          "BLOCK"
+        ],
+        "title": "RiskVerdict",
+        "description": "Veredito do firewall de integridade documental.\n\nPASS  — documento íntegro, segue para análise cognitiva.\nWARN  — anomalias de baixo risco; segue, mas sinaliza ao revisor humano.\nBLOCK — manipulação grave (ex.: prompt injection); interrompe o fluxo\n        ANTES de qualquer chamada a LLM."
+      },
+      "Rito": {
+        "type": "string",
+        "enum": [
+          "CIVEL",
+          "TRABALHISTA"
+        ],
+        "title": "Rito",
+        "description": "Rito processual que define quais regras de admissibilidade se aplicam.\n\nO firewall e a extração são agnósticos ao rito; o que varia é a\nadmissibilidade (e, futuramente, a taxonomia TPU). Ver ADR-0008.\n\nCIVEL        — CPC art. 319 (rito padrão do MVP).\nTRABALHISTA  — CLT art. 840 §1º (exige pedido líquido).\n\nCresce por demanda (PREVIDENCIARIO, FISCAL, …) sem tocar nos ritos existentes."
+      },
+      "Severity": {
+        "type": "string",
+        "enum": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "title": "Severity"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token"
+        ],
+        "title": "TokenResponse"
+      },
+      "TpuSuggestion": {
+        "properties": {
+          "tpu_code": {
+            "type": "string",
+            "title": "Tpu Code"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "anchor_excerpt": {
+            "type": "string",
+            "title": "Anchor Excerpt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tpu_code",
+          "description",
+          "confidence",
+          "anchor_excerpt"
+        ],
+        "title": "TpuSuggestion"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

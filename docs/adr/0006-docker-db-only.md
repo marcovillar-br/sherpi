@@ -4,8 +4,8 @@ description: "Docker apenas para o banco — contexto, decisão e consequências
 doc_type: adr
 project: SHERPI
 status: accepted
-version: 1.0
-updated: 2026-06-18
+version: 1.1
+updated: 2026-06-22
 language: pt-BR
 tags: [adr, arquitetura, decisao]
 ---
@@ -20,7 +20,9 @@ Containerizar tudo (backend, frontend, banco) num MVP de 2 semanas atrasa o dese
 
 ## Decisão
 
-Usar **docker-compose apenas para Postgres+pgvector** (e MinIO opcional). Backend (uv) e frontend (npm) rodam **nativos** em dev, com hot reload. Containerização completa fica para a **Fase 4**.
+Usar **docker-compose apenas para Postgres 16** (imagem `postgres:16` pura — **sem pgvector**, ver [ADR-0009](0009-knn-numpy-bytes.md); **sem MinIO**). Backend (uv) e frontend (npm) rodam **nativos** em dev, com hot reload. Containerização completa fica para a **Fase 4**.
+
+Esta decisão vale para o **dev** (`docker-compose.yml`, só o serviço `db`). O `docker-compose.prod.yml` já containeriza o backend (`build` + Dockerfile multi-stage) — é o **início da Fase 4**, não contradiz o escopo "só banco" do dev.
 
 ## Consequências
 
