@@ -117,7 +117,12 @@ cível+trabalhista, mantendo a arquitetura de ports (não há mudança no orques
   classifique manualmente" (distinta de TPU indisponível, que oculta o painel). Limiar calibrado
   pelo eval (top-1 legítimo ≥ 0.77). Front: `TpuPanel`/`AnalysisResultView`.
 
+- ✅ **Dedup de boilerplate em nível de BLOCO** (`document.visible_text(dedup_boilerplate=True)`):
+  blocos que se repetem em ≥3 páginas são removidos; quando o boilerplate vem *colado* a conteúdo
+  legítimo no mesmo bloco, remove só o trecho repetido (substring) e preserva o resto. Captura o
+  disclaimer "MODELO AVISO" que a normalização por linha não alcançava: **~27% menos tokens em PDF**
+  (vs ~10% antes), conteúdo ("em face da PARTE REQUERIDA…") preservado. Opt-in só no caminho do LLM
+  (orquestrador); a admissibilidade segue com o texto íntegro.
+
 ## Itens pendentes (ordem sugerida)
-1. Dedup de boilerplate em nível de BLOCO no parser (`visible_text`) — captura o disclaimer colado
-   que a normalização por linha não alcança; mais economia de token. Cuidar do impacto na admissibilidade.
-2. (Baixa prioridade) Enriquecimento por LLM das folhas trabalhistas só-path (em batch).
+1. (Baixa prioridade) Enriquecimento por LLM das folhas trabalhistas só-path (em batch).
