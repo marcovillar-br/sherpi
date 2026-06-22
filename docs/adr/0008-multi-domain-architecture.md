@@ -4,8 +4,8 @@ description: "Arquitetura multi-domínio (rito-aware) — contexto, decisão e c
 doc_type: adr
 project: SHERPI
 status: accepted
-version: 1.1
-updated: 2026-06-19
+version: 1.2
+updated: 2026-06-22
 language: pt-BR
 tags: [adr, arquitetura, decisao]
 ---
@@ -70,5 +70,6 @@ Esclarecimentos de redação após a implementação na Sprint 3 (**não alteram
   infraestrutura). O termo "port" no item 2 da Decisão era impreciso.
 - O registro `Rito → estratégia` é a constante **`DEFAULT_STRATEGIES`** no mesmo módulo.
 - O enum `Rito` implementado contém apenas `CIVEL` e `TRABALHISTA`; os demais ritos são previstos.
-- A checagem de pedido líquido foi materializada no requisito `Requisito.PEDIDO_LIQUIDO`
-  (determinístico, art. 840 §1º).
+- A checagem de pedido líquido foi materializada no requisito `Requirement.LIQUID_CLAIM`
+  (determinístico, art. 840 §1º). O nome do enum/valor foi anglicizado no refactor en-US
+  da Sprint 9 (EP12 no backlog); o requisito em si é inalterado.
