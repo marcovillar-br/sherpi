@@ -102,10 +102,13 @@ class AnalyzePetition:
         # O texto que vai ao LLM externo é anonimizado (LGPD); guardamos o mapa para
         # restaurar os valores reais no resumo do revisor (a admissibilidade já usa o
         # original). O prompt persistido para auditoria permanece anonimizado.
+        # `dedup_boilerplate`: remove o disclaimer/rodapé repetido por página — menos
+        # tokens e ruído ao LLM (a admissibilidade segue com o texto íntegro acima).
+        llm_source = document.visible_text(dedup_boilerplate=True)
         if self._anonymizer is not None:
-            llm_text, pii_map = self._anonymizer.anonymize_mapped(original_text)
+            llm_text, pii_map = self._anonymizer.anonymize_mapped(llm_source)
         else:
-            llm_text, pii_map = original_text, {}
+            llm_text, pii_map = llm_source, {}
         summary = await self._extractor.run(llm_text)
         summary = deanonymize_model(summary, pii_map)  # restaura nome/CPF/CNPJ reais
         admissibility = self._admissibility.run(summary, rito, raw_text=original_text)

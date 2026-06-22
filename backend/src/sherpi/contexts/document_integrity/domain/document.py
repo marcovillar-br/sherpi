@@ -8,6 +8,9 @@ documentos sintéticos, sem PDFs reais.
 
 from __future__ import annotations
 
+import re
+from collections import Counter
+
 from pydantic import BaseModel
 
 # (x0, y0, x1, y1) em pontos PDF.
@@ -17,6 +20,40 @@ Rgb = tuple[float, float, float]
 
 # Fração mínima de imagem para considerar a página "dominada por imagem".
 _IMAGE_PAGE_RATIO = 0.5
+
+# Boilerplate (disclaimer/rodapé de modelo) = bloco que se repete em ≥ N páginas.
+_BOILERPLATE_MIN_REPEAT = 3
+# Comprimento mínimo p/ tratar um bloco repetido como boilerplate (evita remover
+# rótulos curtos legítimos que por acaso se repitam).
+_BOILERPLATE_MIN_LEN = 120
+
+
+def _strip_repeated_blocks(groups: list[str]) -> list[str]:
+    """Remove blocos de boilerplate que se repetem em várias páginas.
+
+    Dois casos: (a) bloco PURO de boilerplate (idêntico em ≥3 páginas) → descartado;
+    (b) boilerplate COLADO a conteúdo legítimo no mesmo bloco (ex.: disclaimer +
+    "em face da PARTE REQUERIDA…") → remove só o trecho repetido, preserva o resto.
+    """
+    counts = Counter(groups)
+    boiler = [
+        g
+        for g, c in counts.items()
+        if c >= _BOILERPLATE_MIN_REPEAT and len(g) >= _BOILERPLATE_MIN_LEN
+    ]
+    if not boiler:
+        return groups
+    boiler.sort(key=len, reverse=True)  # remove os mais longos primeiro
+    out: list[str] = []
+    for g in groups:
+        if g in boiler:  # bloco puro de boilerplate
+            continue
+        for bt in boiler:
+            g = g.replace(bt, " ")  # boilerplate colado → tira só ele
+        g = re.sub(r"\s{2,}", " ", g).strip()
+        if g:
+            out.append(g)
+    return out
 
 
 class TextSpan(BaseModel):
@@ -58,13 +95,18 @@ class ParsedDocument(BaseModel):
     # True se o documento declara OCGs (camadas de conteúdo opcional).
     has_optional_content: bool = False
 
-    def visible_text(self) -> str:
+    def visible_text(self, *, dedup_boilerplate: bool = False) -> str:
         """Texto que um humano de fato enxerga (exclui spans ocultos).
 
         Spans são agrupados por **bloco** (parágrafo): unidos por espaço dentro do
         bloco e por quebra de linha entre blocos. Isso preserva a estrutura do
         documento (endereçamento, título e qualificação ficam em parágrafos
         distintos) — sem o qual a anonimização de nomes "atravessaria" o título.
+
+        Com `dedup_boilerplate=True`, remove cabeçalho/rodapé/disclaimer repetido por
+        página (ex.: o aviso "MODELO" das petições-modelo, que reaparece em todo bloco
+        de topo) — reduz tokens e ruído no envio ao LLM. Default False: a admissibilidade
+        usa o texto íntegro.
         """
         from .detector import is_span_hidden  # import tardio: evita ciclo
 
@@ -82,6 +124,8 @@ class ParsedDocument(BaseModel):
             current.append(span.text)
         if current:
             groups.append(" ".join(current))
+        if dedup_boilerplate:
+            groups = _strip_repeated_blocks(groups)
         return "\n".join(groups)
 
     def image_only_pages(self) -> list[int]:
