@@ -32,10 +32,10 @@ O domínio é puro; toda dependência externa (LLM, banco, parser de PDF, storag
 |---|---|---|
 | `document_integrity` | Firewall anti *prompt-injection* (sem LLM) | ✅ Sprint 1 |
 | `petition_analysis` | Extração + admissibilidade **rito-aware** (**core domain**) | ✅ Sprint 1–3 |
-| `identity` | Autenticação JWT (perfil único) | ✅ Sprint 4 (backend) |
-| `review` | *Human-in-the-loop* + auditoria append-only | ✅ Sprint 4 (backend) |
-| `taxonomy` | Classificação TPU (embedding + k-NN) | ✅ Sprint 5 (backend) |
-| `integration` | Ingestão assíncrona de petições (PJe/E-Proc/sandbox) | ✅ Sprint 7 |
+| `identity` | Autenticação JWT (perfil único) | ✅ Sprint 4 · UI Sprint 8 |
+| `review` | *Human-in-the-loop* + auditoria append-only | ✅ Sprint 4 · UI Sprint 8 |
+| `taxonomy` | Classificação TPU (embedding + k-NN) | ✅ Sprint 5 · UI Sprint 8 |
+| `integration` | Ingestão assíncrona de petições (PJe/E-Proc/sandbox) | ✅ Sprint 7 (backend; sem UI) |
 
 ## Stack
 
