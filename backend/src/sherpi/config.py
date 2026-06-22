@@ -69,6 +69,9 @@ class Settings(BaseSettings):
     #   fake       hash, NÃO-semântico (dev/CI sem ML)
     #   auto       tenta JurisBERT, cai no fake com WARNING
     tpu_embedder: TpuEmbedder = "auto"
+    # Confiança mínima da sugestão de TPU; abaixo dela a sugestão é descartada (lista
+    # vazia → "nenhuma classe próxima" na UI). Calibrado: top-1 legítimo ≥ 0.77 no eval.
+    tpu_min_confidence: float = 0.65
 
     # --- Auth ---
     jwt_secret: str = Field(default="change-me-in-dev-only")

@@ -112,8 +112,12 @@ cível+trabalhista, mantendo a arquitetura de ports (não há mudança no orques
   disclaimer "MODELO AVISO" vem *colado* a conteúdo legítimo e variando por página na extração PDF,
   então remover só ele com segurança exigiria dedup em nível de BLOCO no parser (item futuro).
 
+- ✅ **UX de confiança/rejeição** (`SHERPI_TPU_MIN_CONFIDENCE`, default 0.65): sugestões abaixo do
+  limiar são descartadas; lista vazia → a UI mostra "nenhuma classe suficientemente próxima —
+  classifique manualmente" (distinta de TPU indisponível, que oculta o painel). Limiar calibrado
+  pelo eval (top-1 legítimo ≥ 0.77). Front: `TpuPanel`/`AnalysisResultView`.
+
 ## Itens pendentes (ordem sugerida)
-1. UX de confiança/rejeição (limiar + "nenhuma classe próxima").
-2. Dedup de boilerplate em nível de BLOCO no parser (`visible_text`) — captura o disclaimer colado
+1. Dedup de boilerplate em nível de BLOCO no parser (`visible_text`) — captura o disclaimer colado
    que a normalização por linha não alcança; mais economia de token. Cuidar do impacto na admissibilidade.
-3. (Baixa prioridade) Enriquecimento por LLM das folhas trabalhistas só-path (em batch).
+2. (Baixa prioridade) Enriquecimento por LLM das folhas trabalhistas só-path (em batch).
