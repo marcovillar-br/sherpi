@@ -105,8 +105,15 @@ cível+trabalhista, mantendo a arquitetura de ports (não há mudança no orques
   top-k. Índice 1135→**1007**. **Baseline atual: top-1 0.800, top-3 1.000, top-5 1.000** (equiparação
   #5→#3, rescisão indireta #3→#2).
 
+- ✅ **Normalização do input do LLM** (`extract._normalize_input`): colapsa espaços/quebras e
+  remove linhas que se repetem em ≥3 páginas (rodapés/numeração) por chave robusta (sem acento,
+  pontuação/dígitos normalizados). Economia **~10% de tokens em PDF** multi-página, **sem perder
+  conteúdo**. Roda só no caminho do LLM (admissibilidade usa o texto original). **Teto honesto:** o
+  disclaimer "MODELO AVISO" vem *colado* a conteúdo legítimo e variando por página na extração PDF,
+  então remover só ele com segurança exigiria dedup em nível de BLOCO no parser (item futuro).
+
 ## Itens pendentes (ordem sugerida)
 1. UX de confiança/rejeição (limiar + "nenhuma classe próxima").
-2. Normalizar o texto da petição ANTES do LLM (colapsar espaços/quebras excedentes da extração
-   PDF/DOCX) — reduz tokens e ruído; medir economia e impacto.
+2. Dedup de boilerplate em nível de BLOCO no parser (`visible_text`) — captura o disclaimer colado
+   que a normalização por linha não alcança; mais economia de token. Cuidar do impacto na admissibilidade.
 3. (Baixa prioridade) Enriquecimento por LLM das folhas trabalhistas só-path (em batch).
