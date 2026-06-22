@@ -43,6 +43,8 @@ fonte de verdade**. Drift factual corrigido na documentação e em docstrings:
 ### Adicionado
 
 - Este `CHANGELOG.md`.
+- Manutenção da seção `[Não publicado]` a cada mudança notável incorporada à
+  **Definition of Done** (AGENTS.md e CONTRIBUTING.md).
 
 ## [0.1.0] — MVP
 

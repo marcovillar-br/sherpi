@@ -106,8 +106,9 @@ Convenções completas e agnósticas a ferramenta em [`CONTRIBUTING.md`](CONTRIB
   merge e parta da `development` atualizada. Arquivos de cruzamento (`Makefile`, `pyproject.toml`,
   `docs/adr/INDEX.md`, índices) são tocados por quase tudo, então branches paralelas colidem; só
   paralelize em arquivos disjuntos e, se inevitável, rebaseie na `development` antes do PR.
-- **Definition of Done**: código + testes passando, `ruff`/`mypy` limpos, docs atualizadas; para
-  modelos, métrica medida no eval. Tudo isso é gate de CI.
+- **Definition of Done**: código + testes passando, `ruff`/`mypy` limpos, docs atualizadas, seção
+  `[Não publicado]` do `CHANGELOG.md` atualizada (mudança notável); para modelos, métrica medida no
+  eval. Tudo isso é gate de CI.
 - **mypy strict.** PyMuPDF é sem tipos: relaxe apenas no adapter/ferramenta (override em `pyproject.toml`),
   nunca no domínio. Pacote `sherpi` tem `py.typed`.
 - **Testes**: domínio puro e firewall sem rede; use `FakeProvider` para qualquer caminho com LLM.
