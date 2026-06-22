@@ -94,7 +94,8 @@ entrar na `development`. O PR é o portão onde lint/type/test/eval rodam.
 ## Qualidade (Definition of Done)
 
 Um item só é "pronto" quando: código + **testes** passando; `ruff` (check + format) e `mypy` limpos;
-documentação atualizada; e — para itens de modelo — **métrica medida** no *eval* (nunca prometida).
+documentação atualizada; seção **`[Não publicado]` do [`CHANGELOG.md`](CHANGELOG.md) atualizada** (quando
+a mudança for notável); e — para itens de modelo — **métrica medida** no *eval* (nunca prometida).
 Tudo isso é gate de CI.
 
 - **mypy strict**: libs sem tipos (PyMuPDF, google-genai) só relaxam `disallow_untyped_calls` no
@@ -109,6 +110,10 @@ Tudo isso é gate de CI.
 - Cada `.md` em `docs/` tem **frontmatter YAML padronizado**; a fonte de verdade dos metadados é
   `scripts/add_frontmatter.py`. Ao criar um doc novo: adicione a entrada no script e rode-o.
 - Mantenha o índice [`docs/INDEX.md`](docs/INDEX.md) atualizado e **sem links quebrados**.
+- **CHANGELOG**: a cada mudança notável (feature, fix, mudança de comportamento, doc estrutural),
+  adicione a entrada na seção `[Não publicado]` do [`CHANGELOG.md`](CHANGELOG.md) **no mesmo PR**
+  (Keep a Changelog: Adicionado/Alterado/Corrigido/Removido/Segurança). Mudanças triviais (typo,
+  formatação) ficam de fora. Não duplique o histórico de sprints (vive em `roadmap.md`/`backlog.md`).
 
 ## Princípios inegociáveis do produto
 
