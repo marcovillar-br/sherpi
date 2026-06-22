@@ -17,9 +17,10 @@ Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/IND
 
 1. **Agnóstico a LLM.** Nunca chame um SDK de LLM diretamente nem faça hardcode de provider/modelo.
    Todo acesso a LLM passa pelo **port `LLMProvider`** (`shared_kernel/ports.py`); o provider vem da
-   **config** (`SHERPI_LLM_BACKEND`). Default **Gemini Flash**; adapters: Maritaca Sabiá / OpenAI /
-   Ollama (`infrastructure/llm/`). Em testes, use **`FakeProvider`** (sem rede). Trocar de modelo =
-   trocar um adapter, sem tocar no domínio.
+   **config** (`SHERPI_LLM_BACKEND`). Default **Gemini Flash** (`google-genai`); adapters trocáveis
+   **Grok (xAI)** e **Claude Sonnet (Anthropic)** — ambos via httpx, sem SDK (`infrastructure/llm/`,
+   ADR-0011). Em testes, use **`FakeProvider`** (sem rede). Trocar de modelo = trocar um adapter, sem
+   tocar no domínio.
 2. **Domínio puro.** `domain/` não importa FastAPI, SQL, PyMuPDF nem SDK de LLM. Dependência externa =
    **port** (camada interna) + **adapter** (infraestrutura). Hexagonal/DDD.
 3. **Human-in-the-loop.** Toda saída é sugestão auditável; jamais decisão automática (Res. CNJ 615/2025).
@@ -70,7 +71,7 @@ docs/                   # PRD, spec, roadmap, PGP, EAP, backlog, ADRs, seguranç
 
 Python ≥3.12 · FastAPI · uv · PyMuPDF · Pydantic v2 · SQLModel + Alembic · PostgreSQL ·
 bcrypt + pyjwt (auth; **passlib não compatível com bcrypt>=5**) · structlog · sentry-sdk[fastapi] ·
-google-genai (default) / openai (compat) · sentence-transformers (extra `ml`) · presidio (extra `ner`) ·
+google-genai (Gemini default) · Grok/Anthropic via httpx (sem SDK) · sentence-transformers (extra `ml`) · presidio (extra `ner`) ·
 Next.js + TS (frontend) · Dockerfile multi-stage · pip-audit gate CI.
 
 ## Comandos (rodar em `backend/`)
