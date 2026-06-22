@@ -51,6 +51,7 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 | [c4-model.md](c4-model.md) | Modelo C4 (Contexto, Contêineres, Componentes, Código) refletindo a implementação. |
 | [ddd-context-map.md](ddd-context-map.md) | Mapa dos bounded contexts (relações upstream/downstream) + glossário da linguagem ubíqua. |
 | [adr/INDEX.md](adr/INDEX.md) | Architecture Decision Records — as decisões de arquitetura e seus trade-offs. |
+| [ai-governance.md](ai-governance.md) | Governança de IA: Model/System Card + matriz de conformidade CNJ 615/2025. |
 
 ## Segurança e confiabilidade
 
