@@ -1,10 +1,10 @@
 ---
 title: "ADR-0016: TPU 1.0 sobre a TUA real do CNJ (substitui o seed sintético)"
-description: "Adotar a Tabela Única de Assuntos oficial do CNJ (escopo cível+trabalhista) como catálogo da classificação TPU, com texto de embedding híbrido (glossário > caminho > descrição LLM) e eval rotulado; mantém o k-NN numpy."
+description: "Adotar a Tabela Única de Assuntos oficial do CNJ (escopo cível+trabalhista) como catálogo da classificação TPU, com texto de embedding híbrido (caminho + glossário), ranking denso + léxico/IDF e eval rotulado; mantém o k-NN numpy."
 doc_type: adr
 project: SHERPI
-status: proposed
-version: 1.0
+status: accepted
+version: 1.1
 updated: 2026-06-21
 language: pt-BR
 tags: [adr, tpu, taxonomy, cnj, embeddings, jurisbert]
@@ -12,7 +12,7 @@ tags: [adr, tpu, taxonomy, cnj, embeddings, jurisbert]
 
 # ADR 0016 — TPU 1.0 sobre a TUA real do CNJ
 
-**Status**: Proposto · **Revisa** [ADR-0009](0009-knn-numpy-bytes.md) (motor k-NN) e o seed
+**Status**: Aceito · **Revisa** [ADR-0009](0009-knn-numpy-bytes.md) (motor k-NN) e o seed
 sintético da Sprint 5
 
 ## Contexto
