@@ -37,7 +37,7 @@ Documentação completa em [`docs/`](docs/) (índice: [`docs/INDEX.md`](docs/IND
 ## Escopo atual (Sprints 1–9 entregues — backend + frontend completo)
 
 Entregue:
-- `document_integrity` — firewall anti prompt-injection (PyMuPDF, 7 vetores)
+- `document_integrity` — firewall anti prompt-injection (PyMuPDF, 8 vetores)
 - `petition_analysis` — extração + admissibilidade **rito-aware** (cível + trabalhista, CLT 840 §1º, ADR-0008)
 - `identity` — auth JWT+bcrypt (pyjwt direto; passlib incompatível com bcrypt>=5), lockout, seed user
 - `review` — AuditEvent append-only, RecordReview, GetCurrentUser dependency
@@ -56,7 +56,7 @@ Monólito modular DDD + hexagonal. Backend é o projeto Python (uv); frontend em
 
 ```
 backend/src/sherpi/
-  shared_kernel/        # Value Objects (CPF, CNPJ, ValorCausa, RiskVerdict, Rito) + ports transversais
+  shared_kernel/        # Value Objects (CPF, CNPJ, ClaimAmount, RiskVerdict, Rito) + ports transversais
   contexts/<ctx>/{domain,application,infrastructure}   # bounded contexts
   application/          # orquestrador cross-context (analyze_petition)
   infrastructure/{llm,persistence,storage}             # adapters
