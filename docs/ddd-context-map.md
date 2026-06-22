@@ -4,7 +4,7 @@ description: "Bounded contexts, relações upstream/downstream e glossário da l
 doc_type: context-map
 project: SHERPI
 status: approved
-version: 1.6
+version: 1.7
 updated: 2026-06-22
 language: pt-BR
 tags: [ddd, bounded-context, linguagem-ubiqua]
@@ -15,9 +15,9 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 | Campo | Valor |
 |---|---|
 | Documento | Context Map + Glossário |
-| Versão | 1.5 |
+| Versão | 1.7 |
 | Status | Aprovado |
-| Última atualização | 2026-06-20 |
+| Última atualização | 2026-06-22 |
 
 ---
 
@@ -130,6 +130,6 @@ Toda dependência externa (LLM, banco, PDF parser, embeddings, storage) é um **
 | **k-NN** | Classificação por vizinhos mais próximos sobre embeddings (numpy/bytes, compatível SQLite+Postgres). |
 | **BcryptHasher / JwtIssuer** | Implementações de hashing de senha (bcrypt direto, sem passlib) e emissão/verificação de JWT (pyjwt) no contexto `identity`. |
 | **Role** | `StrEnum` do `identity`: `ADMIN`, `REVISOR`; base do RBAC. |
-| **AuditEvent** | Registro imutável append-only de uma decisão de revisão humana: quem (`User`), quando, qual `ReviewDecision` (`ACEITAR/REJEITAR/CORRIGIR`). |
+| **AuditEvent** | Registro imutável append-only de uma decisão de revisão humana: quem (`User`), quando, qual `ReviewDecision` (`ACCEPT/REJECT/AMEND`; a UI exibe os rótulos PT Aceitar/Corrigir/Rejeitar). |
 | **IngestJob / IngestQueue** | `IngestJob`: entidade de acompanhamento de uma tarefa de ingestão (`QUEUED/RUNNING/DONE/FAILED`). `IngestQueue`: fila asyncio que processa jobs em background (worker iniciado no lifespan FastAPI). |
 | **PetitionSource** | Port (Protocol async) que representa um sistema externo de petições (`fetch(job) → AsyncIterator[PetitionDoc]`). |
