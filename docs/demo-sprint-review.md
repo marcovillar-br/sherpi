@@ -4,8 +4,8 @@ description: "Runbook passo a passo para apresentar o SHERPI (MVP + rito trabalh
 doc_type: runbook
 project: SHERPI
 status: approved
-version: 1.4
-updated: 2026-06-20
+version: 1.5
+updated: 2026-06-22
 language: pt-BR
 tags: [demo, sprint-review, runbook, apresentacao]
 ---
@@ -190,12 +190,12 @@ curl localhost:8000/ready    # → {"status":"ok"}
 - **Qualidade (medida, não prometida):**
   ```bash
   uv run python -m evals.run   # firewall p/r=1.0; extração sanidade=1.0; corpus resumo; TPU top-3=1.0
-  uv run pytest -q             # 210 testes verdes
-  make e2e                     # 30 testes Playwright — firewall de todos os 29 PDFs (zero tokens)
-  make e2e-llm                 # 10 cenários Playwright — semáforo + liminar com LLM real
+  uv run pytest -q             # 282 testes verdes
+  make e2e                     # 52 testes Playwright — firewall de todos os PDFs do corpus (zero tokens)
+  make e2e-llm                 # 11 cenários Playwright — semáforo + liminar com LLM real
   npm run build && npm run lint # frontend: zero erros TS/ESLint
   ```
-- **Corpus sintético:** 29 PDFs rotulados (↑ de 14) com variantes aleatórias (nomes, CPFs,
+- **Corpus sintético:** 51 PDFs rotulados (↑ de 14) com variantes aleatórias (nomes, CPFs,
   valores), litisconsórcio (multi-parte) e cenários de atributos estruturais (`hearing_option`,
   `requests_evidence`, `cited_documents`, `SUBSIDIARY`). `eval_extraction_corpus()` valida os campos
   extraídos com expectativa definida.
@@ -220,8 +220,8 @@ curl localhost:8000/ready    # → {"status":"ok"}
 (inédito no mercado), admissibilidade multi-rito (cível + trabalhista), controle humano
 auditável (CNJ 615/2025), classificação TPU, LGPD pronto para produção, ingestão
 automatizada de sistemas processuais, UI funcional ponta a ponta, auditoria estruturada
-de cada chamada ao LLM e suíte E2E Playwright sobre 29 cenários sintéticos. Arquitetura
-DDD + hexagonal, 210 testes, CI rigoroso, Next.js 16 + React 19."*
+de cada chamada ao LLM e suíte E2E Playwright sobre 51 cenários sintéticos. Arquitetura
+DDD + hexagonal, 282 testes, CI rigoroso, Next.js 16 + React 19."*
 
 ---
 
@@ -239,7 +239,7 @@ DDD + hexagonal, 210 testes, CI rigoroso, Next.js 16 + React 19."*
 
 ## Arquivos de apoio
 
-- **PDFs sintéticos** — 29 cenários em `backend/data/synthetic/` (gerados por `make synthetic`):
+- **PDFs sintéticos** — 51 cenários em `backend/data/synthetic/` (gerados por `make synthetic`):
   - Demo principal: `clean_acao_cobranca.pdf`, `injection_texto_branco.pdf`,
     `trabalhista_pedido_liquido.pdf`, `trabalhista_pedido_iliquido.pdf`
   - Atributos estruturais: `clean_recusa_conciliacao.pdf`, `clean_documentos_citados.pdf`,
@@ -248,7 +248,7 @@ DDD + hexagonal, 210 testes, CI rigoroso, Next.js 16 + React 19."*
   - Documentos-imagem: `scanned_acao_cobranca.pdf` (100% escaneado), `scanned_parcial.pdf` (texto + página-imagem), `scanned_mista.pdf` (página mista: texto + imagem dominante)
   - Variantes aleatórias: `clean_acao_cobranca_v1.pdf` … `v3.pdf` (nomes/CPFs/valores distintos)
 - **Métricas ao vivo:** `uv run python -m evals.run`
-- **Testes unitários/integração:** `uv run pytest -q` (210 testes)
-- **Testes E2E:** `make e2e` (30 testes, zero tokens) · `make e2e-llm` (10 cenários, LLM real)
+- **Testes unitários/integração:** `uv run pytest -q` (282 testes)
+- **Testes E2E:** `make e2e` (52 testes, zero tokens) · `make e2e-llm` (11 cenários, LLM real)
 - **Contrato da API:** [`tech-spec-sherpi.md`](tech-spec-sherpi.md) §8
 - **Swagger local:** `http://localhost:8000/docs`
