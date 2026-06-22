@@ -4,8 +4,8 @@ description: "Ponto de entrada da documentação do SHERPI, organizado por categ
 doc_type: index
 project: SHERPI
 status: reference
-version: 1.1
-updated: 2026-06-19
+version: 1.2
+updated: 2026-06-22
 language: pt-BR
 tags: [index, navegacao]
 ---
@@ -48,6 +48,7 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 | Documento | Conteúdo |
 |---|---|
 | [tech-spec-sherpi.md](tech-spec-sherpi.md) | Especificação técnica: arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilidade, segurança, API e diagramas. |
+| [c4-model.md](c4-model.md) | Modelo C4 (Contexto, Contêineres, Componentes, Código) refletindo a implementação. |
 | [ddd-context-map.md](ddd-context-map.md) | Mapa dos bounded contexts (relações upstream/downstream) + glossário da linguagem ubíqua. |
 | [adr/INDEX.md](adr/INDEX.md) | Architecture Decision Records — as decisões de arquitetura e seus trade-offs. |
 
