@@ -189,7 +189,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         orchestrator: Annotated[AnalyzePetition, Depends(get_orchestrator)],
         repository: Annotated[AnalysisRepository, Depends(get_repository)],
         current_user: Annotated[User, Depends(get_current_user)],
-        file: Annotated[UploadFile, File(description="PDF da petição inicial")],
+        file: Annotated[UploadFile, File(description="PDF ou DOCX da petição inicial")],
         rito: Annotated[Rito, Form(description="Rito processual (default cível)")] = Rito.CIVEL,
     ) -> AnalyzeResponse:
         analysis_id = uuid.uuid4().hex
