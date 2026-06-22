@@ -99,7 +99,12 @@ def _build_suggest_tpu() -> SuggestTpu | None:
             probe_dim,
         )
         return None
-    return SuggestTpu(embedder, index, top_k=settings.tpu_top_k)
+    return SuggestTpu(
+        embedder,
+        index,
+        top_k=settings.tpu_top_k,
+        min_confidence=settings.tpu_min_confidence,
+    )
 
 
 @lru_cache

@@ -13,6 +13,19 @@ function ConfidenceBar({ value }: { value: number }) {
 }
 
 export function TpuPanel({ suggestions }: { suggestions: TpuSuggestion[] }) {
+  if (suggestions.length === 0) {
+    return (
+      <section className="space-y-2 rounded-lg border border-blue-200 bg-blue-50/40 p-4">
+        <h2 className="font-semibold text-gray-800">Sugestão TPU</h2>
+        <p className="text-sm text-gray-600">
+          Nenhuma classe suficientemente próxima — classifique manualmente.
+        </p>
+        <p className="text-xs text-gray-400">
+          Nenhuma sugestão atingiu a confiança mínima; o assunto pode não estar no catálogo.
+        </p>
+      </section>
+    );
+  }
   return (
     <section className="space-y-3 rounded-lg border border-blue-200 bg-blue-50/40 p-4">
       <h2 className="font-semibold text-gray-800">Sugestão TPU (top‑3)</h2>

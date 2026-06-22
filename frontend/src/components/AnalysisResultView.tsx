@@ -27,7 +27,8 @@ export function AnalysisResultView({
             <AdmissibilityPanel report={result.admissibility} />
           </div>
 
-          {result.tpu_suggestions && result.tpu_suggestions.length > 0 && (
+          {/* null = TPU indisponível (oculta); [] = rodou sem classe confiável (mostra aviso) */}
+          {result.tpu_suggestions !== null && (
             <TpuPanel suggestions={result.tpu_suggestions} />
           )}
 

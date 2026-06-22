@@ -161,3 +161,16 @@ def test_dedupes_repeated_tpu_code_in_top_k():
     results = SuggestTpu(embedder, idx, top_k=3).run("obrigação de fazer obras reforma")
     codes = [r.tpu_code for r in results]
     assert len(codes) == len(set(codes)), f"código repetido no top-k: {codes}"
+
+
+def test_min_confidence_filters_weak_suggestions(populated_index):
+    embedder, idx = populated_index
+    # limiar acima de qualquer score possível → nada passa → "nenhuma classe próxima"
+    suggest = SuggestTpu(embedder, idx, top_k=3, min_confidence=1.01)
+    assert suggest.run("texto qualquer") == []
+
+
+def test_min_confidence_zero_keeps_suggestions(populated_index):
+    embedder, idx = populated_index
+    suggest = SuggestTpu(embedder, idx, top_k=3, min_confidence=0.0)
+    assert len(suggest.run("débito cobrança contrato prestação de serviços")) >= 1
