@@ -180,7 +180,7 @@ Sprints 4–7 acessíveis ao usuário final sem exigir o Swagger.
 - `frontend/src/lib/types.ts` e componentes React atualizados.
 
 **Definition of Done**
-- [x] `uv run pytest -q` → 196 passed, 0 failed.
+- [x] `uv run pytest -q` → 196 passed, 0 failed *(snapshot no fechamento da Sprint 9; ver o total atual ao fim desta seção)*.
 - [x] `ruff` + `mypy` limpos; `npm run build && npm run lint` limpos.
 - [x] Zero identificadores pt-BR violando a regra (exceção `trabalhista` documentada).
 
@@ -188,7 +188,7 @@ Sprints 4–7 acessíveis ao usuário final sem exigir o Swagger.
 
 Melhorias entregues após o fechamento das sprints, na branch `development`:
 
-- **Anonimização de nomes por default** (`RegexNameAnonymizer` + `CompositeAnonymizer`): mascara os
+- **Anonimização de nomes por default** (`MappedRegexNameAnonymizer` + `MappedCompositeAnonymizer`, as variantes reversíveis injetadas pela factory): mascara os
   nomes das partes — inclusive listas (litisconsórcio) — antes do LLM externo; robustez estrutural
   via `visible_text` por bloco. Best-effort; NER (Presidio) segue como evolução ([ADR-0010](adr/0010-name-masking-regex-vs-ner.md)).
 - **Detecção de PDF imagem/escaneado**: páginas sem texto (`image_only_pages`) → pula a extração;
@@ -200,13 +200,13 @@ Melhorias entregues após o fechamento das sprints, na branch `development`:
 - **UI**: histórico de análises (lista + filtros + detalhe) e auditoria das chamadas ao LLM
   (prompt anonimizado + resposta).
 - **Cenário sintético de litisconsórcio** (multi-parte) + testes de integração ponta a ponta.
-- **TPU 1.0 sobre a TUA real do CNJ** ([ADR-0016](adr/0016-cnj-tua-real-catalog-tpu.md)): substitui o
-  seed sintético pelo catálogo oficial (escopo cível+trabalhista), texto de embedding híbrido (caminho +
-  glossário), **ranking híbrido** (cosseno denso + léxico/IDF) e limiar de confiança
-  (`SHERPI_TPU_MIN_CONFIDENCE`, default 0.65); eval rotulado (top-1/top-3/top-5). Seed sintético mantido
-  para CI/testes rápidos.
+- **TPU 1.0 sobre a TUA real do CNJ** ([ADR-0016](adr/0016-cnj-tua-real-catalog-tpu.md)): disponibiliza o
+  catálogo oficial (escopo cível+trabalhista) como fonte **opt-in** (`seed_tpu.py --source cnj`), texto de
+  embedding híbrido (caminho + glossário), **ranking híbrido** (cosseno denso + léxico/IDF) e limiar de
+  confiança (`SHERPI_TPU_MIN_CONFIDENCE`, default 0.65); eval rotulado (top-1/top-3/top-5). Seed sintético
+  mantido como **default** para CI/testes rápidos.
 
-Estado: **282 testes** verdes; ruff/mypy e `npm run build`/`lint` limpos.
+Estado atual (pós-refinamentos S9): **282 testes** verdes; ruff/mypy e `npm run build`/`lint` limpos.
 
 ---
 
