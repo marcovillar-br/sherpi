@@ -4,8 +4,8 @@ description: "Roadmap das sprints (MVP em 2 semanas + Fase 4 concluída), com De
 doc_type: roadmap
 project: SHERPI
 status: approved
-version: 1.4
-updated: 2026-06-20
+version: 1.5
+updated: 2026-06-22
 language: pt-BR
 tags: [roadmap, sprints, planejamento, mvp]
 ---
@@ -15,9 +15,9 @@ tags: [roadmap, sprints, planejamento, mvp]
 | Campo | Valor |
 |---|---|
 | Documento | Roadmap |
-| Versão | 1.4 |
+| Versão | 1.5 |
 | Status | Aprovado |
-| Última atualização | 2026-06-20 |
+| Última atualização | 2026-06-22 |
 
 O **MVP** é entregue em **2 Sprints (2 semanas)**, conforme o Guia de Diretrizes da disciplina, com
 ritmo de **Design Sprint semanal** e **Sprint Review aos sábados** (ver [`agile-process.md`](agile-process.md)).
@@ -200,8 +200,13 @@ Melhorias entregues após o fechamento das sprints, na branch `development`:
 - **UI**: histórico de análises (lista + filtros + detalhe) e auditoria das chamadas ao LLM
   (prompt anonimizado + resposta).
 - **Cenário sintético de litisconsórcio** (multi-parte) + testes de integração ponta a ponta.
+- **TPU 1.0 sobre a TUA real do CNJ** ([ADR-0016](adr/0016-cnj-tua-real-catalog-tpu.md)): substitui o
+  seed sintético pelo catálogo oficial (escopo cível+trabalhista), texto de embedding híbrido (caminho +
+  glossário), **ranking híbrido** (cosseno denso + léxico/IDF) e limiar de confiança
+  (`SHERPI_TPU_MIN_CONFIDENCE`, default 0.65); eval rotulado (top-1/top-3/top-5). Seed sintético mantido
+  para CI/testes rápidos.
 
-Estado: **210 testes** verdes; ruff/mypy e `npm run build`/`lint` limpos.
+Estado: **282 testes** verdes; ruff/mypy e `npm run build`/`lint` limpos.
 
 ---
 

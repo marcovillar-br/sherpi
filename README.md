@@ -39,7 +39,7 @@ O domínio é puro; toda dependência externa (LLM, banco, parser de PDF, storag
 
 ## Stack
 
-- **Backend**: Python 3.13 · FastAPI · uv · PyMuPDF (PDF) + python-docx (DOCX) · Pydantic v2 · SQLModel + Alembic
+- **Backend**: Python ≥3.12 · FastAPI · uv · PyMuPDF (PDF) + python-docx (DOCX) · Pydantic v2 · SQLModel + Alembic
 - **Auth**: bcrypt + pyjwt (passlib incompatível com bcrypt>=5) · OAuth2 password flow
 - **Observabilidade**: structlog · correlation ID · Sentry (soft-dep)
 - **Frontend**: Next.js 16 + React 19 + TypeScript + Tailwind v4 (desacoplado da API)
@@ -103,6 +103,8 @@ Lista completa de alvos: `make help`. Detalhes do backend: [`backend/README.md`]
 - **Sprint 6** ✅ — Produção: structlog + correlation ID, LGPD (anonimização de PII + retenção), Dockerfile, pip-audit gate
 - **Sprint 7** ✅ — Integração PJe/E-Proc: ingestão assíncrona (asyncio.Queue + SandboxSourceAdapter)
 - **Sprint 8** ✅ — UI das Sprints 4–7: login, seletor de rito, TPU top-3, revisão humana (Next.js 16)
+- **Sprint 9** ✅ — Refactor de nomenclatura en-US (EP12): identificadores Python pt-BR → en-US (campos e enums; classes de domínio mantêm pt-BR pela regra de duas camadas)
+- **Refinamentos contínuos** ✅ — TPU 1.0 sobre a TUA real do CNJ (ranking híbrido + limiar de confiança, [ADR-0016](docs/adr/0016-cnj-tua-real-catalog-tpu.md)); anonimização de nomes por default; detecção de PDF imagem/escaneado; adapters Grok/Anthropic
 - **Domínios adicionais** (pós rito-aware) — previdenciário/INSS, execução fiscal, família/JEC
 
 Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pmp.md`](docs/pmp.md), [`docs/wbs.md`](docs/wbs.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).
