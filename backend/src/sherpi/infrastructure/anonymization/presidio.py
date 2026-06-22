@@ -1,5 +1,7 @@
 """Anonymizer com NER de nomes via Presidio (LGPD Fase 4).
 
+Quando usado pela factory na variante mapeada, o masking é reversível →
+**pseudonimização** (art. 5º XI), não anonimização (ver ADR-0012).
 Requer `uv sync --extra ner` e `python -m spacy download pt_core_news_sm`.
 Em produção substitui `RegexAnonymizer` adicionando detecção de nomes próprios.
 """

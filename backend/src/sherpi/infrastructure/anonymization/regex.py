@@ -192,8 +192,11 @@ class NoOpAnonymizer:
 
 
 class MappedRegexAnonymizer:
-    """RegexAnonymizer com mapeamento reversível (LGPD — anonimização rastreável).
+    """RegexAnonymizer com mapeamento reversível → **pseudonimização** sob a LGPD.
 
+    O mapa retido (placeholder→valor) torna o masking reversível: juridicamente é
+    pseudonimização (art. 5º XI), **não** anonimização — o dado continua pessoal e no
+    escopo da LGPD (ver ADR-0012). O nome da classe é mantido por estabilidade.
     Numera cada ocorrência: [CPF_1], [CPF_2]... permitindo reverter a substituição
     dentro da mesma sessão se necessário (ex.: para exibição ao magistrado autenticado).
     """
