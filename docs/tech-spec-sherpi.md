@@ -4,7 +4,7 @@ description: "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilida
 doc_type: tech-spec
 project: SHERPI
 status: approved
-version: 1.8
+version: 1.9
 updated: 2026-06-22
 language: pt-BR
 tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
@@ -15,7 +15,7 @@ tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 | Campo | Valor |
 |---|---|
 | Documento | Especificação Técnica |
-| Versão | 1.8 |
+| Versão | 1.9 |
 | Status | Aprovado para MVP |
 | Última atualização | 2026-06-22 |
 
@@ -65,7 +65,7 @@ flowchart TB
     end
 
     subgraph SK["shared_kernel (VOs e ports transversais)"]
-        VO[CPF, CNPJ, ValorCausa, RiskVerdict, Documento, Rito, Role]
+        VO[CPF, CNPJ, ClaimAmount, RiskVerdict, Rito]
         PORTS[LLMProvider, BlobStorage, Anonymizer]
     end
 
@@ -111,7 +111,7 @@ Os contratos são expressos como Value Objects (Pydantic) nas camadas de domíni
 
 ### 2.1 Document Integrity — `DetectInjection` (firewall, sem LLM)
 
-- **Entrada**: bytes do PDF (`Documento`).
+- **Entrada**: bytes do PDF/DOCX.
 - **Saída**: `ForensicsReport`.
 
 | VO | Campos | Descrição |
@@ -207,7 +207,7 @@ Trocar de LLM = trocar um adapter via `config.py`, **sem tocar no domínio**. Mo
 
 - **Synthetic-first**: gerador de petições sintéticas (limpas + com injeções plantadas de cada vetor). Evita LGPD/segredo de justiça e fornece *ground truth* para o eval e para a calibração do firewall.
 - **Catálogo TPU**: a **TUA real do CNJ** (escopo cível+trabalhista), ingerida via webservice SGT, com texto de embedding híbrido (caminho hierárquico + glossário oficial quando houver), embeddada e guardada como bytes (numpy/float32) para o k-NN em Python (ver [ADR-0016](adr/0016-cnj-tua-real-catalog-tpu.md)). Um **conjunto rotulado** petição→assunto serve só ao eval. O seed sintético de 30 entradas segue disponível para CI/testes rápidos.
-- **Persistência**: PostgreSQL (relacional), via SQLModel + Alembic; embeddings TPU como bytes + k-NN em Python (ver [ADR-0009](adr/0009-knn-numpy-bytes.md)). Blobs de PDF atrás do port `BlobStorage` (LocalFS no MVP → S3/MinIO na Fase 4). *Content hash* para idempotência/deduplicação.
+- **Persistência**: PostgreSQL (relacional), via SQLModel + Alembic; embeddings TPU como bytes + k-NN em Python (ver [ADR-0009](adr/0009-knn-numpy-bytes.md)). Blobs de PDF/DOCX: port `BlobStorage` **declarado, sem adapter no MVP** (LocalFS/S3 na Fase 4). *Content hash* para idempotência/deduplicação.
 
 ---
 
@@ -270,6 +270,7 @@ O firewall inspeciona o documento em busca dos vetores de injeção mapeados na 
 | **OCG oculto** | Camadas (Optional Content Groups) desativadas/OFF carregando texto. | Inspecionar OCGs com visibilidade OFF que contenham texto. |
 | **/ActualText divergente** | Dicionário de acessibilidade diverge da camada renderizada. | Comparar `/ActualText` com o texto visível; flag em divergência. |
 | **XMP/metadados suspeitos** | Comandos em `/Info`, `/Subject`, `/Keywords`, XMP. | Inspecionar metadados em busca de instruções imperativas. |
+| **Comando imperativo à IA** (`INJECTION_KEYWORDS`) | Frase-comando dirigida ao modelo (ex.: "ignore as instruções anteriores") embutida em texto oculto. | Casar texto oculto contra frases imperativas conhecidas; severidade **CRITICAL** (BLOCK). |
 
 O `risk_score` agrega as anomalias; o `verdict` (`BLOCK/WARN/PASS`) é derivado dele. **O firewall é heurístico e não cobre todos os vetores possíveis** — por isso há defesa em profundidade com *defensive prompting* no LLM (texto tratado como dado, não instrução; delimitadores; separação instrução/conteúdo).
 

@@ -4,7 +4,7 @@ description: "Arquitetura do SHERPI nos quatro níveis do modelo C4 (Contexto, C
 doc_type: architecture
 project: SHERPI
 status: reference
-version: 1.0
+version: 1.1
 updated: 2026-06-22
 language: pt-BR
 tags: [arquitetura, c4, ddd, hexagonal, diagramas]
@@ -124,7 +124,7 @@ C4Component
         Component(idc, "identity", "Bounded context", "Authenticate - JWT, bcrypt")
         Component(intg, "integration", "Bounded context", "IngestPetitions - fila assincrona + SandboxSourceAdapter")
 
-        Component(sk, "shared_kernel", "Dominio transversal", "Ports (LLMProvider, BlobStorage, Anonymizer, ReversibleAnonymizer); VOs (CPF, CNPJ, Rito, RiskVerdict, Role); eventos")
+        Component(sk, "shared_kernel", "Dominio transversal", "Ports (LLMProvider, BlobStorage, Anonymizer, ReversibleAnonymizer); VOs (CPF, CNPJ, Rito, RiskVerdict, ClaimAmount); eventos")
 
         Component(infra_llm, "infrastructure/llm", "Adapters", "factory + Gemini/Grok/Anthropic/Fake; circuit breaker; auditoria de chamadas")
         Component(infra_anon, "infrastructure/anonymization", "Adapters", "RegexAnonymizer / Mapped (reversivel) + PresidioAnonymizer (NER, opcional)")
@@ -175,7 +175,7 @@ de bifurcação** (não um framework de grafos).
 
 ```mermaid
 flowchart TB
-    A["bytes do PDF/DOCX (Documento)"] --> B["DetectInjection<br/>firewall determinístico (PyMuPDF)"]
+    A["bytes do PDF/DOCX"] --> B["DetectInjection<br/>firewall determinístico (PyMuPDF)"]
     B --> C{"verdict?"}
     C -->|BLOCK| Z["encerra: ForensicsReport<br/>SEM nenhuma chamada de LLM"]
     C -->|PASS / WARN| D["texto sanitizado<br/>+ pseudonimização (Anonymizer)"]
