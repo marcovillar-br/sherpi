@@ -5,7 +5,7 @@
 BACKEND_DIR := backend
 FRONTEND_DIR := frontend
 
-.PHONY: help up down setup migrate seed-tpu tpu-catalog seed-tpu-cnj synthetic test test-sliced test-domain lint typecheck eval eval-tpu dev-backend dev-backend-fake dev-frontend e2e
+.PHONY: help up down setup migrate seed-tpu tpu-catalog seed-tpu-cnj synthetic test test-sliced test-domain lint typecheck openapi eval eval-tpu dev-backend dev-backend-fake dev-frontend e2e
 
 help:
 	@echo "Comandos disponíveis:"
@@ -92,6 +92,10 @@ lint:
 
 typecheck:
 	cd $(BACKEND_DIR) && uv run mypy src/ evals/
+
+# Exporta o contrato OpenAPI versionado para docs/openapi.json (deriva das rotas; sem subir o servidor).
+openapi:
+	cd $(BACKEND_DIR) && PYTHONPATH=. uv run python scripts/export_openapi.py
 
 # Eval harness — gate de CI; sai com código != 0 se abaixo do limiar.
 eval:
