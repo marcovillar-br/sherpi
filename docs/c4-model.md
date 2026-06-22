@@ -71,7 +71,7 @@ C4Container
     Person(assessor, "Assessor de Triagem", "Navegador")
 
     System_Boundary(sherpi, "SHERPI") {
-        Container(web, "Web App", "Next.js 16 + React 19 + Tailwind v4", "UI: login, analise (rito, firewall, resumo, TPU top-3), revisao humana, historico, auditoria de LLM. Inclui middleware (BFF) que faz proxy ao backend")
+        Container(web, "Web App", "Next.js 16 + React 19 + Tailwind v4", "UI: login, analise (rito, firewall, resumo, TPU top-3), revisao humana, historico, auditoria de LLM. Chama a API diretamente (cliente tipado, cookie httpOnly); guarda de rota via Proxy do Next (proxy.ts) - NAO e um BFF")
         Container(api, "API Backend", "Python >=3.12 / FastAPI", "REST /v1 + /v1/ingestion; JWT; orquestrador analyze_petition; 6 bounded contexts (DDD/hexagonal)")
         Container(worker, "Worker de Ingestao", "asyncio.Queue (in-process)", "Consome jobs de ingestao de peticoes de forma assincrona (Sprint 7)")
         ContainerDb(db, "PostgreSQL 16", "PostgreSQL + SQLModel/Alembic", "Analises (resumo + PII, sob JWT), eventos de auditoria, usuarios, jobs de ingestao, indice TPU (embeddings como bytes float32), auditoria de chamadas LLM")
@@ -82,7 +82,7 @@ C4Container
     System_Ext(sentry, "Sentry", "Erros")
 
     Rel(assessor, web, "Usa", "HTTPS")
-    Rel(web, api, "Chama a API REST", "HTTPS/JSON (via middleware BFF)")
+    Rel(web, api, "Chama a API REST", "HTTPS/JSON (direto; cookie httpOnly)")
     Rel(api, db, "Le e grava", "SQL (SQLModel)")
     Rel(api, worker, "Enfileira jobs", "in-process")
     Rel(worker, db, "Persiste estado do job", "SQL")
@@ -198,7 +198,7 @@ flowchart TB
 
 | Nível C4 | Onde está no repositório |
 |---|---|
-| Contêiner Web App | `frontend/` (Next.js — `src/app`, `src/middleware.ts`) |
+| Contêiner Web App | `frontend/` (Next.js — `src/app`, `src/proxy.ts` = Proxy do Next 16, ex-middleware) |
 | Contêiner API | `backend/src/sherpi/interfaces/api/` |
 | Orquestrador | `backend/src/sherpi/application/analyze_petition.py` |
 | Bounded contexts | `backend/src/sherpi/contexts/<contexto>/{domain,application,infrastructure}/` |

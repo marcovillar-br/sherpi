@@ -109,3 +109,7 @@ Lista completa de alvos: `make help`. Detalhes do backend: [`backend/README.md`]
 - **Domínios adicionais** (pós rito-aware) — previdenciário/INSS, execução fiscal, família/JEC
 
 Detalhes: [`docs/roadmap.md`](docs/roadmap.md) · planejamento e papéis em [`docs/pmp.md`](docs/pmp.md), [`docs/wbs.md`](docs/wbs.md), [`docs/backlog.md`](docs/backlog.md), [`docs/agile-process.md`](docs/agile-process.md).
+
+## Licença
+
+Distribuído sob a licença **Apache-2.0** — ver [`LICENSE`](LICENSE).
