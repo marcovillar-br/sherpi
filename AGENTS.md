@@ -118,3 +118,10 @@ Convenções completas e agnósticas a ferramenta em [`CONTRIBUTING.md`](CONTRIB
   roda a suíte completa em infra própria.
 - **Docs**: cada `.md` em `docs/` tem frontmatter YAML padronizado — gere/atualize via
   `scripts/add_frontmatter.py` (fonte de verdade dos metadados; rode após criar um doc novo).
+- **Frontend (Next.js 16)**: a guarda de rota no edge usa a convenção **`proxy.ts`** (função `proxy`) —
+  no Next 16 o antigo *Middleware* (`middleware.ts`/`middleware`) foi **renomeado para *Proxy*** e está
+  **deprecado**. **NÃO** renomeie `frontend/src/proxy.ts` de volta para `middleware.ts`. O frontend é
+  **desacoplado** (chama a API direto, cookie httpOnly) — **não é BFF**. Ver
+  [`docs/adr/0017-frontend-decoupled-spa.md`](docs/adr/0017-frontend-decoupled-spa.md). Regra geral:
+  antes de afirmar convenção de framework recente, confira a **versão instalada** + doc oficial (não
+  decida por memória pré-cutoff).
