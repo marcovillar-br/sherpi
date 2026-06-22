@@ -4,8 +4,8 @@ description: "Primer dos principais conceitos jurídicos do SHERPI, em linguagem
 doc_type: reference
 project: SHERPI
 status: draft
-version: 1.3
-updated: 2026-06-20
+version: 1.4
+updated: 2026-06-22
 language: pt-BR
 tags: [juridico, glossario, cpc, clt, conceitos, validacao]
 ---
@@ -25,13 +25,13 @@ lista o que ela deve conter:
 
 | Inc. | Conceito | Em linguagem simples | No SHERPI |
 |---|---|---|---|
-| I | **Juízo** a que é dirigida | o "endereçamento": a vara/juízo competente | extraído (`juizo`) e checado |
-| II | **Qualificação das partes** | quem são autor e réu (nome, **CPF/CNPJ**, endereço…) | `partes` + validação de CPF/CNPJ |
-| III | **Fatos e fundamentos jurídicos** (*causa de pedir*) | o que aconteceu **e** o porquê jurídico | `fato_gerador` + `fundamentacao` |
-| IV | **Pedido** com especificações | o que se requer ao juiz | `pedidos` |
-| V | **Valor da causa** | quanto vale economicamente a ação | `valor_causa` |
-| VI | **Provas** | como pretende provar os fatos | `requer_provas` |
-| VII | **Opção por audiência** de conciliação/mediação | sim/não para tentar acordo | `opcao_audiencia` |
+| I | **Juízo** a que é dirigida | o "endereçamento": a vara/juízo competente | extraído (`court`) e checado |
+| II | **Qualificação das partes** | quem são autor e réu (nome, **CPF/CNPJ**, endereço…) | `parties` + validação de CPF/CNPJ |
+| III | **Fatos e fundamentos jurídicos** (*causa de pedir*) | o que aconteceu **e** o porquê jurídico | `facts` + `legal_basis` |
+| IV | **Pedido** com especificações | o que se requer ao juiz | `claims` |
+| V | **Valor da causa** | quanto vale economicamente a ação | `claim_amount` |
+| VI | **Provas** | como pretende provar os fatos | `requests_evidence` |
+| VII | **Opção por audiência** de conciliação/mediação | sim/não para tentar acordo | `hearing_option` |
 
 - **Documentos indispensáveis (art. 320):** acompanham a inicial (ex.: **procuração**, contrato,
   comprovantes). ⚠️ *confirmar quais documentos são "indispensáveis" por tipo de ação.*
@@ -46,7 +46,7 @@ lista o que ela deve conter:
   requisitos de compatibilidade.*
 - **Tutela de urgência / liminar (art. 300) e tutela de evidência (art. 311):** decisão **provisória e
   imediata** (antes do fim do processo) quando há **probabilidade do direito** + **perigo de dano**.
-  No SHERPI: `tem_liminar` (alerta prioritário). ⚠️ *confirmar distinção urgência × evidência.*
+  No SHERPI: `has_injunction` (alerta prioritário). ⚠️ *confirmar distinção urgência × evidência.*
 
 ## 3. Admissibilidade: o que acontece se faltar algo
 
@@ -54,7 +54,7 @@ lista o que ela deve conter:
 - **Emenda à inicial (art. 321):** havendo defeito/falta, o juiz manda **corrigir em 15 dias**.
 - **Indeferimento da inicial (art. 330):** se não corrigida (ou vício insanável), a inicial é
   **rejeitada** (extinção sem resolução de mérito). No SHERPI: o `AdmissibilityReport` sinaliza
-  semáforo (verde/amarelo/vermelho) e `requer_emenda`. ⚠️ *confirmar quais vícios são "essenciais"
+  semáforo (verde/amarelo/vermelho) e `requires_amendment`. ⚠️ *confirmar quais vícios são "essenciais"
   (exigem emenda) vs. menores.*
 
 ## 4. Partes e papéis
@@ -92,10 +92,11 @@ tem **regras de admissibilidade próprias**:
 ## 7. Conformidade, dados e taxonomia
 
 - **TPU — Tabelas Processuais Unificadas (CNJ):** padronização nacional de **classe** e **assunto**
-  processual (Res. CNJ 46/2007 e 326/2020). O SHERPI sugerirá a classificação. ⚠️ *confirmar níveis
-  hierárquicos e a base oficial vigente.*
+  processual (Res. CNJ 46/2007 e 326/2020). O SHERPI sugere a classificação (contexto `taxonomy`,
+  sobre a TUA real do CNJ — ver [ADR-0016](adr/0016-cnj-tua-real-catalog-tpu.md)). ⚠️ *confirmar
+  níveis hierárquicos e a base oficial vigente.*
 - **Resolução CNJ 615/2025:** regula o uso de **IA no Judiciário**, exigindo **supervisão humana**
-  (*human-in-the-loop*). Implementado na Sprint 4: `ReviewDecision` (ACEITAR/REJEITAR/CORRIGIR) +
+  (*human-in-the-loop*). Implementado na Sprint 4: `ReviewDecision` (ACCEPT/REJECT/AMEND) +
   `AuditEvent` append-only vinculado ao usuário autenticado. ⚠️ *confirmar exigências aplicáveis a uma ferramenta como o SHERPI.*
 - **Segredo de justiça:** processos com acesso restrito por sigilo legal (ex.: família, dados
   sensíveis) — motiva o uso de dados **sintéticos** no projeto.
