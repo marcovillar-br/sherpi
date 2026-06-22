@@ -4,8 +4,8 @@ description: "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilida
 doc_type: tech-spec
 project: SHERPI
 status: approved
-version: 1.6
-updated: 2026-06-20
+version: 1.7
+updated: 2026-06-22
 language: pt-BR
 tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 ---
@@ -162,14 +162,21 @@ Chamada com `temperature=0`; **saída validada por schema com retry**; *chunking
 
 ### 2.4 Taxonomy — `SuggestTpu`
 
-- **Entrada**: texto da petição.
-- **Saída**: top-3 `TpuSuggestion`.
+- **Entrada**: query de mérito (fatos + fundamentação + pedidos do `PetitionSummary`, não o texto bruto).
+- **Saída**: top-k `TpuSuggestion` (default `tpu_top_k=3`), filtrada por confiança mínima.
 
 | VO | Campos |
 |---|---|
-| `TpuSuggestion` | `code: TpuCode`, `descricao`, `confianca: float` |
+| `TpuSuggestion` | `tpu_code: str`, `description: str`, `confidence: float`, `anchor_excerpt: str` |
 
-Embedding local (JurisBERT via HuggingFace) + **k-NN** sobre um conjunto-semente rotulado, guardado como bytes (numpy/float32) com busca em Python (ver [ADR-0009](adr/0009-knn-numpy-bytes.md)). Acurácia **medida no eval, sem prometer número**.
+Embedding local (JurisBERT via HuggingFace; `FakeEmbeddingModel` sha256 sem ML) + **k-NN** sobre a
+**TUA real do CNJ** (escopo cível+trabalhista, ~1k folhas; ver [ADR-0016](adr/0016-cnj-tua-real-catalog-tpu.md)),
+guardada como bytes (numpy/float32) com busca em Python (ver [ADR-0009](adr/0009-knn-numpy-bytes.md)). O
+ranking é **híbrido**: cosseno denso **+** sobreposição léxica ponderada por IDF (`_LEXICAL_WEIGHT=0.5`),
+que resgata o assunto cujo termo distintivo aparece na query mas perde no cosseno puro. A `confidence` é o
+escore híbrido (limitado a 1.0); sugestões abaixo de `SHERPI_TPU_MIN_CONFIDENCE` (default 0.65) são
+descartadas e a UI sinaliza "nenhuma classe próxima — classifique manualmente". Acurácia **medida no eval
+rotulado, sem prometer número**.
 
 ---
 
@@ -199,7 +206,7 @@ Trocar de LLM = trocar um adapter via `config.py`, **sem tocar no domínio**. Mo
 ## 4. Estratégia de dados
 
 - **Synthetic-first**: gerador de petições sintéticas (limpas + com injeções plantadas de cada vetor). Evita LGPD/segredo de justiça e fornece *ground truth* para o eval e para a calibração do firewall.
-- **Seed TPU**: conjunto-semente rotulado de textos → códigos TPU, embeddado e guardado como bytes (numpy/float32) para o k-NN em Python.
+- **Catálogo TPU**: a **TUA real do CNJ** (escopo cível+trabalhista), ingerida via webservice SGT, com texto de embedding híbrido (caminho hierárquico + glossário oficial quando houver), embeddada e guardada como bytes (numpy/float32) para o k-NN em Python (ver [ADR-0016](adr/0016-cnj-tua-real-catalog-tpu.md)). Um **conjunto rotulado** petição→assunto serve só ao eval. O seed sintético de 30 entradas segue disponível para CI/testes rápidos.
 - **Persistência**: PostgreSQL (relacional), via SQLModel + Alembic; embeddings TPU como bytes + k-NN em Python (ver [ADR-0009](adr/0009-knn-numpy-bytes.md)). Blobs de PDF atrás do port `BlobStorage` (LocalFS no MVP → S3/MinIO na Fase 4). *Content hash* para idempotência/deduplicação.
 
 ---
@@ -213,7 +220,7 @@ Trocar de LLM = trocar um adapter via `config.py`, **sem tocar no domínio**. Mo
 | Firewall | Precision/Recall por vetor de injeção plantado; tempo por documento. |
 | Extração | F1 por campo vs. ground truth sintético. |
 | Admissibilidade | Acurácia do checklist (determinístico exato; semântico medido). |
-| TPU | Acurácia top-1 e top-3 sobre o seed (reportada honestamente). |
+| TPU | Acurácia top-1/top-3/top-5 sobre o conjunto rotulado (reportada honestamente). |
 
 Princípio: **nenhuma métrica é prometida** antes de medida. Em particular, **não** se afirma "90% na TPU".
 
@@ -232,13 +239,14 @@ modelo é caixa-preta).
 | **Firewall** (`DetectInjection`) | Caixa-branca (determinística) | O `ForensicsReport` é a própria explicação: lista cada `Anomaly` com vetor, severidade, **localização** (página/coordenadas) e **evidência** (o trecho oculto extraído). Reproduzível: mesma entrada → mesmo laudo. |
 | **Extração** (`ExtractPetition`) | Caixa-preta (LLM) | *Source grounding*: cada campo extraído carrega a **proveniência** (trecho/offset da petição que o sustenta), exibida ao lado do PDF. **Abstenção**: o schema permite `null` — o modelo declara "não encontrado" em vez de alucinar. `temperature=0` para reprodutibilidade. |
 | **Admissibilidade** (`CheckAdmissibility`) | Híbrida | Itens determinísticos são autoexplicativos (qual requisito, presente/ausente, e o `metodo`); itens semânticos citam a evidência textual. O `semaforo` rastreia até o item que o motivou. |
-| **TPU** (`SuggestTpu`) | Interpretável por construção | k-NN é **explicação baseada em exemplos**: cada sugestão expõe os **vizinhos mais próximos do seed** que a motivaram e a **similaridade de cosseno** como confiança — não há *softmax* opaco. |
+| **TPU** (`SuggestTpu`) | Interpretável por construção | k-NN é **explicação baseada em exemplos**: cada sugestão expõe o **vizinho mais próximo do catálogo** (`anchor_excerpt`) que a motivou; a confiança é o **escore híbrido** (cosseno denso + sobreposição léxica/IDF, ver §2.4) — não há *softmax* opaco. |
 
 ### 6.1 Confiança e calibração
 
-Toda saída de modelo carrega um escore de confiança comparável: similaridade de cosseno (TPU) e
+Toda saída de modelo carrega um escore de confiança comparável: escore híbrido cosseno+léxico (TPU) e
 *risk_score* (firewall). Confiança baixa **não** é escondida — é sinalizada na UI para priorizar a
-atenção do revisor. A calibração desses escores é medida no *eval* (§5), nunca assumida.
+atenção do revisor; abaixo de `SHERPI_TPU_MIN_CONFIDENCE` a sugestão de TPU é descartada (calibrado pelo
+eval). A calibração desses escores é medida no *eval* (§5), nunca assumida.
 
 ### 6.2 Human-in-the-loop como camada final de interpretabilidade
 

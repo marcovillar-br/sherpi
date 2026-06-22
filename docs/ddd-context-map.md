@@ -4,8 +4,8 @@ description: "Bounded contexts, relações upstream/downstream e glossário da l
 doc_type: context-map
 project: SHERPI
 status: approved
-version: 1.5
-updated: 2026-06-20
+version: 1.6
+updated: 2026-06-22
 language: pt-BR
 tags: [ddd, bounded-context, linguagem-ubiqua]
 ---
@@ -27,7 +27,7 @@ tags: [ddd, bounded-context, linguagem-ubiqua]
 |---|---|---|
 | **document_integrity** | Supporting (diferencial do produto) | Firewall anti prompt-injection. Inspeciona o documento — **PDF** (PyMuPDF) e **DOCX** (python-docx), sem LLM — e emite `ForensicsReport` com verdito `BLOCK/WARN/PASS`. |
 | **petition_analysis** | **Core domain** | Extração estruturada (`PetitionSummary`) e checagem de admissibilidade **rito-aware** (`AdmissibilityReport`): `CheckAdmissibility` despacha por `Rito` para uma `AdmissibilityStrategy` — `CivelStrategy` (CPC 319/321) ou `TrabalhistaStrategy` (CLT 840 §1º). Razão de existir do sistema. |
-| **taxonomy** | Supporting subdomain | Classificação TPU: embedding (JurisBERT) + k-NN sobre seed → top-3 `TpuSuggestion`. |
+| **taxonomy** | Supporting subdomain | Classificação TPU: embedding (JurisBERT) + ranking híbrido (k-NN cosseno + léxico/IDF) sobre a TUA real do CNJ → top-k `TpuSuggestion`. |
 | **review** | Supporting | Human-in-the-loop e auditoria append-only (Res. CNJ 615/2025): `ReviewDecision`, `AuditEvent`. |
 | **identity** | Supporting | Autenticação (perfil único, extensível a RBAC): `User`, `Role`, `BcryptHasher`, `JwtIssuer`, OAuth2/JWT. |
 | **integration** | Supporting | Ingestão processual: `PetitionSource` port; `SandboxSourceAdapter`; `IngestPetitions`; `IngestQueue` (asyncio). Enfileira petições de sistemas externos (PJe/E-Proc/sandbox) para análise assíncrona. |
