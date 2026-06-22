@@ -11,10 +11,42 @@ from decimal import Decimal
 from enum import StrEnum
 
 from pydantic import BaseModel, field_validator
-from validate_docbr import CNPJ as _CNPJValidator  # noqa: N811 (classe, não constante)
 from validate_docbr import CPF as _CPFValidator  # noqa: N811 (classe, não constante)
 
 _ONLY_DIGITS = re.compile(r"\D")
+
+# CNPJs com todos os algarismos iguais são inválidos (regra explícita da RFB).
+_CNPJ_HOMOGENEOS = {str(d) * 14 for d in range(10)}
+
+
+def _calcular_digito_cnpj(seq: str, pesos: list[int]) -> int:
+    """Módulo-11 para um dígito verificador do CNPJ (suporta base alfanumérica).
+
+    Letras são convertidas pelo padrão RFB: A=10, B=11, …, Z=35.
+    """
+    soma = sum(
+        (int(c) if c.isdigit() else ord(c) - 55) * p for c, p in zip(seq, pesos, strict=False)
+    )
+    resto = soma % 11
+    return 0 if resto < 2 else 11 - resto
+
+
+def _validar_cnpj(cnpj: str) -> bool:
+    """Valida CNPJ numérico *ou* alfanumérico (novo formato RFB, vigência jul/2026).
+
+    Rejeita explicitamente sequências homogêneas (ex.: 00000000000000).
+    pesos2 tem 13 elementos — inclui o peso do 1º dígito verificador.
+    """
+    limpo = "".join(c for c in cnpj if c.isalnum()).upper()
+    if len(limpo) != 14 or limpo in _CNPJ_HOMOGENEOS:
+        return False
+    base = limpo[:12]
+    dvs = limpo[12:]
+    pesos1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    pesos2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+    dv1 = _calcular_digito_cnpj(base, pesos1)
+    dv2 = _calcular_digito_cnpj(base + str(dv1), pesos2)
+    return dvs == f"{dv1}{dv2}"
 
 
 class RiskVerdict(StrEnum):
@@ -29,6 +61,22 @@ class RiskVerdict(StrEnum):
     PASS = "PASS"
     WARN = "WARN"
     BLOCK = "BLOCK"
+
+
+class Rito(StrEnum):
+    """Rito processual que define quais regras de admissibilidade se aplicam.
+
+    O firewall e a extração são agnósticos ao rito; o que varia é a
+    admissibilidade (e, futuramente, a taxonomia TPU). Ver ADR-0008.
+
+    CIVEL        — CPC art. 319 (rito padrão do MVP).
+    TRABALHISTA  — CLT art. 840 §1º (exige pedido líquido).
+
+    Cresce por demanda (PREVIDENCIARIO, FISCAL, …) sem tocar nos ritos existentes.
+    """
+
+    CIVEL = "CIVEL"
+    TRABALHISTA = "TRABALHISTA"
 
 
 class CPF(BaseModel):
@@ -57,7 +105,12 @@ class CPF(BaseModel):
 
 
 class CNPJ(BaseModel):
-    """CNPJ de uma pessoa jurídica, validado por dígitos verificadores."""
+    """CNPJ de uma pessoa jurídica, validado por dígitos verificadores.
+
+    Suporta o novo formato alfanumérico da RFB (vigência julho/2026) além do
+    formato numérico tradicional. O valor é armazenado como 14 caracteres
+    alfanuméricos em maiúsculas (sem pontuação).
+    """
 
     model_config = {"frozen": True}
 
@@ -66,10 +119,10 @@ class CNPJ(BaseModel):
     @field_validator("value")
     @classmethod
     def _validate(cls, raw: str) -> str:
-        digits = _ONLY_DIGITS.sub("", raw)
-        if not _CNPJValidator().validate(digits):
+        limpo = "".join(c for c in raw if c.isalnum()).upper()
+        if not _validar_cnpj(limpo):
             raise ValueError(f"CNPJ inválido: {raw!r}")
-        return digits
+        return limpo
 
     @property
     def formatted(self) -> str:
@@ -77,7 +130,7 @@ class CNPJ(BaseModel):
         return f"{d[:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:]}"
 
 
-class ValorCausa(BaseModel):
+class ClaimAmount(BaseModel):
     """Valor da causa (art. 291 do CPC), em reais."""
 
     model_config = {"frozen": True}

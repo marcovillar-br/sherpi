@@ -11,6 +11,7 @@ from synthetic.builder import build_clean, build_white_on_white
 
 from sherpi.application.analyze_petition import AnalyzePetition
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
+from sherpi.contexts.identity.domain.user import Role, User
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
 from sherpi.contexts.petition_analysis.domain.summary import (
     Parte,
@@ -21,20 +22,25 @@ from sherpi.contexts.petition_analysis.domain.summary import (
 from sherpi.infrastructure.llm.fake import FakeProvider
 from sherpi.infrastructure.persistence.engine import create_all
 from sherpi.infrastructure.persistence.repository import SqlAnalysisRepository
-from sherpi.interfaces.api.dependencies import get_orchestrator, get_repository
+from sherpi.interfaces.api.dependencies import get_current_user, get_orchestrator, get_repository
 from sherpi.interfaces.api.main import create_app
 
+_FAKE_USER = User(id="u-test", email="test@sherpi.local", hashed_password="x", role=Role.REVISOR)
+
 _SUMMARY = PetitionSummary(
-    partes=[
-        Parte(nome="Fulano", documento="529.982.247-25", polo=Polo.ATIVO),
-        Parte(nome="Empresa", documento="11.222.333/0001-81", polo=Polo.PASSIVO),
+    court="Vara Cível de São Paulo",
+    parties=[
+        Parte(name="Fulano", document="529.982.247-25", pole=Polo.ACTIVE),
+        Parte(name="Empresa", document="11.222.333/0001-81", pole=Polo.PASSIVE),
     ],
-    fato_gerador="Contrato inadimplido.",
-    fundamentacao="CPC.",
-    pedidos=[Pedido(descricao="Pagamento")],
-    tem_liminar=False,
-    valor_causa="R$ 15.000,00",
-    documentos_mencionados=["procuração"],
+    facts="Contrato inadimplido.",
+    legal_basis="CPC.",
+    claims=[Pedido(description="Pagamento")],
+    has_injunction=False,
+    claim_amount="R$ 15.000,00",
+    requests_evidence=True,
+    hearing_option=True,
+    cited_documents=["procuração"],
 )
 
 
@@ -51,6 +57,7 @@ def client() -> Iterator[TestClient]:
     repository = SqlAnalysisRepository(engine)
     app.dependency_overrides[get_orchestrator] = lambda: orchestrator
     app.dependency_overrides[get_repository] = lambda: repository
+    app.dependency_overrides[get_current_user] = lambda: _FAKE_USER
     yield TestClient(app)
     app.dependency_overrides.clear()
 
@@ -69,8 +76,36 @@ def test_analyze_clean_pdf(client: TestClient) -> None:
     body = resp.json()
     assert body["id"]
     assert body["result"]["forensics"]["verdict"] == "PASS"
-    assert body["result"]["summary"]["partes"][0]["nome"] == "Fulano"
-    assert body["result"]["admissibility"]["semaforo"] == "VERDE"
+    assert body["result"]["summary"]["parties"][0]["name"] == "Fulano"
+    assert body["result"]["admissibility"]["status"] == "GREEN"
+
+
+def test_analyze_default_rito_is_civel(client: TestClient) -> None:
+    resp = client.post("/v1/analyze", files={"file": ("p.pdf", build_clean(), "application/pdf")})
+    assert resp.status_code == 200
+    assert resp.json()["result"]["rito"] == "CIVEL"
+
+
+def test_analyze_rito_trabalhista_exige_pedido_liquido(client: TestClient) -> None:
+    # O FakeProvider devolve um pedido SEM valor → ilíquido no rito trabalhista.
+    resp = client.post(
+        "/v1/analyze",
+        files={"file": ("p.pdf", build_clean(), "application/pdf")},
+        data={"rito": "TRABALHISTA"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["result"]["rito"] == "TRABALHISTA"
+    assert body["result"]["admissibility"]["status"] == "RED"
+
+
+def test_analyze_rito_invalido_retorna_422(client: TestClient) -> None:
+    resp = client.post(
+        "/v1/analyze",
+        files={"file": ("p.pdf", build_clean(), "application/pdf")},
+        data={"rito": "CRIMINAL"},
+    )
+    assert resp.status_code == 422
 
 
 def test_analyze_injection_blocks(client: TestClient) -> None:
@@ -96,7 +131,7 @@ def test_analyze_persists_and_get_roundtrip(client: TestClient) -> None:
     assert fetched.status_code == 200
     body = fetched.json()
     assert body["id"] == created["id"]
-    assert body["result"]["summary"]["partes"][0]["nome"] == "Fulano"
+    assert body["result"]["summary"]["parties"][0]["name"] == "Fulano"
 
 
 def test_get_unknown_analysis_returns_404(client: TestClient) -> None:

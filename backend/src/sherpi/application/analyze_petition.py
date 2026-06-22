@@ -13,8 +13,9 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from sherpi.application.deanonymize import deanonymize_model
 from sherpi.contexts.document_integrity.application.analyze import guard_upload
-from sherpi.contexts.document_integrity.application.ports import PdfParser
+from sherpi.contexts.document_integrity.application.ports import DocumentParser
 from sherpi.contexts.document_integrity.domain.detector import DetectInjection
 from sherpi.contexts.document_integrity.domain.report import ForensicsReport
 from sherpi.contexts.petition_analysis.application.extract import ExtractPetition
@@ -23,7 +24,10 @@ from sherpi.contexts.petition_analysis.domain.admissibility import (
     CheckAdmissibility,
 )
 from sherpi.contexts.petition_analysis.domain.summary import PetitionSummary
-from sherpi.shared_kernel.ports import Anonymizer
+from sherpi.contexts.taxonomy.application.suggest_tpu import SuggestTpu
+from sherpi.contexts.taxonomy.domain.tpu import TpuSuggestion
+from sherpi.shared_kernel.ports import ReversibleAnonymizer
+from sherpi.shared_kernel.value_objects import Rito
 
 
 class AnalysisResult(BaseModel):
@@ -35,45 +39,88 @@ class AnalysisResult(BaseModel):
 
     model_config = {"frozen": True}
 
+    rito: Rito = Rito.CIVEL
     forensics: ForensicsReport
     summary: PetitionSummary | None = None
     admissibility: AdmissibilityReport | None = None
+    tpu_suggestions: list[TpuSuggestion] | None = None
 
     @property
     def blocked(self) -> bool:
         return self.forensics.blocked
 
 
+def _tpu_query_text(summary: PetitionSummary) -> str:
+    """Compõe a query da TPU a partir do mérito extraído (fatos + fundamentação + pedidos).
+
+    O índice da TPU é construído sobre resumos de mérito (ver `synthetic.tpu_seed`):
+    prosa limpa de fato/fundamento/pedido, sem endereçamento, qualificação das partes,
+    cabeçalho/rodapé ou disclaimers de modelo. Usar o texto bruto (`visible_text`) como
+    query coloca-a numa distribuição diferente da do índice — e ainda fica refém de
+    boilerplate que varia por formato (.pdf repete cabeçalho/rodapé por página; .docx
+    joga header/footer para o fim), produzindo embeddings distintos para a mesma peça.
+
+    Compor a query a partir do `PetitionSummary` alinha query e índice, melhora a
+    aderência semântica e equaliza o resultado entre .pdf e .docx.
+    """
+    parts = [summary.facts, summary.legal_basis, *(c.description for c in summary.claims)]
+    return "\n".join(p for p in parts if p and p.strip())
+
+
 class AnalyzePetition:
     def __init__(
         self,
-        parser: PdfParser,
+        parser: DocumentParser,
         extractor: ExtractPetition,
         *,
         detector: DetectInjection | None = None,
         admissibility: CheckAdmissibility | None = None,
-        anonymizer: Anonymizer | None = None,
+        anonymizer: ReversibleAnonymizer | None = None,
+        suggest_tpu: SuggestTpu | None = None,
     ) -> None:
         self._parser = parser
         self._extractor = extractor
         self._detector = detector or DetectInjection()
         self._admissibility = admissibility or CheckAdmissibility()
         self._anonymizer = anonymizer
+        self._suggest_tpu = suggest_tpu
 
-    async def run(self, content: bytes, *, max_pages: int) -> AnalysisResult:
+    async def run(
+        self, content: bytes, *, max_pages: int, rito: Rito = Rito.CIVEL
+    ) -> AnalysisResult:
         guard_upload(content)
         document = self._parser.parse(content, max_pages=max_pages)
         forensics = self._detector.run(document)
         if forensics.blocked:
-            return AnalysisResult(forensics=forensics)  # early-exit: sem LLM
+            return AnalysisResult(rito=rito, forensics=forensics)  # early-exit: sem LLM
 
         original_text = document.visible_text()
-        # Texto que vai ao LLM é anonimizado (LGPD); a admissibilidade usa o original.
-        llm_text = (
-            self._anonymizer.anonymize(original_text)
-            if self._anonymizer is not None
-            else original_text
-        )
+        if not original_text.strip():
+            # Sem texto extraível (provável documento-imagem/escaneado): não há o que
+            # analisar cognitivamente. O laudo sinaliza via forensics.image_only_pages.
+            return AnalysisResult(rito=rito, forensics=forensics)
+        # O texto que vai ao LLM externo é anonimizado (LGPD); guardamos o mapa para
+        # restaurar os valores reais no resumo do revisor (a admissibilidade já usa o
+        # original). O prompt persistido para auditoria permanece anonimizado.
+        # `dedup_boilerplate`: remove o disclaimer/rodapé repetido por página — menos
+        # tokens e ruído ao LLM (a admissibilidade segue com o texto íntegro acima).
+        llm_source = document.visible_text(dedup_boilerplate=True)
+        if self._anonymizer is not None:
+            llm_text, pii_map = self._anonymizer.anonymize_mapped(llm_source)
+        else:
+            llm_text, pii_map = llm_source, {}
         summary = await self._extractor.run(llm_text)
-        admissibility = self._admissibility.run(summary, raw_text=original_text)
-        return AnalysisResult(forensics=forensics, summary=summary, admissibility=admissibility)
+        summary = deanonymize_model(summary, pii_map)  # restaura nome/CPF/CNPJ reais
+        admissibility = self._admissibility.run(summary, rito, raw_text=original_text)
+        tpu_suggestions: list[TpuSuggestion] | None = None
+        if self._suggest_tpu is not None:
+            # A TPU classifica o mérito; a query vem do resumo extraído, não do texto
+            # bruto — alinha com a distribuição do índice e equaliza .pdf/.docx.
+            tpu_suggestions = self._suggest_tpu.run(_tpu_query_text(summary), rito=rito)
+        return AnalysisResult(
+            rito=rito,
+            forensics=forensics,
+            summary=summary,
+            admissibility=admissibility,
+            tpu_suggestions=tpu_suggestions,
+        )

@@ -28,5 +28,17 @@ class LLMProviderError(SherpiError):
     """Falha irrecuperável ao chamar o provedor de LLM (após retries)."""
 
 
+class CircuitOpenError(LLMProviderError):
+    """O circuit breaker do LLM está aberto: chamadas falham rápido até o cooldown.
+
+    Subclasse de `LLMProviderError` para que a camada de interface a traduza
+    como qualquer outra indisponibilidade do provedor (sem tratamento especial).
+    """
+
+
 class AuthenticationError(SherpiError):
     """Credenciais inválidas ou sessão não autenticada."""
+
+
+class ForbiddenError(SherpiError):
+    """Usuário autenticado mas sem permissão para a ação."""

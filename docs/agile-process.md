@@ -4,8 +4,8 @@ description: "Papéis (8 integrantes), Design Sprint, Kanban, cerimônias e retr
 doc_type: process
 project: SHERPI
 status: approved
-version: 1.1
-updated: 2026-06-18
+version: 1.3
+updated: 2026-06-19
 language: pt-BR
 tags: [agil, scrum, kanban, design-sprint, papeis, processo]
 ---
@@ -16,8 +16,8 @@ tags: [agil, scrum, kanban, design-sprint, papeis, processo]
 |---|---|
 | Documento | Processo Ágil de Desenvolvimento |
 | Disciplina | Desenvolvimento Ágil para Projetos de IA (DAIA) |
-| Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; **2 Sprints / 2 semanas** |
-| Versão | 1.1 |
+| Framework | **Design Sprint semanal** (modelo Google) + Scrum/Kanban; MVP em 2 sprints + Fase 4 (sprints 3–9) |
+| Versão | 1.3 |
 
 > Este documento registra **como** o SHERPI é desenvolvido — papéis, artefatos e cerimônias —
 > tornando explícita a metodologia ágil exigida pela ementa e pelo Guia de Diretrizes. Complementa o
@@ -53,7 +53,7 @@ maior superfície do projeto e por API e frontend serem desacoplados.
 | 3 | **Arquiteto de Sistemas (Multiagentes)** | 1 | Desenho da arquitetura e dos contratos entre capacidades. | DDD hexagonal, *ports & adapters*, orquestrador que compõe as *skills* (firewall → extração → admissibilidade → TPU). |
 | 4 | **Engenheiro de IA Generativa e Agentes** | 1 | Camada de modelos, *prompting*, *eval* e interpretabilidade. | `LLMProvider`/adapters, `ExtractPetition`, *defensive prompting*, classificador TPU (embeddings/k-NN), *eval harness*. |
 | 5 | **Desenvolvedor Fullstack** | **2** | API e frontend desacoplados (um foco backend, um foco frontend). | **Backend**: FastAPI (rotas, contratos, integração dos use cases). **Frontend**: Next.js (PDF + extração + laudo), cliente tipado. |
-| 6 | **Engenheiro DevOps, Segurança e Observabilidade** | 1 | Infra, CI/CD, *hardening* e telemetria. | Docker/Postgres+pgvector, CI (lint/type/test/eval), segurança de upload/auth, logging estruturado, `/health`·`/ready`. |
+| 6 | **Engenheiro DevOps, Segurança e Observabilidade** | 1 | Infra, CI/CD, *hardening* e telemetria. | Docker/PostgreSQL, CI (lint/type/test/eval), segurança de upload/auth, logging estruturado, `/health`·`/ready`. |
 
 **Total: 8 integrantes** (1+1+1+1+1+2+1).
 
@@ -70,18 +70,25 @@ O backlog completo (Épicos → histórias) e o Sprint Backlog (tasks estimadas)
 [`backlog.md`](backlog.md), conforme a divisão **visão completa × escopo de execução** exigida pelo
 Guia. A EAP está em [`wbs.md`](wbs.md). Resumo abaixo.
 
-### 3.1 Metas das Sprints (recorte do MVP — 2 semanas)
+### 3.1 Metas das Sprints
 
-| Sprint | Meta | Épicos/histórias |
-|---|---|---|
-| **1** | Fundações + firewall + extração estruturada | EP1 (US1.x), EP3 (US3.2), EP2 (US2.1) |
-| **2** | Admissibilidade + orquestração + persistência + UI mínima | EP2 (US2.2–2.4), EP3 (US3.1/3.3/3.4), EP4 (US4.x) |
+Sprints 1–9 entregues (backend + frontend completo + refactor en-US/EP12). Tasks em [`backlog.md`](backlog.md).
 
-Visão de futuro (fora do recorte): TPU (EP5), autenticação (EP6), auditoria (EP7), integração
-judicial (EP8), hardening (EP9) — registrados no backlog do produto.
+| Sprint | Meta | Épicos | Status |
+|---|---|---|---|
+| **1** | Fundações + firewall + extração estruturada | EP1, EP3, EP2 | ✅ |
+| **2** | Admissibilidade + orquestração + persistência + UI mínima | EP2, EP3, EP4 | ✅ |
+| **3** | **Domínio Trabalhista (CLT 840) + rito-aware** (foco do grupo) | EP10 | ✅ |
+| **4** | Confiança & Conformidade: identidade (JWT) + revisão/auditoria | EP6, EP7 | ✅ |
+| **5** | Classificação TPU por ramo (JurisBERT + k-NN/numpy) | EP5 | ✅ |
+| **6** | Produção: observabilidade, LGPD pleno (NER), deploy/CI-CD | EP9 | ✅ |
+| **7** | Integração PJe/E-Proc (ingestão assíncrona) | EP8 | ✅ |
+| **8** | UI das Sprints 4–7: login, rito, TPU top-3, revisão humana | EP6, EP7, EP5 | ✅ |
+| **9** | Refactor de nomenclatura para en-US (domínio/API/UI) + coerência documental | EP12 | ✅ |
 
-> Priorização **risco-primeiro**: itens de maior incerteza técnica (firewall, extração) puxados para
-> o início, para falhar cedo e barato.
+> Priorização: **risco-primeiro** no MVP (firewall/extração antes); na Fase 4, **valor/conformidade
+> primeiro** (controle humano auditável destrava adoção), depois a capacidade que falta (TPU),
+> hardening e, por fim, a integração externa (maior dependência).
 
 ### 3.2 Definition of Done (transversal)
 
@@ -144,7 +151,12 @@ de projetos de IA/Mineração de Dados.
   cobertura aparente.
 - 🔧 *Ajustar*: investir cedo em interpretabilidade (item nominal da ementa) em vez de deixar para o fim.
 
-### Sprint 2 — *(a registrar na Sprint Review de sábado)*
+### Sprints 2–9
+
+O registro detalhado de Review/Retrospective das Sprints 2–9 vive nos artefatos
+de entrega de cada sprint — ver [`demo-sprint-review.md`](demo-sprint-review.md) e
+[`backlog.md`](backlog.md). Resumo: 9 sprints entregues, frontend completo e
+refactor en-US (EP12); sem débito técnico bloqueante.
 
 ## 7. Métricas de processo (saúde ágil)
 

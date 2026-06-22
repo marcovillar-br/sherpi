@@ -4,8 +4,8 @@ description: "Ponto de entrada da documentação do SHERPI, organizado por categ
 doc_type: index
 project: SHERPI
 status: reference
-version: 1.0
-updated: 2026-06-18
+version: 1.1
+updated: 2026-06-19
 language: pt-BR
 tags: [index, navegacao]
 ---
@@ -20,7 +20,7 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 | Documento | Conteúdo |
 |---|---|
 | [prd-sherpi.md](prd-sherpi.md) | Requisitos de produto: visão, problema, personas, histórias de usuário, escopo, métricas e riscos ético-legais. |
-| [roadmap.md](roadmap.md) | Roadmap do MVP em 2 sprints com *Definition of Done* + visão de futuro (Fase 4) e marcos. |
+| [roadmap.md](roadmap.md) | Roadmap das sprints (MVP + Fase 4) com *Definition of Done*, visão de futuro e marcos. |
 
 ## Gerenciamento de Projeto
 
@@ -28,7 +28,7 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 |---|---|
 | [pmp.md](pmp.md) | Plano de Gerenciamento do Projeto: escopo, tempo, custos, riscos, equipe, comunicação e qualidade. |
 | [wbs.md](wbs.md) | Estrutura Analítica do Projeto (EAP/WBS), com Gerenciamento de Projeto e Gestão e Rituais Ágeis. |
-| [backlog.md](backlog.md) | Backlog do Produto (épicos→histórias) + Sprint Backlog (tasks estimadas das 2 sprints). |
+| [backlog.md](backlog.md) | Backlog do Produto (épicos→histórias) + Sprint Backlog (tasks estimadas por sprint). |
 
 ## Processo (metodologia ágil)
 
@@ -36,6 +36,12 @@ Petições Iniciais). Visão geral e início rápido no [README do repositório]
 |---|---|
 | [agile-process.md](agile-process.md) | Papéis (8 integrantes), Design Sprint, Kanban (GitHub Projects), cerimônias e retrospectivas. |
 | [demo-sprint-review.md](demo-sprint-review.md) | Runbook da demo do MVP na Sprint Review (passos, tempos, plano B). |
+
+## Domínio jurídico
+
+| Documento | Conteúdo |
+|---|---|
+| [legal-glossary.md](legal-glossary.md) | Primer dos conceitos jurídicos do escopo (art. 319, CLT 840, admissibilidade…) para validar com especialista. |
 
 ## Arquitetura e técnica
 

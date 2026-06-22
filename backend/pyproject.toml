@@ -15,21 +15,22 @@ dependencies = [
     "pydantic-settings>=2.6",
     "validate-docbr>=1.10",
     "numpy>=2.1",
-    # Ingestão de PDF (firewall)
+    # Ingestão de documentos (firewall): PDF via PyMuPDF, DOCX via python-docx
     "pymupdf>=1.24",
+    "python-docx>=1.1",
     # Persistência
     "sqlmodel>=0.0.22",
     "alembic>=1.14",
     "psycopg[binary]>=3.2",
-    "pgvector>=0.3",
-    # LLM (port + adapters)
+    # LLM (port + adapters). Grok (xAI) e Anthropic falam HTTP direto via httpx —
+    # sem SDK próprio. Gemini usa o google-genai.
     "google-genai>=0.3",
-    "openai>=1.54",
     # Resiliência / observabilidade
     "tenacity>=9.0",
     "structlog>=24.4",
-    # Auth
-    "passlib[bcrypt]>=1.7",
+    "sentry-sdk[fastapi]>=2.0",
+    # Auth (bcrypt direto — passlib é incompatível com bcrypt>=5)
+    "bcrypt>=4.2",
     "pyjwt>=2.10",
 ]
 
@@ -39,6 +40,13 @@ dependencies = [
 ml = [
     "sentence-transformers>=3.3",
     "transformers>=4.46",
+]
+# NER de nomes para LGPD pleno (Fase 4). Instalar sob demanda:
+#   uv sync --extra ner && python -m spacy download pt_core_news_sm
+ner = [
+    "presidio-analyzer>=2.2",
+    "presidio-anonymizer>=2.2",
+    "spacy>=3.8",
 ]
 
 [dependency-groups]
@@ -50,7 +58,7 @@ dev = [
     "mypy>=1.13",
     "pre-commit>=4.0",
     "pip-audit>=2.7",
-    "types-passlib>=1.7",
+    "pytest-timeout>=2.3",
 ]
 
 [build-system]
@@ -64,6 +72,10 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+# E501 (linha longa) fica a cargo do formatador `ruff format`, que quebra o código
+# automaticamente. A regra de lint só sobraria reclamando de strings/URLs que o
+# formatador não quebra — ruído sem controle prático. Largura segue em line-length=100.
+ignore = ["E501"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -77,9 +89,12 @@ module = [
     "pymupdf.*",
     "fitz",
     "validate_docbr.*",
-    "pgvector.*",
     "sentence_transformers.*",
     "google.*",
+    "sentry_sdk.*",
+    "presidio_analyzer.*",
+    "presidio_anonymizer.*",
+    "spacy.*",
 ]
 ignore_missing_imports = true
 
@@ -88,6 +103,8 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = [
     "sherpi.contexts.document_integrity.infrastructure.pymupdf_parser",
+    "sherpi.contexts.taxonomy.infrastructure.embedding",
+    "sherpi.contexts.integration.infrastructure.sandbox_adapter",
     "sherpi.infrastructure.llm.gemini",
     "synthetic.*",
 ]
@@ -98,3 +115,7 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 # Torna os pacotes de dev de nível raiz (synthetic, evals) importáveis nos testes.
 pythonpath = ["."]
+# Timeout POR TESTE (pytest-timeout): nenhum teste pode pendurar e travar a sessão/WSL.
+# 60s é folgado (a maioria roda <1s); método `thread` não exige sinais POSIX.
+timeout = 60
+timeout_method = "thread"

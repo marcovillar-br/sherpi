@@ -3,16 +3,25 @@
 from __future__ import annotations
 
 from sherpi.config import Settings
-from sherpi.infrastructure.anonymization.regex import NoOpAnonymizer, RegexAnonymizer
-from sherpi.shared_kernel.ports import Anonymizer
+from sherpi.infrastructure.anonymization.regex import (
+    MappedCompositeAnonymizer,
+    MappedRegexAnonymizer,
+    MappedRegexNameAnonymizer,
+    NoOpAnonymizer,
+)
+from sherpi.shared_kernel.ports import ReversibleAnonymizer
 
 
-def build_anonymizer(settings: Settings) -> Anonymizer:
+def build_anonymizer(settings: Settings) -> ReversibleAnonymizer:
     """Anonimiza só quando faz sentido: flag ligada **e** LLM externo.
 
-    Com LLM local/on-prem (ex.: Ollama) os dados não saem do perímetro, então
-    o mascaramento é dispensável.
+    Usa anonimizadores **reversíveis** (com mapa): o LLM externo recebe o texto
+    mascarado, mas os valores reais são restaurados no resumo do revisor humano
+    (ver `application/deanonymize.py`). Com `anonymize_names`, encadeia o
+    mascaramento de nomes após os identificadores estruturados.
     """
-    if settings.anonymize_before_llm and settings.is_external_llm:
-        return RegexAnonymizer()
-    return NoOpAnonymizer()
+    if not (settings.anonymize_before_llm and settings.is_external_llm):
+        return NoOpAnonymizer()
+    if settings.anonymize_names:
+        return MappedCompositeAnonymizer([MappedRegexAnonymizer(), MappedRegexNameAnonymizer()])
+    return MappedRegexAnonymizer()

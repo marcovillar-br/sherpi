@@ -3,16 +3,16 @@ title: "ADR-0004: PostgreSQL + pgvector"
 description: "PostgreSQL + pgvector — contexto, decisão e consequências."
 doc_type: adr
 project: SHERPI
-status: accepted
-version: 1.0
-updated: 2026-06-18
+status: superseded
+version: 1.1
+updated: 2026-06-20
 language: pt-BR
 tags: [adr, arquitetura, decisao]
 ---
 
 # ADR 0004 — PostgreSQL + pgvector como único sistema de persistência
 
-**Status**: Aceito
+**Status**: Parcialmente substituído por [ADR-0009](0009-knn-numpy-bytes.md) — a decisão **relacional** (PostgreSQL único) permanece válida; a **busca vetorial** deixou de usar a extensão pgvector (embeddings como bytes + k-NN em Python).
 
 ## Contexto
 

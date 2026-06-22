@@ -20,7 +20,7 @@ O SHERPI é LLM-agnóstico (ver ADR 0003), mas precisa de um provider default pa
 
 ## Decisão
 
-Adotar **Google Gemini Flash** como default (`gemini.py`), pela janela de contexto grande (lê petições longas sem chunking agressivo) e pelo free tier acadêmico. **Maritaca Sabiá** fica disponível via `openai_compat.py`, a ser ativada na Fase 4 conforme avaliação comparativa.
+Adotar **Google Gemini Flash** como default (`gemini.py`), pela janela de contexto grande (lê petições longas sem chunking agressivo) e pelo free tier acadêmico. Como alternativas trocáveis por configuração, há os adapters **Grok (xAI)** (`grok.py`) e **Claude Sonnet (Anthropic)** (`anthropic.py`), ambos via httpx direto. *(Atualização pós-0005: a alternativa originalmente prevista era a Maritaca Sabiá via `openai_compat`; o projeto passou a Grok/Anthropic.)*
 
 ## Consequências
 
@@ -34,4 +34,4 @@ Adotar **Google Gemini Flash** como default (`gemini.py`), pela janela de contex
 
 - LLM externo implica enviar texto para fora → mitigado por synthetic-first + port `Anonymizer` (ver ADR 0003 e security.md).
 - Free tier tem limites de taxa; tratado com timeout/retry/backoff e guarda de custo.
-- Sabiá pode superar o Gemini em português jurídico; por isso a avaliação comparativa na Fase 4.
+- Outro provider pode superar o Gemini em português jurídico; por isso a avaliação comparativa entre os adapters (Gemini/Grok/Sonnet) na Fase 4.

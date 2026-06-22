@@ -1,102 +1,227 @@
 ---
 title: "Roteiro de Demo — Sprint Review"
-description: "Runbook passo a passo para apresentar o MVP do SHERPI ao professor na Sprint Review."
+description: "Runbook passo a passo para apresentar o SHERPI (MVP + rito trabalhista) ao professor na Sprint Review."
 doc_type: runbook
 project: SHERPI
 status: approved
-version: 1.0
-updated: 2026-06-18
+version: 1.5
+updated: 2026-06-22
 language: pt-BR
 tags: [demo, sprint-review, runbook, apresentacao]
 ---
 
 # Roteiro de Demo — Sprint Review (SHERPI)
 
-Runbook para apresentar o **MVP** ao professor. Duração-alvo: **~10 minutos** (8 de demo + 2 de Q&A).
-Mensagem central: *"devolver tempo cognitivo ao gabinete, com um firewall inédito contra fraude
-algorítmica, sob supervisão humana"*.
+Runbook para apresentar o **SHERPI completo (Sprints 1–9)** ao professor.
+Duração-alvo: **~15 minutos** (12 de demo + 3 de Q&A).
+Mensagem central: *"triagem assistida com firewall, admissibilidade multi-rito, controle humano
+auditável e ingestão automatizada — do PDF à sugestão de TPU, com LGPD e observabilidade prontas
+para produção"*.
 
 ## 0. Antes de apresentar (checklist — rodar 15 min antes)
 
+> **Importante:** nunca exporte o `backend/.env` no shell (`export $(cat .env...)`);
+> o `uv run` lê o arquivo automaticamente. Exportar variáveis manualmente corrompe
+> valores JSON (ex: `SHERPI_CORS_ORIGINS`) e quebra o startup.
+
 ```bash
-# 1) Banco — opção A (recomendada): Postgres via Docker
-docker compose up -d db
-cd backend && export SHERPI_DATABASE_URL="postgresql+psycopg://sherpi:sherpi@localhost:5432/sherpi"
-#    opção B (fallback sem Docker): SQLite
-#    export SHERPI_DATABASE_URL="sqlite:///./sherpi.db"
+# 1) Variáveis de ambiente — editar backend/.env uma única vez
+#    SHERPI_LLM_API_KEY=<chave Gemini>
+#    SHERPI_JWT_SECRET=<segredo forte>
+#    SHERPI_SEED_USER_PASSWORD=<senha>   → cria gabinete@sherpi.local no startup
 
-# 2) Migrations + corpus de demonstração
-uv run alembic upgrade head
-uv run python -m synthetic.generate          # gera data/synthetic/*.pdf
+# 2) Setup inicial (banco + migrations + índice TPU + corpus sintético)
+make setup
+# fallback sem Docker: editar SHERPI_DATABASE_URL=sqlite:///./sherpi.db no .env
+#                      e rodar: cd backend && uv run alembic upgrade head && make seed-tpu synthetic
 
-# 3) Confirme a chave do Gemini no backend/.env (SHERPI_LLM_API_KEY)
-
-# 4) Suba os serviços (dois terminais)
-uv run uvicorn sherpi.interfaces.api.main:app --port 8000      # API
-cd ../frontend && npm run dev                                   # UI em http://localhost:3000
+# 3) Suba os serviços em terminais separados
+make dev-backend    # backend em http://localhost:8000
+make dev-frontend   # frontend em http://localhost:3000
 ```
 
-**Verificação rápida** (deve responder `ok` / `200`):
-`curl localhost:8000/health` · abrir `http://localhost:3000`.
+**Verificação rápida:**
+```bash
+curl localhost:8000/health   # → {"status":"ok"}
+curl localhost:8000/ready    # → {"status":"ok"}
+```
 
-> Tenha abertos: o navegador em `localhost:3000`, `http://localhost:8000/docs` (Swagger) e este roteiro.
+> **Credenciais de demo:** `gabinete@sherpi.local` / `6aeda6bf73531cd01c2e449c`
+> (definidas em `SHERPI_SEED_USER_EMAIL` + `SHERPI_SEED_USER_PASSWORD` no `backend/.env`; criadas automaticamente no startup do backend).
+
+> Tenha abertos: navegador em `localhost:3000`, `http://localhost:8000/docs` (Swagger), este roteiro.
+
+---
 
 ## 1. Contexto (1 min — falar, sem tela)
 
-- O Judiciário afoga em triagem manual: litigiosidade massiva, **até 60% das iniciais** com vícios,
-  petições prolixas (49–116 págs).
-- Ameaça nova e concreta: **prompt injection** em PDFs (casos reais Parauapebas/PA e SP) — comandos
-  ocultos que enganam a IA e quebram o contraditório.
-- SHERPI faz **triagem assistida**: firewall → resumo → admissibilidade. **Sempre apoio, nunca decisão
-  automática** (Res. CNJ 615/2025).
+- Litigiosidade massiva, **até 60 % das iniciais** com vícios; petições de 49–116 págs.
+- Ameaça concreta: **prompt injection** em PDFs (casos reais PA e SP) — comandos ocultos que
+  enganam a IA e quebram o contraditório.
+- SHERPI faz **triagem assistida**: firewall → extração → admissibilidade multi-rito → revisão
+  humana → sugestão de TPU → ingestão automatizada. **Sempre apoio, nunca decisão automática**
+  (Res. CNJ 615/2025).
 
-## 2. Caminho feliz — petição limpa (2 min)
+---
 
-1. Na UI, enviar **`data/synthetic/limpa.pdf`** → clicar **Analisar**.
-2. Mostrar, lado a lado:
+## 2. Sprint 1–2: caminho feliz — petição cível limpa (2 min)
+
+> Demonstra firewall + extração + admissibilidade (MVP).
+
+1. **Login**: acessar `localhost:3000`, entrar com `gabinete@sherpi.local` / senha configurada.
+2. Enviar **`data/synthetic/clean_acao_cobranca.pdf`** → **Analisar**.
+3. Mostrar lado a lado:
    - **Laudo de integridade**: verde "Documento íntegro".
-   - **Resumo estruturado**: partes (com CPF/CNPJ), fato gerador sintetizado, fundamentação, pedidos,
-     valor da causa. *Falar:* "isto economiza a leitura de dezenas de laudas".
-   - **Admissibilidade**: semáforo + checklist (arts. 319/321) com **método** e **evidência** por item.
-3. *Ponto de interpretabilidade:* "cada item mostra como foi verificado (determinístico vs. semântico)
-   e a evidência — o juiz entende **por que** o sistema disse aquilo".
+   - **Resumo estruturado**: partes (nomes/CPF/CNPJ **reais** — anonimizados só p/ o LLM e restaurados no resumo), fato gerador, pedidos,
+     valor da causa. *"Economiza a leitura de dezenas de laudas."*
+   - **Admissibilidade**: semáforo VERDE + checklist (arts. 319/321), método e evidência por item.
+4. *Interpretabilidade:* "cada item mostra COMO foi verificado e a evidência — o juiz entende
+   **por que** o sistema disse aquilo."
 
-> O semáforo pode vir **amarelo** se a peça não mencionar procuração — é correto (vício menor, sem
-> exigir emenda). Use isso para explicar os três níveis (verde/amarelo/vermelho).
+---
 
-## 3. O diferencial — bloqueio de prompt injection (2 min)
+## 3. Sprint 1: o diferencial — bloqueio de prompt injection (2 min)
 
-1. Enviar **`data/synthetic/injecao_branco_no_branco.pdf`** (tem comando oculto em texto branco).
-2. Mostrar a **tarja vermelha**: "Risco grave — bloqueado", com as anomalias (branco-no-branco +
-   comando à IA), página e o trecho-evidência.
-3. *Falar os 2 pontos fortes:*
-   - **Determinístico e sem LLM** — o fluxo encerra **antes** de qualquer chamada ao modelo (não
-     gasta token e não alimenta a IA com conteúdo manipulado).
-   - Subsidia o juiz para **multa por litigância de má-fé** (torna visível o que era invisível).
+1. Enviar **`data/synthetic/injection_texto_branco.pdf`** (comando oculto em texto branco).
+2. Mostrar a **tarja vermelha**: "Risco grave — bloqueado", anomalia, página, evidência.
+3. *Dois pontos fortes:*
+   - **Determinístico e sem LLM** — encerra antes de qualquer chamada ao modelo (sem custo,
+     sem alimentar a IA com conteúdo manipulado).
+   - Subsidia o juiz para **multa por litigância de má-fé**.
+4. *Também em .docx:* o mesmo firewall pega texto oculto em Word (`w:vanish`, cor branca, fonte
+   minúscula) — o advogado **valida a peça antes de gerar o PDF** (ADR-0013).
 
-## 4. Princípios de engenharia/IA (1,5 min — pode usar o Swagger e o terminal)
+---
 
-- **Agnóstico a LLM:** mostrar no `.env` que trocar `SHERPI_LLM_BACKEND`/`SHERPI_LLM_MODEL` troca o
-  provedor sem tocar no código (port + adapter). Default Gemini Flash; Maritaca/OpenAI/Ollama plugáveis.
-- **LGPD:** o texto é **anonimizado** (CPF/CNPJ/e-mail/telefone) antes de ir ao LLM externo; a
-  validação de CPF/CNPJ roda no texto original (não degrada). Dados de teste são **sintéticos**.
-- **Qualidade (medida, não prometida):** no terminal, `uv run python -m evals.run` →
-  firewall precision/recall=1.0 e acurácia de campo da extração.
-- **Rigor:** `uv run pytest` (57 testes) · CI verde (ruff/mypy/test/eval) · arquitetura **DDD + hexagonal**.
+## 4. Sprint 3: multi-domínio — rito trabalhista (1,5 min)
 
-## 5. Processo ágil (1,5 min — abrir os docs)
+*"A mesma base atende vários ramos; o que muda é a estratégia de admissibilidade por rito
+(arquitetura rito-aware, ADR-0008)."*
 
-- **MVP em 2 sprints** entregue (firewall + extração + admissibilidade + UI + persistência).
-- Mostrar rapidamente: **PGP** ([`pmp.md`](pmp.md)), **EAP** ([`wbs.md`](wbs.md)), **Backlog**
-  produto×sprint ([`backlog.md`](backlog.md)), **processo** com Design Sprint e papéis
-  ([`agile-process.md`](agile-process.md)).
-- **Visão de futuro (Fase 4):** TPU (classificação CNJ), autenticação, auditoria/human-in-the-loop
-  completo, anonimização de nomes (NER), integração PJe.
+1. Enviar **`data/synthetic/trabalhista_pedido_iliquido.pdf`** com rito **Trabalhista** →
+   **VERMELHO**: checklist acusa **pedido ilíquido** (CLT art. 840 §1º exige valor por pedido).
+2. Enviar **`data/synthetic/trabalhista_pedido_liquido.pdf`** (mesmo rito) → **VERDE**.
+3. *Ponto arquitetural:* "o mesmo PDF como **cível** não exige pedido líquido. Previdenciário,
+   fiscal e família entram como novos encaixes sem reescrever firewall nem extração."
 
-## 6. Encerramento (30s)
+---
 
-"Em 2 semanas entregamos um MVP funcional que ataca os três gargalos da triagem, com um diferencial
-sem similar no mercado — o firewall anti prompt-injection — e arquitetura pronta para produção."
+## 5. Sprint 4 + 8: confiança & conformidade — revisão humana (1,5 min)
+
+*"Nenhum tribunal adota IA sem controle humano auditável (Res. CNJ 615/2025)."*
+
+1. Na análise exibida, clicar **ACEITAR**, **CORRIGIR** ou **REJEITAR** no `ReviewPanel`;
+   adicionar comentário opcional → **Registrar revisão**.
+2. A trilha aparece imediatamente abaixo: decisão + comentário + horário.
+3. *Falar:* "a trilha é imutável — append-only — e vinculada ao usuário autenticado.
+   Cada ação fica registrada para fins de compliance."
+4. *Alternativa (Swagger)*: `POST /v1/analyses/{id}/review` + `GET /v1/analyses/{id}/reviews`.
+5. *Segurança:* `POST /v1/analyze` sem token → 401 → redirect automático para `/login`;
+   lockout após 5 tentativas incorretas.
+
+---
+
+## 6. Sprint 5 + 8: classificação TPU (1 min)
+
+*"3ª capacidade núcleo: sugerir a classe/assunto do CNJ, atacando o gargalo da autuação."*
+
+1. Na análise, rolar até o **`TpuPanel`**: top-3 sugestões com código, descrição, barra de
+   confiança e trecho-âncora. *"O assessor vê em qual trecho da petição o sistema se baseou."*
+2. Mostrar no terminal:
+   ```bash
+   uv run python -m evals.run
+   # → TPU top-1=1.000  top-3=1.000  (sanidade over seed)
+   ```
+3. *Honestidade acadêmica:* "avaliação over seed — os números servem de sanidade, não de
+   performance em dados não vistos."
+
+---
+
+## 7. Sprint 6: produção — observabilidade e LGPD (1 min)
+
+*"Tornar o sistema operável, observável e conforme."*
+
+1. **Logs** (terminal da API): cada request tem `correlation_id` único, `method`, `path` —
+   sem PII.
+2. **Auditoria de chamadas ao LLM** (`LoggingLLMProvider`): cada chamada ao modelo emite
+   `analysis_id` + `correlation_id` + `call_type` + `duration_ms` no log estruturado.
+   Com `SHERPI_LOG_LEVEL=DEBUG`, loga o prompt completo e a resposta (texto já anonimizado
+   pelo LGPD layer — seguro). *"Sabe exatamente o que foi enviado ao modelo, quando e com
+   qual resultado — rastreabilidade exigida pela Res. CNJ 615/2025."*
+3. **LGPD**: o `MappedCompositeAnonymizer` substitui CPF, CNPJ, e-mail, telefone, CEP **e nomes
+   das partes** (inclusive litisconsórcio) por placeholders numerados antes de enviar ao LLM
+   externo — e o resumo do revisor é **restaurado** com os valores reais (`deanonymize_model`,
+   [ADR-0012](adr/0012-reversible-anonymization-restore.md)). Como é reversível, sob a LGPD isso é
+   **pseudonimização** (art. 5º, XI), não anonimização — protege o **LLM externo**, não o humano:
+   mostrar o **prompt persistido** (pseudonimizado) vs o **resumo** (real). `PresidioAnonymizer`
+   (NER, extra `ner`) é a evolução para nomes em texto livre.
+4. **Retenção**: `DELETE /v1/analyses?older_than_days=90` remove análises antigas
+   (direito ao esquecimento, LGPD art. 18).
+5. **Supply-chain**: `uv run pip-audit` — nenhuma vulnerabilidade conhecida.
+6. Mostrar **`backend/Dockerfile`** (multi-stage, usuário não-root) e
+   **`docker-compose.prod.yml`**.
+
+---
+
+## 8. Sprint 7: integração processual — ingestão assíncrona (1,5 min)
+
+*"Maior ganho de adoção: ingestão direta dos sistemas processuais."*
+
+1. Pela API (Swagger):
+   ```json
+   POST /v1/ingestion/jobs
+   { "source": "SANDBOX", "tribunal": "TJSP",
+     "date_from": "2024-01-01", "date_to": "2024-01-07" }
+   ```
+   → **202 Accepted**, `status: QUEUED`.
+2. `GET /v1/ingestion/jobs/{id}` → mostrar status evoluindo de `RUNNING` para `DONE`,
+   com `processed` e `failed`.
+3. *Design:* "o adapter sandbox usa os PDFs sintéticos que já existem. Trocar por `PjeAdapter`
+   real = implementar o mesmo Protocol com credenciais de homologação."
+4. *Fila:* "`asyncio.Queue` com worker iniciado no `lifespan` — sem dependência externa (Celery,
+   Redis). Escala para fila distribuída na Fase 8+."
+
+---
+
+## 9. Princípios de engenharia/IA (1 min)
+
+- **Agnóstico a LLM:** `SHERPI_LLM_BACKEND` / `SHERPI_LLM_MODEL` → troca provedor sem tocar
+  no código (port + adapter). Default Gemini Flash; **Grok (xAI)** e **Claude Sonnet (Anthropic)** plugáveis (httpx, sem SDK).
+- **Qualidade (medida, não prometida):**
+  ```bash
+  uv run python -m evals.run   # firewall p/r=1.0; extração sanidade=1.0; corpus resumo; TPU top-3=1.0
+  uv run pytest -q             # 282 testes verdes
+  make e2e                     # 52 testes Playwright — firewall de todos os PDFs do corpus (zero tokens)
+  make e2e-llm                 # 11 cenários Playwright — semáforo + liminar com LLM real
+  npm run build && npm run lint # frontend: zero erros TS/ESLint
+  ```
+- **Corpus sintético:** 51 PDFs rotulados (↑ de 14) com variantes aleatórias (nomes, CPFs,
+  valores), litisconsórcio (multi-parte) e cenários de atributos estruturais (`hearing_option`,
+  `requests_evidence`, `cited_documents`, `SUBSIDIARY`). `eval_extraction_corpus()` valida os campos
+  extraídos com expectativa definida.
+- **Rigor:** ruff + mypy strict + pip-audit no CI (gate real). Arquitetura **DDD + hexagonal**.
+- **LGPD end-to-end:** anonimização antes do LLM (estruturados + **nomes das partes**, por regex
+  ancorado); detecção de PDF-imagem (sem texto → não vai ao LLM); retenção configurável; NER
+  (Presidio, extra `ner`) como evolução. Log de auditoria das chamadas ao LLM (texto anonimizado, ver §7).
+
+---
+
+## 10. Processo ágil (30s — abrir os docs)
+
+- **9 sprints entregues** — backend completo (S1–S7) + frontend completo (S8) + refactor de qualidade (S9/EP12).
+- Mostrar rapidamente: [`pmp.md`](pmp.md) (M1–M9 ✅), [`wbs.md`](wbs.md),
+  [`backlog.md`](backlog.md), [`agile-process.md`](agile-process.md).
+
+---
+
+## 11. Encerramento (30s)
+
+*"Em 9 sprints entregamos o SHERPI completo — backend e frontend: firewall anti prompt-injection
+(inédito no mercado), admissibilidade multi-rito (cível + trabalhista), controle humano
+auditável (CNJ 615/2025), classificação TPU, LGPD pronto para produção, ingestão
+automatizada de sistemas processuais, UI funcional ponta a ponta, auditoria estruturada
+de cada chamada ao LLM e suíte E2E Playwright sobre 51 cenários sintéticos. Arquitetura
+DDD + hexagonal, 282 testes, CI rigoroso, Next.js 16 + React 19."*
 
 ---
 
@@ -104,12 +229,26 @@ sem similar no mercado — o firewall anti prompt-injection — e arquitetura pr
 
 | Problema | Contorno |
 |---|---|
-| Sem internet / Gemini fora | A **demo do firewall** (passo 3) é 100% offline e determinística — priorize-a. Para o resumo, usar `SHERPI_LLM_BACKEND=fake` não serve em produção; explique que a extração depende de rede. |
-| Docker indisponível | Usar o fallback **SQLite** (`SHERPI_DATABASE_URL=sqlite:///./sherpi.db`) — mesma camada de repositório. |
-| Frontend não sobe | Demonstrar pela API em `http://localhost:8000/docs` (Swagger): `POST /v1/analyze` com upload do PDF. |
-| Modelo Gemini indisponível | Listar modelos e ajustar `SHERPI_LLM_MODEL` (ex.: `gemini-2.5-flash`). |
+| Sem internet / Gemini fora | Demo do **firewall** (§3) é 100 % offline. Trabalhista (§4) e revisão (§5) mostrar pelos testes: `uv run pytest -k "trabalhista or review" -v`. |
+| Docker indisponível | Editar `SHERPI_DATABASE_URL=sqlite:///./sherpi.db` no `backend/.env`; rodar `cd backend && uv run alembic upgrade head && make seed-tpu`. |
+| Frontend não sobe | Demonstrar tudo pelo Swagger em `http://localhost:8000/docs`. |
+| Índice TPU vazio | `tpu_suggestions: null` na resposta — explicar que é o estado sem seed populado; mostrar `eval_tpu()` no terminal. |
+| Login falha | Verificar `SHERPI_SEED_USER_PASSWORD` no `.env`; ou mostrar o 401 como feature: "sem token, sem acesso". |
+
+---
 
 ## Arquivos de apoio
-- PDFs: `backend/data/synthetic/limpa.pdf` e `injecao_branco_no_branco.pdf` (gerados por `synthetic.generate`).
-- Métricas ao vivo: `uv run python -m evals.run`.
-- Contrato da API: [`tech-spec-sherpi.md`](tech-spec-sherpi.md) §8.
+
+- **PDFs sintéticos** — 51 cenários em `backend/data/synthetic/` (gerados por `make synthetic`):
+  - Demo principal: `clean_acao_cobranca.pdf`, `injection_texto_branco.pdf`,
+    `trabalhista_pedido_liquido.pdf`, `trabalhista_pedido_iliquido.pdf`
+  - Atributos estruturais: `clean_recusa_conciliacao.pdf`, `clean_documentos_citados.pdf`,
+    `clean_pedido_subsidiario.pdf`, `trabalhista_misto.pdf`, `clean_litisconsorcio.pdf` (multi-parte)
+  - Vícios de admissibilidade: `defect_sem_qualificacao_reu.pdf`, `defect_sem_fundamentacao.pdf`
+  - Documentos-imagem: `scanned_acao_cobranca.pdf` (100% escaneado), `scanned_parcial.pdf` (texto + página-imagem), `scanned_mista.pdf` (página mista: texto + imagem dominante)
+  - Variantes aleatórias: `clean_acao_cobranca_v1.pdf` … `v3.pdf` (nomes/CPFs/valores distintos)
+- **Métricas ao vivo:** `uv run python -m evals.run`
+- **Testes unitários/integração:** `uv run pytest -q` (282 testes)
+- **Testes E2E:** `make e2e` (52 testes, zero tokens) · `make e2e-llm` (11 cenários, LLM real)
+- **Contrato da API:** [`tech-spec-sherpi.md`](tech-spec-sherpi.md) §8
+- **Swagger local:** `http://localhost:8000/docs`

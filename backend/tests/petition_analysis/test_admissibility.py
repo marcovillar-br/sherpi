@@ -7,10 +7,12 @@ from decimal import Decimal
 import pytest
 
 from sherpi.contexts.petition_analysis.domain.admissibility import (
+    AdmissibilityReport,
+    AdmissibilityStatus,
     CheckAdmissibility,
-    Requisito,
-    Semaforo,
-    parse_valor_causa,
+    ChecklistItem,
+    Requirement,
+    parse_claim_amount,
 )
 from sherpi.contexts.petition_analysis.domain.summary import (
     Parte,
@@ -18,20 +20,24 @@ from sherpi.contexts.petition_analysis.domain.summary import (
     PetitionSummary,
     Polo,
 )
+from sherpi.shared_kernel.value_objects import Rito
 
 
 def _summary(**overrides: object) -> PetitionSummary:
     base = {
-        "partes": [
-            Parte(nome="Autor", documento="529.982.247-25", polo=Polo.ATIVO),
-            Parte(nome="Ré Ltda", documento="11.222.333/0001-81", polo=Polo.PASSIVO),
+        "court": "Vara Cível de São Paulo",
+        "parties": [
+            Parte(name="Autor", document="529.982.247-25", pole=Polo.ACTIVE),
+            Parte(name="Ré Ltda", document="11.222.333/0001-81", pole=Polo.PASSIVE),
         ],
-        "fato_gerador": "Contrato inadimplido.",
-        "fundamentacao": "Arts. 319 e 320 do CPC.",
-        "pedidos": [Pedido(descricao="Pagamento")],
-        "tem_liminar": False,
-        "valor_causa": "R$ 15.000,00",
-        "documentos_mencionados": ["procuração", "contrato"],
+        "facts": "Contrato inadimplido.",
+        "legal_basis": "Arts. 319 e 320 do CPC.",
+        "claims": [Pedido(description="Pagamento")],
+        "has_injunction": False,
+        "claim_amount": "R$ 15.000,00",
+        "requests_evidence": True,
+        "hearing_option": True,
+        "cited_documents": ["procuração", "contrato"],
     }
     base.update(overrides)
     return PetitionSummary(**base)  # type: ignore[arg-type]
@@ -39,38 +45,82 @@ def _summary(**overrides: object) -> PetitionSummary:
 
 def test_complete_petition_is_green() -> None:
     report = CheckAdmissibility().run(_summary())
-    assert report.semaforo is Semaforo.VERDE
-    assert report.requer_emenda is False
+    assert report.status is AdmissibilityStatus.GREEN
+    assert report.requires_amendment is False
 
 
 def test_missing_essential_requires_emenda_and_is_red() -> None:
-    report = CheckAdmissibility().run(_summary(pedidos=[]))
-    assert report.requer_emenda is True
-    assert report.semaforo is Semaforo.VERMELHO
-    item = next(i for i in report.itens if i.requisito is Requisito.PEDIDOS)
-    assert item.presente is False
+    report = CheckAdmissibility().run(_summary(claims=[]))
+    assert report.requires_amendment is True
+    assert report.status is AdmissibilityStatus.RED
+    item = next(i for i in report.items if i.requirement is Requirement.CLAIMS)
+    assert item.present is False
 
 
 def test_missing_nonessential_is_yellow() -> None:
     # Procuração ausente (semântico, não essencial) → amarelo, sem emenda.
-    report = CheckAdmissibility().run(_summary(documentos_mencionados=["contrato"]))
-    assert report.semaforo is Semaforo.AMARELO
-    assert report.requer_emenda is False
+    report = CheckAdmissibility().run(_summary(cited_documents=["contrato"]))
+    assert report.status is AdmissibilityStatus.YELLOW
+    assert report.requires_amendment is False
 
 
-def test_invalid_cpf_fails_qualificacao() -> None:
+def test_court_evidence_hearing_are_checked() -> None:
+    report = CheckAdmissibility().run(_summary())
+    for req in (Requirement.COURT, Requirement.EVIDENCE, Requirement.HEARING):
+        item = next(i for i in report.items if i.requirement is req)
+        assert item.present is True
+
+
+def test_missing_court_evidence_hearing_is_yellow_no_amendment() -> None:
     report = CheckAdmissibility().run(
-        _summary(partes=[Parte(nome="X", documento="111.111.111-11", polo=Polo.ATIVO)])
+        _summary(court=None, requests_evidence=False, hearing_option=None)
     )
-    item = next(i for i in report.itens if i.requisito is Requisito.QUALIFICACAO)
-    assert item.presente is False
+    assert report.status is AdmissibilityStatus.YELLOW
+    assert report.requires_amendment is False
+    missing = {i.requirement for i in report.items if not i.present}
+    assert {Requirement.COURT, Requirement.EVIDENCE, Requirement.HEARING} <= missing
 
 
-def test_valor_causa_provenance_is_normalized() -> None:
-    report = CheckAdmissibility().run(_summary(valor_causa="R$ 15.000,00"))
-    item = next(i for i in report.itens if i.requisito is Requisito.VALOR_CAUSA)
-    assert item.presente is True
-    assert item.evidencia == "R$ 15.000,00"
+def test_invalid_cpf_fails_qualification() -> None:
+    # Caminho sem raw_text: documento mascarado → fallback LLM parties.
+    report = CheckAdmissibility().run(
+        _summary(parties=[Parte(name="X", document="111.111.111-11", pole=Polo.ACTIVE)])
+    )
+    item = next(i for i in report.items if i.requirement is Requirement.QUALIFICATION)
+    assert item.present is False
+
+
+def test_invalid_cpf_fails_qualification_with_raw_text() -> None:
+    # Caminho COM raw_text (caminho real da produção): CPF inválido do autor e CNPJ
+    # inválido da ré → _scan_valid_document não acha nada → QUALIFICATION falha.
+    # Regressão: versão anterior encontrava o CNPJ da ré (válido) e passava o check.
+    raw = (
+        "FULANO DE TAL, inscrito no CPF sob o nº 111.111.111-11, "
+        "propor ação em face de EMPRESA LTDA., CNPJ nº 00.000.000/0000-00."
+    )
+    summary = _summary(parties=[Parte(name="FULANO DE TAL", document="[CPF_1]", pole=Polo.ACTIVE)])
+    report = CheckAdmissibility().run(summary, raw_text=raw)
+    item = next(i for i in report.items if i.requirement is Requirement.QUALIFICATION)
+    assert item.present is False
+
+
+def test_valid_cpf_in_raw_text_passes_qualification() -> None:
+    # raw_text tem CPF válido do autor (ainda que mascarado no resumo do LLM).
+    raw = (
+        "FULANO DE TAL, inscrito no CPF sob o nº 529.982.247-25, "
+        "propor ação em face de EMPRESA LTDA., CNPJ nº 11.222.333/0001-81."
+    )
+    summary = _summary(parties=[Parte(name="FULANO DE TAL", document="[CPF_1]", pole=Polo.ACTIVE)])
+    report = CheckAdmissibility().run(summary, raw_text=raw)
+    item = next(i for i in report.items if i.requirement is Requirement.QUALIFICATION)
+    assert item.present is True
+
+
+def test_claim_amount_provenance_is_normalized() -> None:
+    report = CheckAdmissibility().run(_summary(claim_amount="R$ 15.000,00"))
+    item = next(i for i in report.items if i.requirement is Requirement.CLAIM_VALUE)
+    assert item.present is True
+    assert item.evidence == "R$ 15.000,00"
 
 
 @pytest.mark.parametrize(
@@ -84,6 +134,103 @@ def test_valor_causa_provenance_is_normalized() -> None:
         ("abc", None),
     ],
 )
-def test_parse_valor_causa(texto: str | None, esperado: Decimal | None) -> None:
-    result = parse_valor_causa(texto)
+def test_parse_claim_amount(texto: str | None, esperado: Decimal | None) -> None:
+    result = parse_claim_amount(texto)
     assert (result.amount if result else None) == esperado
+
+
+# --- Despacho por rito (rito-aware, ADR-0008) ------------------------------------
+
+
+def test_default_rito_e_civel() -> None:
+    # Sem rito explícito == cível: petição completa segue verde.
+    assert CheckAdmissibility().run(_summary()).status is AdmissibilityStatus.GREEN
+    assert CheckAdmissibility().run(_summary(), Rito.CIVEL).status is AdmissibilityStatus.GREEN
+
+
+def test_civel_nao_exige_pedido_liquido() -> None:
+    # Pedido sem valor é admissível no cível (não há requisito LIQUID_CLAIM).
+    report = CheckAdmissibility().run(_summary(), Rito.CIVEL)
+    assert report.status is AdmissibilityStatus.GREEN
+    assert all(i.requirement is not Requirement.LIQUID_CLAIM for i in report.items)
+
+
+def test_trabalhista_pedido_liquido_e_verde() -> None:
+    report = CheckAdmissibility().run(
+        _summary(claims=[Pedido(description="Aviso prévio", amount="R$ 2.500,00")]),
+        Rito.TRABALHISTA,
+    )
+    assert report.status is AdmissibilityStatus.GREEN
+    assert report.requires_amendment is False
+    item = next(i for i in report.items if i.requirement is Requirement.LIQUID_CLAIM)
+    assert item.present is True
+
+
+def test_trabalhista_pedido_iliquido_exige_emenda() -> None:
+    # Pedido sem valor (default do _summary) viola CLT 840 §1º no rito trabalhista.
+    report = CheckAdmissibility().run(_summary(), Rito.TRABALHISTA)
+    assert report.status is AdmissibilityStatus.RED
+    assert report.requires_amendment is True
+    item = next(i for i in report.items if i.requirement is Requirement.LIQUID_CLAIM)
+    assert item.present is False
+    assert item.evidence == "Pagamento"  # descrição do pedido ilíquido
+
+
+def test_trabalhista_cumulacao_liquida_e_verde() -> None:
+    claims = [
+        Pedido(description="Aviso prévio", amount="R$ 2.500,00"),
+        Pedido(description="Férias + 1/3", amount="R$ 1.111,00"),
+        Pedido(description="13º proporcional", amount="R$ 833,00"),
+    ]
+    report = CheckAdmissibility().run(_summary(claims=claims), Rito.TRABALHISTA)
+    assert report.status is AdmissibilityStatus.GREEN
+    assert report.requires_amendment is False
+
+
+# --- Caveat de possível inferência (cross-check extração vs texto bruto) ---
+
+# Narrativa SEM marcadores formais de pedido/valor (o campo é extraível, mas o
+# texto não traz a seção formal → sinaliza possível inferência do LLM).
+_RAW_NO_MARKERS = (
+    "As partes celebraram um contrato. A parte ré deixou de efetuar "
+    "o pagamento de R$ 15.000,00 acordado entre elas."
+)
+# Narrativa COM marcadores formais.
+_RAW_WITH_MARKERS = (
+    "Ante o exposto, requer a condenação da ré ao pagamento. Dá-se à causa o valor de R$ 15.000,00."
+)
+
+
+def _item(report: AdmissibilityReport, req: Requirement) -> ChecklistItem:
+    return next(i for i in report.items if i.requirement is req)
+
+
+def test_claims_caveat_when_raw_text_lacks_formal_marker() -> None:
+    report = CheckAdmissibility().run(_summary(), raw_text=_RAW_NO_MARKERS)
+    item = _item(report, Requirement.CLAIMS)
+    assert item.present is True
+    assert item.caveat is not None
+    # Caveat é informativo: não altera o veredito (todos os essenciais presentes).
+    assert report.status is AdmissibilityStatus.GREEN
+
+
+def test_claim_value_caveat_when_raw_text_lacks_formal_marker() -> None:
+    report = CheckAdmissibility().run(_summary(), raw_text=_RAW_NO_MARKERS)
+    assert _item(report, Requirement.CLAIM_VALUE).caveat is not None
+
+
+def test_no_caveat_when_formal_marker_present() -> None:
+    report = CheckAdmissibility().run(_summary(), raw_text=_RAW_WITH_MARKERS)
+    assert _item(report, Requirement.CLAIMS).caveat is None
+    assert _item(report, Requirement.CLAIM_VALUE).caveat is None
+
+
+def test_no_caveat_without_raw_text() -> None:
+    report = CheckAdmissibility().run(_summary())  # raw_text=None → sem cross-check
+    assert _item(report, Requirement.CLAIMS).caveat is None
+
+
+def test_no_caveat_when_field_absent() -> None:
+    # Campo ausente não recebe caveat: nada foi "recuperado" da narrativa.
+    report = CheckAdmissibility().run(_summary(claims=[]), raw_text=_RAW_NO_MARKERS)
+    assert _item(report, Requirement.CLAIMS).caveat is None

@@ -1,13 +1,12 @@
 """Modelos de persistência (SQLModel).
 
-A análise consolidada é guardada como JSON (`result_json`), preservando a
-estrutura rica do resultado; colunas dedicadas (`verdict`, `created_at`)
-permitem consulta/filtragem. Portável entre SQLite (testes) e Postgres (prod).
+Todos os modelos de tabela vivem aqui para que `engine.py` os registre em
+`SQLModel.metadata` com uma única importação — sem risco de ciclos de importação.
 """
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlmodel import Field, SQLModel
 
@@ -20,3 +19,76 @@ class AnalysisRow(SQLModel, table=True):
     filename: str | None = Field(default=None)
     verdict: str = Field(index=True)
     result_json: str
+
+
+class UserRow(SQLModel, table=True):
+    __tablename__ = "users"
+
+    id: str = Field(primary_key=True)
+    email: str = Field(unique=True, index=True)
+    hashed_password: str
+    role: str
+    is_active: bool = True
+
+
+class AuditEventRow(SQLModel, table=True):
+    __tablename__ = "audit_events"
+
+    id: str = Field(primary_key=True)
+    analysis_id: str = Field(index=True)
+    user_id: str
+    user_email: str
+    decision: str
+    comment: str | None = None
+    created_at: datetime
+
+
+class TpuEntryRow(SQLModel, table=True):
+    __tablename__ = "tpu_entries"
+
+    id: str = Field(primary_key=True)
+    tpu_code: str = Field(index=True)
+    description: str
+    rito: str
+    text_excerpt: str
+    embedding: bytes
+    embedding_dim: int
+
+
+class LLMCallRow(SQLModel, table=True):
+    """Auditoria persistida de cada chamada ao LLM (prompt + resposta).
+
+    O conteúdo já foi anonimizado antes de ir ao LLM (LGPD). `analysis_id` liga
+    a chamada à análise (sem FK rígida: a chamada é gravada durante o pipeline,
+    antes do registro da análise).
+    """
+
+    __tablename__ = "llm_calls"
+
+    id: str = Field(primary_key=True)
+    analysis_id: str | None = Field(default=None, index=True)
+    call_type: str
+    model: str | None = Field(default=None)
+    prompt: str
+    response: str
+    prompt_chars: int
+    response_chars: int
+    duration_ms: int
+    created_at: datetime
+
+
+class IngestJobRow(SQLModel, table=True):
+    __tablename__ = "ingest_jobs"
+
+    id: str = Field(primary_key=True)
+    source: str
+    tribunal: str
+    date_from: date
+    date_to: date
+    status: str = "QUEUED"
+    total: int = 0
+    processed: int = 0
+    failed: int = 0
+    created_at: datetime
+    finished_at: datetime | None = Field(default=None)
+    error: str | None = Field(default=None)

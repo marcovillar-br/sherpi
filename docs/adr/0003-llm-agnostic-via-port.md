@@ -16,13 +16,13 @@ tags: [adr, arquitetura, decisao]
 
 ## Contexto
 
-O relatório acoplava o sistema a modelos específicos (gpt-4o-mini, Gemini 1.5 Flash) hardcodados. Modelos datam rápido, e o projeto quer poder trocar entre Gemini, Maritaca Sabiá, OpenAI-compat e Ollama — inclusive um provider local para dados sensíveis (LGPD). Os testes não podem depender de rede.
+O relatório acoplava o sistema a modelos específicos (gpt-4o-mini, Gemini 1.5 Flash) hardcodados. Modelos datam rápido, e o projeto quer poder trocar entre provedores (hoje: Gemini, Grok/xAI, Claude/Anthropic) — inclusive um provider local para dados sensíveis (LGPD). Os testes não podem depender de rede.
 
 ## Decisão
 
 Definir um port `LLMProvider` na fronteira domínio/aplicação, com a assinatura `complete(messages, response_schema) -> objeto validado`. Implementar adapters em `infrastructure/llm`:
 
-- `gemini.py` (**default**), `openai_compat.py` (Maritaca/OpenAI/Ollama via `base_url`+modelo), `fake.py` (`FakeProvider` determinístico).
+- `gemini.py` (**default**, SDK google-genai), `grok.py` (xAI) e `anthropic.py` (Sonnet) — estes dois via httpx direto sobre a base `HttpLLMProvider`, sem SDK — e `fake.py` (`FakeProvider` determinístico).
 
 Provider e modelo vêm de `config.py` (pydantic-settings/.env), nunca hardcodados.
 

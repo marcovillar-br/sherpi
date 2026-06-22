@@ -1,14 +1,19 @@
-"""Testes de integração do firewall: PDF sintético → parser → detector."""
+"""Testes de integração do firewall, dirigidos pela massa de cenários.
+
+Cada cenário do catálogo sintético (clean/defect/injection) é exercitado e o
+veredito do firewall é comparado ao *ground truth* (`expected_verdict`).
+"""
 
 from __future__ import annotations
 
 import pytest
-from synthetic.builder import BUILDERS, build_clean, build_corpus
+from synthetic.builder import SyntheticPetition, build_clean, build_corpus
 
 from sherpi.contexts.document_integrity.application.analyze import AnalyzeDocumentIntegrity
 from sherpi.contexts.document_integrity.infrastructure.pymupdf_parser import PyMuPDFParser
 from sherpi.shared_kernel.errors import UntrustedDocumentError
-from sherpi.shared_kernel.value_objects import RiskVerdict
+
+_CORPUS = build_corpus()
 
 
 @pytest.fixture
@@ -16,20 +21,23 @@ def firewall() -> AnalyzeDocumentIntegrity:
     return AnalyzeDocumentIntegrity(PyMuPDFParser())
 
 
-def test_clean_petition_passes(firewall: AnalyzeDocumentIntegrity) -> None:
-    report = firewall.run(build_clean(), max_pages=300)
-    assert report.verdict is RiskVerdict.PASS
+@pytest.mark.parametrize("petition", _CORPUS, ids=[p.name for p in _CORPUS])
+def test_firewall_verdict_matches_scenario(
+    firewall: AnalyzeDocumentIntegrity, petition: SyntheticPetition
+) -> None:
+    report = firewall.run(petition.content, max_pages=300)
+    assert report.verdict.value == petition.expected_verdict
+    # Injeções devem produzir risco > 0; cenários limpos/defeituosos, risco zero.
+    if petition.is_malicious:
+        assert report.risk_score > 0.0
+    else:
+        assert report.risk_score == 0.0
 
 
-@pytest.mark.parametrize(
-    "name",
-    [n for n, (_, malicious, _) in BUILDERS.items() if malicious],
-)
-def test_each_injection_vector_is_blocked(firewall: AnalyzeDocumentIntegrity, name: str) -> None:
-    corpus = {p.name: p for p in build_corpus()}
-    report = firewall.run(corpus[name].content, max_pages=300)
-    assert report.verdict in (RiskVerdict.BLOCK, RiskVerdict.WARN), name
-    assert report.risk_score > 0.0
+def test_corpus_cobre_categorias_variadas() -> None:
+    categorias = {p.category for p in _CORPUS}
+    assert categorias == {"clean", "defect", "injection", "trabalhista", "scanned"}
+    assert sum(p.is_malicious for p in _CORPUS) >= 4  # ao menos os 4 vetores de injeção
 
 
 def test_non_pdf_is_rejected(firewall: AnalyzeDocumentIntegrity) -> None:

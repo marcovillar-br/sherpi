@@ -19,8 +19,36 @@
   }
 }
 
+/* Reserva o espaço da barra de rolagem sempre: o conteúdo centralizado não
+   desloca quando a página cresce (ex.: ao surgir o resultado da análise). */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Entrada suave do bloco de resultados (fade + leve subida). */
+@keyframes sherpi-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-result-in {
+  animation: sherpi-fade-in-up 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-result-in {
+    animation: none;
+  }
 }

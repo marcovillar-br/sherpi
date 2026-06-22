@@ -4,8 +4,8 @@ description: "Decomposição hierárquica do trabalho do SHERPI, com Gerenciamen
 doc_type: wbs
 project: SHERPI
 status: approved
-version: 1.0
-updated: 2026-06-18
+version: 1.2
+updated: 2026-06-19
 language: pt-BR
 tags: [eap, wbs, gerenciamento-de-projeto, escopo]
 ---
@@ -14,8 +14,7 @@ tags: [eap, wbs, gerenciamento-de-projeto, escopo]
 
 Decomposição hierárquica de **todo o trabalho** do projeto. Conforme o Guia de Diretrizes, há uma
 ramificação principal dedicada ao **Gerenciamento de Projeto**, com a **Gestão e Rituais Ágeis** como
-sub-ramificação (`1.1 → 1.1.1`). Pacotes marcados com 🔵 estão no recorte das 2 Sprints (MVP);
-⚪ são visão de futuro (ver [`backlog.md`](backlog.md)).
+sub-ramificação (`1.1 → 1.1.1`). Legenda: 🔵 entregue. Sprints 1–9 concluídas (backend + frontend + en-US compliance). Ver [`roadmap.md`](roadmap.md) e [`backlog.md`](backlog.md).
 
 ```mermaid
 flowchart TD
@@ -40,7 +39,7 @@ flowchart TD
 - **1.1.1 Gestão e Rituais Ágeis** — Design Sprint semanal, Sprint Planning, Dailies, Sprint Review
   (sábados), Retrospective e refinamento de backlog.
 - **1.1.2 Gestão de Escopo** — Backlog do Produto, Sprint Backlog, esta EAP, controle de mudanças.
-- **1.1.3 Gestão de Tempo** — cronograma das 2 sprints, marcos (M1–M3), acompanhamento.
+- **1.1.3 Gestão de Tempo** — cronograma das sprints (S1–S9), marcos (M1–M9), acompanhamento.
 - **1.1.4 Gestão de Custos** — *free tier* do LLM, infra local, guarda de tokens.
 - **1.1.5 Gestão de Riscos** — registro e mitigação de riscos (ver [`pmp.md`](pmp.md) §5).
 - **1.1.6 Comunicação e Qualidade** — canais, *Definition of Done*, gate de CI.
@@ -51,17 +50,21 @@ flowchart TD
 - **1.2.3 Orquestração** 🔵 — use case `analyze_petition` (firewall → extração → admissibilidade).
 - **1.2.4 Persistência** 🔵 — modelos SQLModel, repositórios, migrations.
 - **1.2.5 Interface (UI mínima)** 🔵 — upload do PDF → laudo + resumo estruturado.
-- **1.2.6 Classificação Taxonômica (TPU)** ⚪ — embeddings + k-NN (futuro).
-- **1.2.7 Identidade & Acesso** ⚪ — autenticação/RBAC (futuro).
-- **1.2.8 Revisão & Auditoria** ⚪ — *human-in-the-loop* completo, trilha append-only (futuro).
-- **1.2.9 Integração Judicial** ⚪ — conectores PJe/E-Proc (futuro).
+- **1.2.10 Multi-domínio (rito-aware) + Trabalhista** 🔵 (S3) — enum `Rito`, estratégias de
+  admissibilidade por rito; `TrabalhistaStrategy` (CLT 840, pedido líquido). Ver ADR-0008.
+- **1.2.7 Identidade & Acesso** 🔵 (S4/S8) — login OAuth2/JWT (perfil único), rotas protegidas; página `/login` na UI.
+- **1.2.8 Revisão & Auditoria** 🔵 (S4/S8) — *human-in-the-loop* + trilha append-only (CNJ 615/2025); `ReviewPanel` na UI.
+- **1.2.6 Classificação Taxonômica (TPU)** 🔵 (S5/S8) — embeddings JurisBERT + k-NN (numpy/bytes, por ramo); `TpuPanel` na UI.
+- **1.2.9 Integração Judicial** 🔵 (S7) — `SandboxSourceAdapter` + `IngestPetitions` + `IngestQueue`; ingestão assíncrona.
+- **1.2.12 UI das Sprints 4–7** 🔵 (S8) — login, seletor de rito, `TpuPanel` (top-3 + confiança), `ReviewPanel` (ACEITAR/CORRIGIR/REJEITAR + trilha); Next.js 16 + React 19.
+- **1.2.11 Domínios adicionais** *(pós-S8)* — previdenciário/INSS, execução fiscal, família/JEC.
 
 ### 1.3 Plataforma e Qualidade
 - **1.3.1 Scaffold DDD/Hexagonal** 🔵 — estrutura de contextos, `shared_kernel`, ports.
-- **1.3.2 CI/CD e Ferramentas** 🔵 — ruff, mypy, pytest, pre-commit, GitHub Actions.
+- **1.3.2 CI/CD e Ferramentas** 🔵 (S1 / S6) — ruff, mypy, pytest, pre-commit, GitHub Actions; `pip-audit` gate ✅ S6.
 - **1.3.3 Dados Sintéticos** 🔵 — gerador de petições rotuladas (synthetic-first).
 - **1.3.4 Eval Harness** 🔵 — métricas (firewall, extração) e gate de CI.
-- **1.3.5 Segurança & Observabilidade** 🔵 — segurança de upload, logging estruturado, `/health`.
+- **1.3.5 Segurança & Observabilidade** 🔵 (S1 / S6) — segurança de upload; detecção de PDF-imagem (sem texto); `structlog` + correlation IDs; anonimização (`RegexAnonymizer` + `RegexNameAnonymizer` em `CompositeAnonymizer`; reversível `MappedRegexAnonymizer`; `PresidioAnonymizer` NER extra `ner`); Sentry; `Dockerfile` multi-stage.
 
 ### 1.4 Documentação
 - **1.4.1 Produto** — PRD.

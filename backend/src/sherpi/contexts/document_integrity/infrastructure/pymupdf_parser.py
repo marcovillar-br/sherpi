@@ -13,6 +13,12 @@ Limitações conhecidas (MVP → refinar na Fase 4):
 
 from __future__ import annotations
 
+import signal
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+from types import FrameType
+
 import pymupdf
 
 from sherpi.contexts.document_integrity.domain.document import (
@@ -28,10 +34,51 @@ def _int_to_rgb(color: int) -> tuple[float, float, float]:
     return ((color >> 16) & 0xFF) / 255.0, ((color >> 8) & 0xFF) / 255.0, (color & 0xFF) / 255.0
 
 
+@contextmanager
+def _parse_deadline(seconds: float) -> Iterator[None]:
+    """Guarda de tempo (best-effort) em torno do parsing CPU-bound do PyMuPDF.
+
+    Mitiga DoS por parsing lento (ex.: bomba de descompressão) cortando o fluxo
+    quando o tempo de parede estoura. Usa SIGALRM, que tem limites conhecidos:
+    só funciona em Unix e na main thread, e NÃO interrompe um laço preso em
+    código C nativo até o controle voltar ao Python. O isolamento pleno de
+    recursos (subprocesso + `setrlimit`) fica para a Fase 4. Fora desse cenário
+    (thread worker, plataforma sem SIGALRM, ou `seconds<=0`) degrada para no-op.
+    """
+    usable = (
+        seconds > 0
+        and hasattr(signal, "SIGALRM")
+        and threading.current_thread() is threading.main_thread()
+    )
+    if not usable:
+        yield
+        return
+
+    def _on_timeout(signum: int, frame: FrameType | None) -> None:
+        raise UntrustedDocumentError(f"Parsing do PDF excedeu {seconds:g}s (possível DoS).")
+
+    previous = signal.signal(signal.SIGALRM, _on_timeout)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
 class PyMuPDFParser:
-    """Implementação do port `PdfParser` usando PyMuPDF."""
+    """Implementação do port `DocumentParser` usando PyMuPDF."""
+
+    def __init__(self, *, timeout_seconds: float = 0.0) -> None:
+        # 0.0 desativa a guarda de tempo (default usado por testes/evals); a API
+        # injeta `pdf_parse_timeout_seconds` da config no wiring de produção.
+        self._timeout_seconds = timeout_seconds
 
     def parse(self, content: bytes, *, max_pages: int) -> ParsedDocument:
+        with _parse_deadline(self._timeout_seconds):
+            return self._parse(content, max_pages=max_pages)
+
+    def _parse(self, content: bytes, *, max_pages: int) -> ParsedDocument:
         try:
             doc = pymupdf.open(stream=content, filetype="pdf")
         except Exception as exc:  # parsing de arquivo hostil
@@ -53,8 +100,17 @@ class PyMuPDFParser:
                 cb = page.cropbox
                 cropbox = (cb.x0, cb.y0, cb.x1, cb.y1)
                 page.set_cropbox(page.mediabox)
-                pages.append(PageGeometry(page=index, cropbox=cropbox))
-                spans.extend(self._extract_spans(page, index))
+                page_spans = self._extract_spans(page, index)
+                spans.extend(page_spans)
+                page_area = max((cb.x1 - cb.x0) * (cb.y1 - cb.y0), 1.0)
+                pages.append(
+                    PageGeometry(
+                        page=index,
+                        cropbox=cropbox,
+                        has_text=any(s.text.strip() for s in page_spans),
+                        image_ratio=min(self._image_area(page) / page_area, 1.0),
+                    )
+                )
 
             return ParsedDocument(
                 page_count=doc.page_count,
@@ -67,10 +123,20 @@ class PyMuPDFParser:
             doc.close()
 
     @staticmethod
+    def _image_area(page: pymupdf.Page) -> float:
+        """Área total coberta por blocos de imagem na página (pontos²)."""
+        total = 0.0
+        for block in page.get_text("dict").get("blocks", []):
+            if block.get("type") == 1:  # bloco de imagem (0 = texto)
+                x0, y0, x1, y1 = block["bbox"]
+                total += (x1 - x0) * (y1 - y0)
+        return total
+
+    @staticmethod
     def _extract_spans(page: pymupdf.Page, index: int) -> list[TextSpan]:
         spans: list[TextSpan] = []
         data = page.get_text("dict")
-        for block in data.get("blocks", []):
+        for block_idx, block in enumerate(data.get("blocks", [])):
             for line in block.get("lines", []):
                 for span in line.get("spans", []):
                     text = span.get("text", "")
@@ -83,6 +149,7 @@ class PyMuPDFParser:
                             size=float(span.get("size", 0.0)),
                             bbox=tuple(span["bbox"]),
                             page=index,
+                            block=block_idx,
                         )
                     )
         return spans

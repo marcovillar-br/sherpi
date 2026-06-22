@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from sherpi.config import Settings
 from sherpi.infrastructure.anonymization.factory import build_anonymizer
-from sherpi.infrastructure.anonymization.regex import NoOpAnonymizer, RegexAnonymizer
+from sherpi.infrastructure.anonymization.regex import (
+    MappedRegexAnonymizer,
+    NoOpAnonymizer,
+    RegexAnonymizer,
+)
 
 
 def test_masks_cpf_cnpj_email_phone_cep() -> None:
@@ -25,8 +29,10 @@ def test_noop_keeps_text() -> None:
 
 
 def test_factory_uses_regex_for_external_llm() -> None:
-    settings = Settings(llm_backend="gemini", anonymize_before_llm=True)
-    assert isinstance(build_anonymizer(settings), RegexAnonymizer)
+    # anonymize_names desligado isola o caminho regex-only (estruturado).
+    # O default composto (estruturado + nomes) é coberto em test_name_anonymizer.py.
+    settings = Settings(llm_backend="gemini", anonymize_before_llm=True, anonymize_names=False)
+    assert isinstance(build_anonymizer(settings), MappedRegexAnonymizer)
 
 
 def test_factory_noop_when_disabled() -> None:

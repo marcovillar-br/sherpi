@@ -15,39 +15,52 @@ from __future__ import annotations
 import re
 from decimal import Decimal, InvalidOperation
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
-from sherpi.contexts.petition_analysis.domain.summary import PetitionSummary, Polo
-from sherpi.shared_kernel.value_objects import CNPJ, CPF, ValorCausa
+from sherpi.contexts.petition_analysis.domain.summary import PetitionSummary
+from sherpi.shared_kernel.value_objects import CNPJ, CPF, ClaimAmount, Rito
+
+if TYPE_CHECKING:
+    from sherpi.contexts.petition_analysis.domain.strategies import AdmissibilityStrategy
 
 
-class Semaforo(StrEnum):
-    VERDE = "VERDE"  # apto a prosseguir
-    AMARELO = "AMARELO"  # vícios sanáveis menores
-    VERMELHO = "VERMELHO"  # requer emenda (art. 321)
+class AdmissibilityStatus(StrEnum):
+    GREEN = "GREEN"  # apto a prosseguir
+    YELLOW = "YELLOW"  # vícios sanáveis menores
+    RED = "RED"  # requer emenda (art. 321)
 
 
-class MetodoCheck(StrEnum):
-    DETERMINISTICO = "DETERMINISTICO"
-    SEMANTICO = "SEMANTICO"
+class CheckMethod(StrEnum):
+    DETERMINISTIC = "DETERMINISTIC"
+    SEMANTIC = "SEMANTIC"
 
 
-class Requisito(StrEnum):
-    PARTES = "partes"
-    QUALIFICACAO = "qualificacao"
-    FATOS = "fatos"
-    FUNDAMENTACAO = "fundamentacao"
-    PEDIDOS = "pedidos"
-    VALOR_CAUSA = "valor_causa"
-    DOCUMENTOS = "documentos"
+class Requirement(StrEnum):
+    COURT = "court"  # art. 319, I
+    PARTIES = "parties"  # art. 319, II
+    QUALIFICATION = "qualification"  # art. 319, II
+    FACTS = "facts"  # art. 319, III
+    LEGAL_BASIS = "legal_basis"  # art. 319, III
+    CLAIMS = "claims"  # art. 319, IV
+    CLAIM_VALUE = "claim_value"  # art. 319, V
+    EVIDENCE = "evidence"  # art. 319, VI
+    HEARING = "hearing"  # art. 319, VII
+    DOCUMENTS = "documents"  # art. 320 (procuração etc.)
+    LIQUID_CLAIM = "liquid_claim"  # CLT art. 840 §1º (rito trabalhista)
 
 
-# Requisitos essenciais cuja ausência exige emenda (art. 321) → VERMELHO.
-_ESSENCIAIS = {Requisito.PARTES, Requisito.FATOS, Requisito.PEDIDOS, Requisito.VALOR_CAUSA}
-
-# Documentos essenciais cuja menção é checada semanticamente.
-_DOCS_ESSENCIAIS = ("procuração", "procuracao")
+# Requisitos essenciais cuja ausência exige emenda (art. 321 / CLT 840) → RED.
+# LIQUID_CLAIM só é emitido pela estratégia trabalhista; nos demais ritos o item
+# nunca aparece, então incluí-lo aqui é inócuo para o cível.
+_ESSENTIAL_REQS = {
+    Requirement.PARTIES,
+    Requirement.FACTS,
+    Requirement.CLAIMS,
+    Requirement.CLAIM_VALUE,
+    Requirement.LIQUID_CLAIM,
+}
 
 # Candidatos a CPF/CNPJ no texto bruto (validação por checksum vem depois).
 _CNPJ_RE = re.compile(r"\b\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}\b")
@@ -57,35 +70,39 @@ _CPF_RE = re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")
 class ChecklistItem(BaseModel):
     model_config = {"frozen": True}
 
-    requisito: Requisito
-    presente: bool
-    metodo: MetodoCheck
-    evidencia: str | None = None
-    detalhe: str | None = None
+    requirement: Requirement
+    present: bool
+    method: CheckMethod
+    evidence: str | None = None
+    detail: str | None = None
+    # Alerta ao revisor: o campo foi extraído, mas o marcador formal correspondente
+    # não foi localizado no texto bruto — pode ter sido inferido da narrativa pelo LLM.
+    # NÃO altera o veredito; é sinal de "confirme na peça original" (human-in-the-loop).
+    caveat: str | None = None
 
 
 class AdmissibilityReport(BaseModel):
     model_config = {"frozen": True}
 
-    itens: list[ChecklistItem]
-    semaforo: Semaforo
-    requer_emenda: bool
+    items: list[ChecklistItem]
+    status: AdmissibilityStatus
+    requires_amendment: bool
 
     @classmethod
-    def from_items(cls, itens: list[ChecklistItem]) -> AdmissibilityReport:
-        ausentes = {i.requisito for i in itens if not i.presente}
-        requer_emenda = bool(ausentes & _ESSENCIAIS)
-        if requer_emenda:
-            semaforo = Semaforo.VERMELHO
-        elif ausentes:
-            semaforo = Semaforo.AMARELO
+    def from_items(cls, items: list[ChecklistItem]) -> AdmissibilityReport:
+        missing = {i.requirement for i in items if not i.present}
+        requires_amendment = bool(missing & _ESSENTIAL_REQS)
+        if requires_amendment:
+            status = AdmissibilityStatus.RED
+        elif missing:
+            status = AdmissibilityStatus.YELLOW
         else:
-            semaforo = Semaforo.VERDE
-        return cls(itens=itens, semaforo=semaforo, requer_emenda=requer_emenda)
+            status = AdmissibilityStatus.GREEN
+        return cls(items=items, status=status, requires_amendment=requires_amendment)
 
 
-def parse_valor_causa(texto: str | None) -> ValorCausa | None:
-    """Converte 'R$ 15.000,00' (ou variações) em `ValorCausa`. None se não parseável."""
+def parse_claim_amount(texto: str | None) -> ClaimAmount | None:
+    """Converte 'R$ 15.000,00' (ou variações) em `ClaimAmount`. None se não parseável."""
     if not texto:
         return None
     raw = re.sub(r"[^0-9,.]", "", texto)
@@ -99,12 +116,12 @@ def parse_valor_causa(texto: str | None) -> ValorCausa | None:
     except InvalidOperation:
         return None
     try:
-        return ValorCausa(amount=amount)
+        return ClaimAmount(amount=amount)
     except ValueError:
         return None
 
 
-def _valid_documento(value: str | None) -> str | None:
+def _valid_document(value: str | None) -> str | None:
     """Retorna o documento formatado se for CPF ou CNPJ válido; senão None."""
     if not value:
         return None
@@ -116,108 +133,42 @@ def _valid_documento(value: str | None) -> str | None:
     return None
 
 
-def _scan_valid_documento(text: str) -> str | None:
+def _scan_valid_document(text: str) -> str | None:
     """Procura no texto bruto o primeiro CPF/CNPJ com checksum válido."""
     for pattern in (_CNPJ_RE, _CPF_RE):
         for match in pattern.finditer(text):
-            doc = _valid_documento(match.group())
+            doc = _valid_document(match.group())
             if doc:
                 return doc
     return None
 
 
 class CheckAdmissibility:
-    """Domain service: avalia a admissibilidade de um `PetitionSummary`."""
+    """Domain service: despacha a admissibilidade para a estratégia do rito.
 
-    def run(self, summary: PetitionSummary, *, raw_text: str | None = None) -> AdmissibilityReport:
-        """Avalia a admissibilidade.
+    As regras de cada rito vivem em `AdmissibilityStrategy` (ver `strategies.py`);
+    este serviço apenas roteia `Rito → estratégia`. O cível é o rito padrão (ADR-0008).
+    """
+
+    def __init__(self, strategies: dict[Rito, AdmissibilityStrategy] | None = None) -> None:
+        if strategies is None:
+            # Import tardio para evitar ciclo: strategies.py importa os tipos deste módulo.
+            from sherpi.contexts.petition_analysis.domain.strategies import DEFAULT_STRATEGIES
+
+            strategies = DEFAULT_STRATEGIES
+        self._strategies = strategies
+
+    def run(
+        self,
+        summary: PetitionSummary,
+        rito: Rito = Rito.CIVEL,
+        *,
+        raw_text: str | None = None,
+    ) -> AdmissibilityReport:
+        """Avalia a admissibilidade segundo o `rito`.
 
         Se `raw_text` (texto ORIGINAL, não anonimizado) for fornecido, a validação
         de CPF/CNPJ roda sobre ele — assim o mascaramento de PII para o LLM não
         degrada a checagem determinística.
         """
-        return AdmissibilityReport.from_items(
-            [
-                self._check_partes(summary),
-                self._check_qualificacao(summary, raw_text),
-                self._check_texto(Requisito.FATOS, summary.fato_gerador),
-                self._check_texto(Requisito.FUNDAMENTACAO, summary.fundamentacao),
-                self._check_pedidos(summary),
-                self._check_valor_causa(summary),
-                self._check_documentos(summary),
-            ]
-        )
-
-    @staticmethod
-    def _det(req: Requisito, presente: bool, evid: str | None, detalhe: str) -> ChecklistItem:
-        return ChecklistItem(
-            requisito=req,
-            presente=presente,
-            metodo=MetodoCheck.DETERMINISTICO,
-            evidencia=evid,
-            detalhe=detalhe,
-        )
-
-    def _check_partes(self, s: PetitionSummary) -> ChecklistItem:
-        tem_ativo = any(p.polo is Polo.ATIVO for p in s.partes)
-        tem_passivo = any(p.polo is Polo.PASSIVO for p in s.partes)
-        presente = tem_ativo and tem_passivo
-        return self._det(
-            Requisito.PARTES,
-            presente,
-            evid=f"{len(s.partes)} parte(s)",
-            detalhe="Polos ativo e passivo identificados."
-            if presente
-            else "Falta polo ativo/passivo.",
-        )
-
-    def _check_qualificacao(self, s: PetitionSummary, raw_text: str | None) -> ChecklistItem:
-        # Preferir o texto ORIGINAL (robusto ao mascaramento de PII no resumo do LLM).
-        if raw_text is not None:
-            doc = _scan_valid_documento(raw_text)
-            detalhe = "CPF/CNPJ válido no documento (checksum)." if doc else "Sem CPF/CNPJ válido."
-            return self._det(Requisito.QUALIFICACAO, doc is not None, doc, detalhe)
-        for parte in s.partes:
-            if parte.polo is Polo.ATIVO:
-                doc = _valid_documento(parte.documento)
-                if doc:
-                    return self._det(
-                        Requisito.QUALIFICACAO, True, doc, "CPF/CNPJ do autor válido (checksum)."
-                    )
-        return self._det(Requisito.QUALIFICACAO, False, None, "Autor sem CPF/CNPJ válido.")
-
-    def _check_texto(self, req: Requisito, valor: str) -> ChecklistItem:
-        presente = bool(valor and valor.strip())
-        return self._det(
-            req, presente, evid=None, detalhe="Campo presente." if presente else "Ausente."
-        )
-
-    def _check_pedidos(self, s: PetitionSummary) -> ChecklistItem:
-        presente = len(s.pedidos) > 0
-        return self._det(
-            Requisito.PEDIDOS,
-            presente,
-            evid=f"{len(s.pedidos)} pedido(s)",
-            detalhe="Pedidos formulados." if presente else "Nenhum pedido identificado.",
-        )
-
-    def _check_valor_causa(self, s: PetitionSummary) -> ChecklistItem:
-        valor = parse_valor_causa(s.valor_causa)
-        presente = valor is not None
-        return self._det(
-            Requisito.VALOR_CAUSA,
-            presente,
-            evid=valor.formatted if valor else s.valor_causa,
-            detalhe="Valor da causa válido." if presente else "Valor da causa ausente/ilegível.",
-        )
-
-    def _check_documentos(self, s: PetitionSummary) -> ChecklistItem:
-        mencionados = " ".join(s.documentos_mencionados).lower()
-        presente = any(doc in mencionados for doc in _DOCS_ESSENCIAIS)
-        return ChecklistItem(
-            requisito=Requisito.DOCUMENTOS,
-            presente=presente,
-            metodo=MetodoCheck.SEMANTICO,
-            evidencia=", ".join(s.documentos_mencionados) or None,
-            detalhe="Procuração mencionada." if presente else "Procuração não mencionada.",
-        )
+        return self._strategies[rito].run(summary, raw_text=raw_text)

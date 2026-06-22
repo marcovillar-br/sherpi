@@ -4,8 +4,8 @@ description: "Visão, problema, personas, histórias de usuário, escopo e métr
 doc_type: prd
 project: SHERPI
 status: approved
-version: 1.1
-updated: 2026-06-18
+version: 1.4
+updated: 2026-06-20
 language: pt-BR
 tags: [produto, requisitos, personas, metricas]
 ---
@@ -17,19 +17,19 @@ tags: [produto, requisitos, personas, metricas]
 | Campo | Valor |
 |---|---|
 | Documento | Documento de Requisitos de Produto (PRD) |
-| Versão | 1.1 |
+| Versão | 1.4 |
 | Status | Aprovado para MVP |
-| Natureza | MVP acadêmico (pós-graduação) — entrega em 2 sprints (2 semanas) + roadmap de produção |
-| Última atualização | 2026-06-18 |
+| Natureza | MVP acadêmico (pós-graduação) — entrega em 2 sprints (2 semanas) + Sprint 3 (multi-domínio) + roadmap de produção |
+| Última atualização | 2026-06-20 |
 
 ---
 
 ## 1. Visão e proposta de valor
 
-O SHERPI é um sistema de apoio à triagem de petições iniciais cíveis para gabinetes e secretarias do Judiciário brasileiro. Ele recebe o PDF de uma petição inicial e devolve, em segundos, três insumos para a decisão humana:
+O SHERPI é um sistema de apoio à triagem de petições iniciais para gabinetes e secretarias do Judiciário brasileiro. A arquitetura é **multi-domínio (rito-aware)**: hoje atende os ritos **cível** e **trabalhista**, com novos ritos (previdenciário, fiscal, família) entrando como encaixes incrementais (ver [ADR-0008](adr/0008-multi-domain-architecture.md)). Ele recebe a petição inicial (**PDF ou DOCX**) e devolve, em segundos, três insumos para a decisão humana:
 
 1. Um **laudo de integridade do documento** que detecta tentativas de *prompt injection* (comandos ocultos no PDF dirigidos a sistemas de IA) **antes** de qualquer envio do texto a um modelo de linguagem.
-2. Um **resumo estruturado** da petição (partes, fato gerador, fundamentação, pedidos, pedido de liminar, valor da causa) acompanhado de um **checklist de admissibilidade** baseado nos arts. 319 e 321 do CPC.
+2. Um **resumo estruturado** da petição (partes, fato gerador, fundamentação, pedidos, pedido de liminar, valor da causa) acompanhado de um **checklist de admissibilidade** adaptado ao **rito**: arts. 319 e 321 do CPC no cível e, no trabalhista, a exigência de **pedido líquido** do art. 840 §1º da CLT.
 3. Uma **sugestão de classificação TPU** (Tabelas Processuais Unificadas do CNJ): as três classes/assuntos mais prováveis, com grau de confiança.
 
 A proposta de valor é **devolver tempo cognitivo** ao magistrado e à sua equipe: reduzir o tempo de leitura/triagem de peças prolixas, antecipar a necessidade de emenda à inicial e padronizar a autuação — sempre como **apoio**, nunca como decisão automática. O diferencial técnico do produto é o **firewall anti prompt-injection**: um controle determinístico que ataca uma ameaça concreta e recente, ainda sem solução de mercado consolidada.
@@ -38,7 +38,7 @@ A proposta de valor é **devolver tempo cognitivo** ao magistrado e à sua equip
 
 - Não é um sistema de decisão automática. Toda saída é uma sugestão sujeita à supervisão humana obrigatória (*human-in-the-loop*).
 - Não é um classificador "pronto" com acurácia garantida. A classificação TPU é construída sobre embeddings + k-NN e tem acurácia **medida e reportada honestamente**, não prometida.
-- Não é, no MVP, uma integração com o PJe/E-Proc. A ingestão é por upload manual de PDF.
+- Não é, no MVP, uma integração com o PJe/E-Proc. A ingestão é por upload manual (PDF ou DOCX).
 
 ---
 
@@ -85,7 +85,7 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 **Extração e admissibilidade**
 
 - Como **assessor**, quero um resumo estruturado da petição (partes, fato gerador, fundamentação, pedidos, valor da causa), para não precisar ler dezenas de páginas de citações já conhecidas.
-- Como **assessor**, quero um checklist de admissibilidade (art. 319/321 do CPC) com semáforo, para decidir rapidamente se é caso de emenda à inicial.
+- Como **assessor**, quero um checklist de admissibilidade conforme o **rito** (art. 319/321 do CPC no cível; art. 840 §1º da CLT no trabalhista) com semáforo, para decidir rapidamente se é caso de emenda à inicial.
 - Como **magistrado**, quero um alerta destacado quando houver pedido de tutela de urgência/liminar, para priorizar o feito e evitar perecimento de direito.
 
 **Classificação**
@@ -103,16 +103,16 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 
 ### 5.1 Dentro do escopo (MVP)
 
-- Upload manual de PDF de petição inicial.
-- Firewall anti prompt-injection determinístico (PyMuPDF, sem LLM).
+- Upload manual de petição inicial em **PDF ou DOCX**.
+- Firewall anti prompt-injection determinístico (sem LLM): **PDF** (PyMuPDF) e **DOCX** (python-docx — útil para validar a peça **antes** de gerar o PDF). Detecta também documentos **sem camada de texto** (imagem/escaneado) e sinaliza no laudo, sem prosseguir para o LLM (OCR fica para a Fase 4).
 - Extração estruturada via LLM (provider injetável; default Gemini Flash).
 - Checagem de admissibilidade híbrida (validadores determinísticos + extração semântica).
 - Sugestão TPU (embedding JurisBERT + k-NN sobre seed rotulado).
 - Orquestração explícita: integridade → [BLOCK?] → extração → admissibilidade → TPU.
-- Persistência das análises (PostgreSQL + pgvector).
+- Persistência das análises (PostgreSQL); embeddings TPU como bytes (numpy/float32) + k-NN em Python, sem extensão pgvector.
 - Autenticação obrigatória (OAuth2 password + JWT, perfil único).
 - Registro de revisão humana e trilha de auditoria append-only.
-- Frontend Next.js: login, viewer de PDF, painel de extração, laudo de segurança.
+- Frontend Next.js: login, upload de PDF, painel de extração/resumo, laudo de segurança, sugestões de TPU, painel de revisão, **histórico de análises** (lista com filtros + detalhe) e **auditoria das chamadas ao LLM** (prompt anonimizado + resposta). Viewer de PDF embutido: Fase 4.
 - Dados **sintéticos primeiro** (synthetic-first) com injeções plantadas para avaliação.
 - Eval harness com métricas reportadas honestamente.
 
@@ -121,9 +121,11 @@ Essa fraude aniquila o contraditório (a contraparte não pode impugnar o que n�
 - Integração com PJe/E-Proc.
 - Autorização granular (RBAC), MFA, refresh tokens.
 - Detecção de litigância predatória por análise de rede/clustering entre processos.
-- Processamento de documentos anexos (procuração, comprovantes) por OCR/visão computacional.
+- Transcrição de documentos-imagem/anexos (procuração, comprovantes) por OCR/visão computacional. O MVP **detecta e sinaliza** PDFs sem camada de texto, mas não os transcreve (ver EP13 no [`backlog.md`](backlog.md)).
 - Execução assíncrona/fila para escala; containerização completa; deploy gerenciado.
 - Storage de blobs em S3/MinIO; criptografia em repouso; política de retenção/DPIA.
+
+> **Entregue na Sprint 3 (pós-MVP):** a arquitetura **rito-aware** ([ADR-0008](adr/0008-multi-domain-architecture.md)) e o **domínio trabalhista** (CLT art. 840 §1º — pedido líquido) estenderam a admissibilidade para além do cível, **sem alterar** firewall nem extração. O parâmetro `rito` em `POST /v1/analyze` seleciona a estratégia (default cível). Novos ritos entram como encaixes (ver [`roadmap.md`](roadmap.md)).
 
 ---
 
@@ -146,7 +148,7 @@ As métricas abaixo são **metas a medir** no eval harness sobre o dataset sint�
 | Firewall | Precision / Recall na detecção de injeções plantadas (por vetor) | Recall alto nos vetores cobertos; falsos positivos baixos |
 | Firewall | Tempo de análise por documento | Ordem de milissegundos a poucos segundos, sem chamada LLM |
 | Extração | F1 por campo (partes, pedidos, valor da causa, flag de liminar) | Reportado por campo; sem alucinação de campos ausentes |
-| Admissibilidade | Acurácia do checklist vs. ground truth (art. 319) | Validadores determinísticos: exatos; extração semântica: medida |
+| Admissibilidade | Acurácia do checklist vs. ground truth, por rito (CPC 319/321; CLT 840 §1º) | Validadores determinísticos: exatos; extração semântica: medida |
 | TPU | Acurácia top-1 e top-3 sobre o seed | Reportada honestamente, **sem prometer número** |
 | Produto | Tempo de triagem humano com vs. sem SHERPI (teste comparativo) | Redução mensurável do tempo de leitura/extração |
 
@@ -157,7 +159,7 @@ As métricas abaixo são **metas a medir** no eval harness sobre o dataset sint�
 | Risco | Descrição | Mitigação |
 |---|---|---|
 | **Decisão automática indevida** | Tratar a saída do sistema como decisão, violando o devido processo. | Invariante de domínio "nunca decisão automática"; *human-in-the-loop* obrigatório; registro de revisão; UI que rotula tudo como sugestão. |
-| **Vazamento de PII (LGPD)** | Envio de dados pessoais das partes a LLM externo (Gemini). | Synthetic-first no MVP; port `Anonymizer` (mascara CPF/CNPJ/nomes/endereços) antes do envio; sem PII em log. Fase 4: opção de LLM local, criptografia, retenção. |
+| **Vazamento de PII (LGPD)** | Envio de dados pessoais das partes a LLM externo (Gemini). | Synthetic-first no MVP; port `Anonymizer` mascara **CPF, CNPJ, e-mail, telefone, CEP e nomes das partes** antes do envio (nomes por regex ancorado, *best-effort* — ver [ADR-0010](adr/0010-name-masking-regex-vs-ner.md)); sem PII em log; retenção configurável. Fase 4: NER (Presidio) para nomes em texto livre, opção de LLM local, criptografia em repouso. |
 | **Segredo de justiça** | Processamento de peças sigilosas. | Dados sintéticos no MVP; em produção, classificação de sigilo e LLM on-prem para sensíveis. |
 | **Falso negativo do firewall** | Vetor de injeção não coberto pela heurística passa despercebido. | Firewall é heurístico e não pega tudo — combinado a *defensive prompting* (texto tratado como dado, não instrução) em defesa em profundidade; eval por vetor. |
 | **Falso positivo do firewall** | Bloquear peça legítima (ex.: ruído de digitalização). | Verdito gradual `BLOCK/WARN/PASS` com `risk_score`; revisão humana; calibração no eval. |
