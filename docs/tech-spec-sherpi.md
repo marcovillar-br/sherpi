@@ -4,7 +4,7 @@ description: "Arquitetura DDD/hexagonal, contratos, camada LLM, interpretabilida
 doc_type: tech-spec
 project: SHERPI
 status: approved
-version: 1.7
+version: 1.8
 updated: 2026-06-22
 language: pt-BR
 tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
@@ -15,9 +15,9 @@ tags: [arquitetura, ddd, hexagonal, api, llm, interpretabilidade]
 | Campo | Valor |
 |---|---|
 | Documento | Especificação Técnica |
-| Versão | 1.6 |
+| Versão | 1.8 |
 | Status | Aprovado para MVP |
-| Última atualização | 2026-06-20 |
+| Última atualização | 2026-06-22 |
 
 ---
 
@@ -136,9 +136,9 @@ permanece pseudonimizado; o resumo persistido contém PII (acesso por JWT; cript
 
 | VO | Campos |
 |---|---|
-| `PetitionSummary` | `partes: list[Parte]`, `fato_gerador: str`, `fundamentacao: str`, `pedidos: list[Pedido]`, `tem_liminar: bool`, `valor_causa: ValorCausa` |
-| `Parte` | `nome`, `documento: CPF \| CNPJ`, `polo` (ativo/passivo), `endereco?` |
-| `Pedido` | `descricao`, `tipo` (principal/liminar/subsidiário), `valor?` (texto, ex.: `"R$ 5.000,00"` — base do pedido líquido trabalhista) |
+| `PetitionSummary` | `court: str \| None`, `parties: list[Parte]`, `facts: str`, `legal_basis: str`, `claims: list[Pedido]`, `has_injunction: bool`, `claim_amount: str \| None`, `requests_evidence: bool`, `hearing_option: bool \| None`, `cited_documents: list[str]` |
+| `Parte` | `name`, `document: str \| None` (CPF/CNPJ como texto bruto), `pole: Polo` (ACTIVE/PASSIVE), `address?` |
+| `Pedido` | `description`, `type: ClaimType` (MAIN/INJUNCTION/SUBSIDIARY), `amount?` (texto, ex.: `"R$ 5.000,00"` — base do pedido líquido trabalhista) |
 
 Chamada com `temperature=0`; **saída validada por schema com retry**; *chunking* para petições com mais de ~100 páginas.
 
@@ -149,13 +149,13 @@ Chamada com `temperature=0`; **saída validada por schema com retry**; *chunking
 
 | VO | Campos |
 |---|---|
-| `AdmissibilityReport` | `checklist: list[ChecklistItem]`, `semaforo` (verde/amarelo/vermelho), `requer_emenda: bool` |
-| `ChecklistItem` | `requisito` (ex.: art. 319; `pedido_liquido` no trabalhista), `presente: bool`, `metodo` (determinístico/semântico) |
+| `AdmissibilityReport` | `items: list[ChecklistItem]`, `status: AdmissibilityStatus` (GREEN/YELLOW/RED), `requires_amendment: bool` |
+| `ChecklistItem` | `requirement: Requirement` (ex.: art. 319; `LIQUID_CLAIM` no trabalhista), `present: bool`, `method: CheckMethod` (DETERMINISTIC/SEMANTIC), `evidence?`, `detail?`, `caveat?` |
 
 `CheckAdmissibility` é um **dispatcher**: seleciona pelo `Rito` uma `AdmissibilityStrategy` (Protocol de domínio em `petition_analysis/domain/strategies.py`; registro `DEFAULT_STRATEGIES`) — ver [ADR-0008](adr/0008-multi-domain-architecture.md). Estratégias atuais:
 
 - **`CivelStrategy`** — arts. 319/321 do CPC (comportamento do MVP, inalterado).
-- **`TrabalhistaStrategy`** — reaproveita o checklist do art. 319 e acrescenta o requisito **`PEDIDO_LIQUIDO`** (CLT art. 840 §1º): todo `Pedido` precisa de `valor` parseável; pedido ilíquido → emenda (vermelho).
+- **`TrabalhistaStrategy`** — reaproveita o checklist do art. 319 e acrescenta o requisito **`LIQUID_CLAIM`** (CLT art. 840 §1º): todo `Pedido` precisa de `amount` parseável; pedido ilíquido → emenda (`RED`).
 
 - **Validadores determinísticos**: checksum de CPF (`validate-docbr`) e CNPJ (implementação própria — suporta formato alfanumérico RFB IN 2201/2023, vigência jul/2026), presença de valor da causa, presença de pedidos, pedido líquido (trabalhista).
 - **Extração semântica**: menções a documentos (ex.: comprovante de residência), que **não** são detectáveis por regex — separadas explicitamente dos validadores estruturados.
@@ -238,7 +238,7 @@ modelo é caixa-preta).
 |---|---|---|
 | **Firewall** (`DetectInjection`) | Caixa-branca (determinística) | O `ForensicsReport` é a própria explicação: lista cada `Anomaly` com vetor, severidade, **localização** (página/coordenadas) e **evidência** (o trecho oculto extraído). Reproduzível: mesma entrada → mesmo laudo. |
 | **Extração** (`ExtractPetition`) | Caixa-preta (LLM) | *Source grounding*: cada campo extraído carrega a **proveniência** (trecho/offset da petição que o sustenta), exibida ao lado do PDF. **Abstenção**: o schema permite `null` — o modelo declara "não encontrado" em vez de alucinar. `temperature=0` para reprodutibilidade. |
-| **Admissibilidade** (`CheckAdmissibility`) | Híbrida | Itens determinísticos são autoexplicativos (qual requisito, presente/ausente, e o `metodo`); itens semânticos citam a evidência textual. O `semaforo` rastreia até o item que o motivou. |
+| **Admissibilidade** (`CheckAdmissibility`) | Híbrida | Itens determinísticos são autoexplicativos (qual `requirement`, `present` true/false, e o `method`); itens semânticos citam a evidência textual. O `status` (semáforo verde/amarelo/vermelho) rastreia até o item que o motivou. |
 | **TPU** (`SuggestTpu`) | Interpretável por construção | k-NN é **explicação baseada em exemplos**: cada sugestão expõe o **vizinho mais próximo do catálogo** (`anchor_excerpt`) que a motivou; a confiança é o **escore híbrido** (cosseno denso + sobreposição léxica/IDF, ver §2.4) — não há *softmax* opaco. |
 
 ### 6.1 Confiança e calibração
